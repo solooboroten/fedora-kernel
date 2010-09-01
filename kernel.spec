@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-# % define buildid .local
+%define buildid .pnfs36_rc3.2010.08.30
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -104,21 +104,21 @@ Summary: The Linux kernel
 # kernel-smp (only valid for ppc 32-bit)
 %define with_smp       %{?_without_smp:       0} %{?!_without_smp:       1}
 # kernel-debug
-%define with_debug     %{?_without_debug:     0} %{?!_without_debug:     1}
+%define with_debug     %{?_without_debug:     0} %{?!_without_debug:     0}
 # kernel-doc
-%define with_doc       %{?_without_doc:       0} %{?!_without_doc:       1}
+%define with_doc       %{?_without_doc:       0} %{?!_without_doc:       0}
 # kernel-headers
-%define with_headers   %{?_without_headers:   0} %{?!_without_headers:   1}
+%define with_headers   %{?_without_headers:   0} %{?!_without_headers:   0}
 # kernel-firmware
-%define with_firmware  %{?_with_firmware:     1} %{?!_with_firmware:     0}
+%define with_firmware  %{?_with_firmware:     1} %{?!_with_firmware:     1}
 # tools/perf
-%define with_perf      %{?_without_perf:      0} %{?!_without_perf:      1}
+%define with_perf      %{?_without_perf:      0} %{?!_without_perf:      0}
 # kernel-debuginfo
-%define with_debuginfo %{?_without_debuginfo: 0} %{?!_without_debuginfo: 1}
+%define with_debuginfo %{?_without_debuginfo: 1} %{?!_without_debuginfo: 1}
 # kernel-bootwrapper (for creating zImages from kernel + initrd)
 %define with_bootwrapper %{?_without_bootwrapper: 0} %{?!_without_bootwrapper: 1}
 # Want to build a the vsdo directories installed
-%define with_vdso_install %{?_without_vdso_install: 0} %{?!_without_vdso_install: 1}
+%define with_vdso_install %{?_without_vdso_install: 0} %{?!_without_vdso_install: 0}
 
 # Build the kernel-doc package, but don't fail the build if it botches.
 # Here "true" means "continue" and "false" means "fail the build".
@@ -722,6 +722,10 @@ Patch12224: pci-v2-4-4-PCI-allocate-bus-resources-from-the-top-down.patch
 
 Patch12300: btusb-macbookpro-7-1.patch
 Patch12301: btusb-macbookpro-6-2.patch
+
+Patch30000: pnfs-all-2.6.36-rc3-2010-08-30.patch
+Patch30001: linux-2.6-pnfs-compile.patch
+Patch30002: linux-2.6.35-inline.patch
 
 %endif
 
@@ -1327,6 +1331,10 @@ ApplyPatch pci-v2-4-4-PCI-allocate-bus-resources-from-the-top-down.patch
 
 ApplyPatch btusb-macbookpro-7-1.patch
 ApplyPatch btusb-macbookpro-6-2.patch
+
+ApplyPatch pnfs-all-2.6.36-rc3-2010-08-30.patch
+ApplyPatch linux-2.6-pnfs-compile.patch
+ApplyPatch linux-2.6.35-inline.patch
 
 # END OF PATCH APPLICATIONS
 
@@ -2042,6 +2050,9 @@ fi
 
 * Wed Sep 01 2010 Kyle McMartin <kyle@redhat.com> - 2.6.36-0.13.rc3.git0
 - Swap back to roland's auto-updated utrace patches.
+
+* Wed Sep  1 2010  Steve Dickson <steved@redhat.com>
+- Updated to the latest pNFS tag: pnfs-all-2.6.36-rc3-2010-08-30
 
 * Mon Aug 30 2010 Kyle McMartin <kyle@redhat.com> - 2.6.36-0.12.rc3.git0
 - Linux 2.6.36-rc3
