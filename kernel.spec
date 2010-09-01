@@ -735,6 +735,10 @@ Patch30000: pnfs-all-2.6.36-rc3-2010-08-30.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
+Patch30000: pnfs-all-2.6.36-rc3-2010-08-30.patch
+Patch30001: linux-2.6-pnfs-compile.patch
+Patch30002: linux-2.6.35-inline.patch
+
 %endif
 
 BuildRoot: %{_tmppath}/kernel-%{KVERREL}-root
@@ -1346,6 +1350,10 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
+
+ApplyPatch pnfs-all-2.6.36-rc3-2010-08-30.patch
+ApplyPatch linux-2.6-pnfs-compile.patch
+ApplyPatch linux-2.6.35-inline.patch
 
 ApplyPatch pnfs-all-2.6.36-rc3-2010-08-30.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
