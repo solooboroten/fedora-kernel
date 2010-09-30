@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-%define buildid .pnfs36_rc3.2010.08.30
+%define buildid .pnfs_latest.rc6
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -725,7 +725,9 @@ Patch12205: runtime_pm_fixups.patch
 
 Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
-Patch30000: pnfs-all-2.6.36-rc3-2010-08-30.patch
+Patch12305: xhci_hcd-suspend-resume.patch
+
+Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
@@ -1352,7 +1354,9 @@ ApplyPatch acpi_reboot.patch
 # rhbz#605888
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
-ApplyPatch pnfs-all-2.6.36-rc3-2010-08-30.patch
+ApplyPatch xhci_hcd-suspend-resume.patch
+
+ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
