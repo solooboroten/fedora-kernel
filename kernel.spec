@@ -113,6 +113,8 @@ Summary: The Linux kernel
 %define with_firmware  %{?_with_firmware:     1} %{?!_with_firmware:     0}
 # tools/perf
 %define with_perf      %{?_without_perf:      0} %{?!_without_perf:      1}
+# lguest userspace portion (32-bit x86 only)
+%define with_lguest    %{?_without_lguest:    0} %{?!_without_lguest:    1}
 # kernel-debuginfo
 %define with_debuginfo %{?_without_debuginfo: 0} %{?!_without_debuginfo: 1}
 # kernel-bootwrapper (for creating zImages from kernel + initrd)
@@ -271,6 +273,11 @@ Summary: The Linux kernel
 # only package docs noarch
 %ifnarch noarch
 %define with_doc 0
+%endif
+
+# don't build lguest on anything but i686
+%ifnarch i686
+%define with_lguest 0
 %endif
 
 # don't build noarch kernels or headers (duh)
@@ -796,6 +803,14 @@ License: GPLv2
 This package provides the perf tool and the supporting documentation.
 %endif
 
+
+%package -n lguest
+Summary: User space portion of a simple x86 hypervisor
+Group: Development/System
+%description -n lguest
+Lguest is a simple hypervisor for x86 architecture. It consists
+of a lg kernel module and userspace portion contained in this package.
+It allows you to run multiple copies of the same 32-bit kernel.
 
 #
 # This macro creates a kernel-<subpackage>-debuginfo package.
@@ -1464,6 +1479,10 @@ BuildKernel() {
     make -s ARCH=$Arch V=1 %{?_smp_mflags} $MakeTarget %{?sparse_mflags}
     make -s ARCH=$Arch V=1 %{?_smp_mflags} modules %{?sparse_mflags} || exit 1
 
+%if %{with_lguest}
+    make -C Documentation/lguest
+%endif
+
     # Start installing the results
 %if %{with_debuginfo}
     mkdir -p $RPM_BUILD_ROOT%{debuginfodir}/boot
@@ -1715,6 +1734,11 @@ ls $man9dir | grep -q '' || > $man9dir/BROKEN
 %{perf_make} DESTDIR=$RPM_BUILD_ROOT install-man || %{doc_build_fail}
 %endif
 
+%if %{with_lguest}
+mkdir -p $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 Documentation/lguest/lguest $RPM_BUILD_ROOT/usr/sbin/
+%endif
+
 %if %{with_headers}
 # Install kernel headers
 make ARCH=%{hdrarch} INSTALL_HDR_PATH=$RPM_BUILD_ROOT/usr headers_install
@@ -1881,7 +1905,17 @@ fi
 %{_mandir}/man[1-8]/*
 %endif
 
+<<<<<<< HEAD
 # This is %%{image_install_path} on an arch where that includes ELF files,
+=======
+%if %{with_lguest}
+%files -n lguest
+%defattr(-,root,root)
+/usr/sbin/lguest
+%endif
+
+# This is %{image_install_path} on an arch where that includes ELF files,
+>>>>>>> fa9b05c... Add lguest subpackage
 # or empty otherwise.
 %define elf_image_install_path %{?kernel_image_elf:%{image_install_path}}
 
@@ -1953,6 +1987,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Wed Nov 03 2010 Lubomir Rintel <lkundrak@v3.sk>
+- Add lguest subpackage (rhbz#588125)
+
 * Wed Oct 20 2010 Chuck Ebbert <cebbert@redhat.com> 2.6.36-1
 - Linux 2.6.36
 
@@ -1965,6 +2002,39 @@ fi
 
 * Mon Oct 18 2010 Kyle McMartin <kyle@redhat.com> 2.6.36-0.40.rc8.git0
 - Backport xHCI suspend/resume code from linux-next.
+
+* Tue Nov 02 2010 Ben Skeggs <bskeggs@redhat.com> 2.6.35.6-50
+- nouveau: add potential workaround for NV86 hardware quirk
+- fix issue that occurs in certain dual-head configurations (rhbz#641524)
+
+* Sat Oct 23 2010 Jarod Wilson <jarod@redhat.com> 2.6.35.6-49
+- Fix brown paper bag bug in imon driver
+
+* Fri Oct 22 2010 Chuck Ebbert <cebbert@redhat.com> 2.6.35.6-48
+- drm-i915-sanity-check-pread-pwrite.patch;
+   fix CVE-2010-2962, arbitrary kernel memory write via i915 GEM ioctl
+- kvm-fix-fs-gs-reload-oops-with-invalid-ldt.patch;
+   fix CVE-2010-3698, kvm: invalid selector in fs/gs causes kernel panic
+- v4l1-fix-32-bit-compat-microcode-loading-translation.patch;
+   fixes CVE-2010-2963, v4l: VIDIOCSMICROCODE arbitrary write
+
+* Fri Oct 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.35.6-47
+- tpm-autodetect-itpm-devices.patch: Auto-fix TPM issues on various
+  laptops which prevented suspend/resume.
+- depessimize-rds_copy_page_user.patch: Fix CVE-2010-3904, local
+  privilege escalation via RDS protocol.
+
+* Mon Oct 18 2010 Kyle McMartin <kyle@redhat.com> 2.6.35.6-46
+- Add Ricoh e822 support. (rhbz#596475) Thanks to sgruszka@ for
+  sending the patches in.
+
+* Mon Oct 18 2010 Kyle McMartin <kyle@redhat.com> 2.6.35.6-45
+- Print a useful message when disabling IOMMU when a Ricoh cardreader
+  is probed.
+- Disable eDP pipe bringup on i915 since it won't work anyway, and changes
+  away from text-mode, resulting in nothing but a backlight on a lot of
+  laptops. (rhbz#639146)
+>>>>>>> fa9b05c... Add lguest subpackage
 
 * Mon Oct 18 2010 Kyle McMartin <kyle@redhat.com>
 - ima: Default it to off, pass ima=on to enable. Reduce impact of the option
