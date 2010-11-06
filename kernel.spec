@@ -24,6 +24,7 @@ Summary: The Linux kernel
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
 # % define buildid .local
+%define buildid .xendom0
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -223,6 +224,7 @@ Summary: The Linux kernel
 # kernel-PAE is only built on i686.
 %ifarch i686
 %define with_pae 1
+%define with_up 0
 %else
 %define with_pae 0
 %endif
