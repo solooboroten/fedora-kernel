@@ -6,7 +6,7 @@ Summary: The Linux kernel
 # For a stable, released kernel, released_kernel should be 1. For rawhide
 # and/or a kernel built from an rc or git snapshot, released_kernel should
 # be 0.
-%global released_kernel 1
+%global released_kernel 0
 
 # Save original buildid for later if it's defined
 %if 0%{?buildid:1}
@@ -82,9 +82,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 8
+%define rcrev 1
 # The git snapshot level
-%define gitrev 5
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -676,8 +676,6 @@ Patch2912: linux-2.6-v4l-dvb-ir-core-update.patch
 #Patch2916: lirc-staging-2.6.36-fixes.patch
 Patch2917: hdpvr-ir-enable.patch
 
-Patch3000: linux-2.6-rcu-sched-warning.patch
-
 # fs fixes
 
 # NFSv4
@@ -694,35 +692,13 @@ Patch12018: neuter_intel_microcode_load.patch
 
 Patch12030: tpm-fix-stall-on-boot.patch
 
-# Wacom Bamboo
-Patch12100: wacom-01-add-fuzz-parameters-to-features.patch
-Patch12105: wacom-02-parse-the-bamboo-device-family.patch
-Patch12110: wacom-03-collect-device-quirks-into-single-function.patch
-Patch12115: wacom-04-add-support-for-the-bamboo-touch-trackpad.patch
-Patch12120: wacom-05-add-a-quirk-for-low-resolution-bamboo-devices.patch
-Patch12125: wacom-06-request-tablet-data-for-bamboo-pens.patch
-Patch12130: wacom-07-move-bamboo-touch-irq-to-its-own-function.patch
-Patch12135: wacom-08-add-support-for-bamboo-pen.patch
-Patch12140: wacom-09-disable-bamboo-touchpad-when-pen-is-being-used.patch
-
 # Runtime power management
 Patch12200: linux-2.6-bluetooth-autosuspend.patch
-Patch12201: linux-2.6-uvc-autosuspend.patch
-Patch12202: linux-2.6-qcserial-autosuspend.patch
 Patch12203: linux-2.6-usb-pci-autosuspend.patch
 Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
 Patch12205: runtime_pm_fixups.patch
 
-Patch12225: pci-crs-fixes.patch
-
-Patch12300: btusb-macbookpro-7-1.patch
-Patch12301: btusb-macbookpro-6-2.patch
-
-Patch12302: pnpacpi-cope-with-invalid-device-ids.patch
-
 Patch12303: dmar-disable-when-ricoh-multifunction.patch
-
-Patch12305: xhci_hcd-suspend-resume.patch
 
 %endif
 
@@ -1142,7 +1118,7 @@ ApplyPatch linux-2.6-hotfixes.patch
 # Roland's utrace ptrace replacement.
 ApplyPatch linux-2.6-tracehook.patch
 ApplyPatch linux-2.6-utrace.patch
-ApplyPatch linux-2.6-utrace-ptrace.patch
+#ApplyPatch linux-2.6-utrace-ptrace.patch
 
 # Architecture patches
 # x86(-64)
@@ -1208,7 +1184,7 @@ ApplyPatch linux-2.6-defaults-pci_use_crs.patch
 # enable ASPM by default on hardware we expect to work
 ApplyPatch linux-2.6-defaults-aspm.patch
 
-ApplyPatch ima-allow-it-to-be-completely-disabled-and-default-off.patch
+#ApplyPatch ima-allow-it-to-be-completely-disabled-and-default-off.patch
 
 #
 # SCSI Bits.
@@ -1294,9 +1270,6 @@ ApplyOptionalPatch linux-2.6-v4l-dvb-experimental.patch
 # enable IR receiver on Hauppauge HD PVR (v4l-dvb merge pending)
 ApplyPatch hdpvr-ir-enable.patch
 
-# silence another rcu_reference warning
-ApplyPatch linux-2.6-rcu-sched-warning.patch
-
 # Patches headed upstream
 ApplyPatch disable-i8042-check-on-apple-mac.patch
 
@@ -1307,39 +1280,14 @@ ApplyPatch neuter_intel_microcode_load.patch
 # try to fix stalls during boot (#530393)
 ApplyPatch tpm-fix-stall-on-boot.patch
 
-# Wacom Bamboo
-ApplyPatch wacom-01-add-fuzz-parameters-to-features.patch
-ApplyPatch wacom-02-parse-the-bamboo-device-family.patch
-ApplyPatch wacom-03-collect-device-quirks-into-single-function.patch
-ApplyPatch wacom-04-add-support-for-the-bamboo-touch-trackpad.patch
-ApplyPatch wacom-05-add-a-quirk-for-low-resolution-bamboo-devices.patch
-ApplyPatch wacom-06-request-tablet-data-for-bamboo-pens.patch
-ApplyPatch wacom-07-move-bamboo-touch-irq-to-its-own-function.patch
-ApplyPatch wacom-08-add-support-for-bamboo-pen.patch
-ApplyPatch wacom-09-disable-bamboo-touchpad-when-pen-is-being-used.patch
-
 # Runtime PM
 ApplyPatch linux-2.6-bluetooth-autosuspend.patch
-ApplyPatch linux-2.6-uvc-autosuspend.patch
-ApplyPatch linux-2.6-qcserial-autosuspend.patch
 ApplyPatch linux-2.6-usb-pci-autosuspend.patch
 ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
 ApplyPatch runtime_pm_fixups.patch
 
-# PCI patches to fix problems with _CRS
-# ( from linux-pci list )
-ApplyPatch pci-crs-fixes.patch
-
-ApplyPatch btusb-macbookpro-7-1.patch
-ApplyPatch btusb-macbookpro-6-2.patch
-
-# rhbz#641468
-ApplyPatch pnpacpi-cope-with-invalid-device-ids.patch
-
 # rhbz#605888
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
-
-ApplyPatch xhci_hcd-suspend-resume.patch
 
 # END OF PATCH APPLICATIONS
 
@@ -1953,6 +1901,16 @@ fi
 #                 ||     ||
 
 %changelog
+* Tue Nov 02 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc1.git0
+- Linux 2.6.37-rc1
+
+* Tue Oct 26 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc0.git8
+- Linux 2.6.36-git8
+
+* Fri Oct 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc0.git2
+- Switch to tracking git snapshots of what will become 2.6.37.
+- Fix context rejects in utrace and a few other patches.
+
 * Wed Oct 20 2010 Chuck Ebbert <cebbert@redhat.com> 2.6.36-1
 - Linux 2.6.36
 
