@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-%define buildid .pnfs_latest.rc6
+%define buildid .pnfs_all_2010_11_03
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -735,7 +735,7 @@ Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
-Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
+Patch30000: pnfs-all-2.6.36-2010-11-03.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
@@ -1372,7 +1372,7 @@ ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
-ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
+ApplyPatch pnfs-all-2.6.36-2010-11-03.patch 
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
