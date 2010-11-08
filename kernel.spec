@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-%define buildid .pnfs_latest.rc6
+%define buildid .pnfs_all_2010_11_03
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -739,7 +739,7 @@ Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
-Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
+Patch30000: pnfs-all-2.6.36-2010-11-03.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
@@ -1363,7 +1363,7 @@ ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
-ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
+ApplyPatch pnfs-all-2.6.36-2010-11-03.patch 
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
@@ -2255,6 +2255,9 @@ fi
 * Fri Oct 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc0.git2
 - Switch to tracking git snapshots of what will become 2.6.37.
 - Fix context rejects in utrace and a few other patches.
+
+* Mon Nov  8 2010 Steve Dickson <steved@redhat.com> 
+- Updated to the latest pNFS tag: pnfs-all-2.6.36-2010-11-03
 
 * Wed Oct 20 2010 Chuck Ebbert <cebbert@redhat.com> 2.6.36-1
 - Linux 2.6.36
