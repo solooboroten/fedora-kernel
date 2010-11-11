@@ -1,0 +1,39 @@
+commit 313e74412105c670ff8900ec8099a3a5df1fa83c
+Author: Vasiliy Kulikov <segooon@gmail.com>
+Date:   Thu Oct 28 15:39:02 2010 +0400
+
+    xen: xenfs: privcmd: check put_user() return code
+    
+    put_user() may fail.  In this case propagate error code from
+    privcmd_ioctl_mmap_batch().
+    
+    Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+    Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+
+diff --git a/drivers/xen/xenfs/privcmd.c b/drivers/xen/xenfs/privcmd.c
+index f80be7f..2eb04c8 100644
+--- a/drivers/xen/xenfs/privcmd.c
++++ b/drivers/xen/xenfs/privcmd.c
+@@ -266,9 +266,7 @@ static int mmap_return_errors(void *data, void *state)
+ 	xen_pfn_t *mfnp = data;
+ 	struct mmap_batch_state *st = state;
+ 
+-	put_user(*mfnp, st->user++);
+-
+-	return 0;
++	return put_user(*mfnp, st->user++);
+ }
+ 
+ static struct vm_operations_struct privcmd_vm_ops;
+@@ -323,10 +321,8 @@ static long privcmd_ioctl_mmap_batch(void __user *udata)
+ 	up_write(&mm->mmap_sem);
+ 
+ 	if (state.err > 0) {
+-		ret = 0;
+-
+ 		state.user = m.arr;
+-		traverse_pages(m.num, sizeof(xen_pfn_t),
++		ret = traverse_pages(m.num, sizeof(xen_pfn_t),
+ 			       &pagelist,
+ 			       mmap_return_errors, &state);
+ 	}
