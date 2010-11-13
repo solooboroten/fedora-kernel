@@ -1,14 +1,427 @@
-commit 313e74412105c670ff8900ec8099a3a5df1fa83c
-Author: Vasiliy Kulikov <segooon@gmail.com>
-Date:   Thu Oct 28 15:39:02 2010 +0400
+From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 20 Feb 2009 12:58:42 -0800
+Subject: [PATCH 01/21] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
 
-    xen: xenfs: privcmd: check put_user() return code
-    
-    put_user() may fail.  In this case propagate error code from
-    privcmd_ioctl_mmap_batch().
-    
-    Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-    Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Set _PAGE_IOMAP in ptes mapping a VM_IO vma.  This says that the mapping
+is of a real piece of physical hardware, and not just system memory.
+
+Xen, in particular, uses to this to inhibit the normal pfn->mfn conversion
+that would normally happen - in other words, treat the address directly
+as a machine physical address without converting it from pseudo-physical.
+
+[ Impact: make VM_IO mappings map the right thing under Xen ]
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/pgtable.h |    3 +++
+ arch/x86/mm/pgtable.c          |   10 ++++++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index a34c785..7198bcf 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -399,6 +399,9 @@ static inline unsigned long pages_to_mb(unsigned long npg)
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)	\
+ 	remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
++#define arch_vm_get_page_prot arch_vm_get_page_prot
++extern pgprot_t arch_vm_get_page_prot(unsigned vm_flags);
++
+ #if PAGETABLE_LEVELS > 2
+ static inline int pud_none(pud_t pud)
+ {
+diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
+index 5c4ee42..5083449 100644
+--- a/arch/x86/mm/pgtable.c
++++ b/arch/x86/mm/pgtable.c
+@@ -15,6 +15,16 @@
+ 
+ gfp_t __userpte_alloc_gfp = PGALLOC_GFP | PGALLOC_USER_GFP;
+ 
++pgprot_t arch_vm_get_page_prot(unsigned vm_flags)
++{
++	pgprot_t ret = __pgprot(0);
++
++	if (vm_flags & VM_IO)
++		ret = __pgprot(_PAGE_IOMAP);
++
++	return ret;
++}
++
+ pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
+ {
+ 	return (pte_t *)__get_free_page(PGALLOC_GFP);
+-- 
+1.7.3.2
+
+
+From 5527f9bee43a910b019ad77d7de6620b3412759b Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 2 Oct 2009 09:49:05 -0700
+Subject: [PATCH 02/21] drm: recompute vma->vm_page_prot after changing vm_flags
+
+vm_get_page_prot() computes vm_page_prot depending on vm_flags, so
+we need to re-call it if we change flags.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/gpu/drm/ttm/ttm_bo_vm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_vm.c b/drivers/gpu/drm/ttm/ttm_bo_vm.c
+index fe6cb77..2d15c5e 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_vm.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_vm.c
+@@ -273,6 +273,7 @@ int ttm_bo_mmap(struct file *filp, struct vm_area_struct *vma,
+ 
+ 	vma->vm_private_data = bo;
+ 	vma->vm_flags |= VM_RESERVED | VM_IO | VM_MIXEDMAP | VM_DONTEXPAND;
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 	return 0;
+ out_unref:
+ 	ttm_bo_unref(&bo);
+@@ -288,6 +289,7 @@ int ttm_fbdev_mmap(struct vm_area_struct *vma, struct ttm_buffer_object *bo)
+ 	vma->vm_ops = &ttm_bo_vm_ops;
+ 	vma->vm_private_data = ttm_bo_reference(bo);
+ 	vma->vm_flags |= VM_RESERVED | VM_IO | VM_MIXEDMAP | VM_DONTEXPAND;
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(ttm_fbdev_mmap);
+-- 
+1.7.3.2
+
+
+From 66aae0dade39748bb7e068c4518c6160394ae3aa Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 25 Feb 2010 16:38:29 -0800
+Subject: [PATCH 03/21] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
+
+When mapping AGP memory, the offset is a machine address.  In Xen we
+need to make sure mappings of physical machine addresses have _PAGE_IO
+included in the PTE, so use PAGE_KERNEL_IO_NOCACHE for these mappings.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/pgtable_64.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index 076052c..3038ef6 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -160,7 +160,7 @@ extern void cleanup_highmap(void);
+ #define pgtable_cache_init()   do { } while (0)
+ #define check_pgt_cache()      do { } while (0)
+ 
+-#define PAGE_AGP    PAGE_KERNEL_NOCACHE
++#define PAGE_AGP    PAGE_KERNEL_IO_NOCACHE
+ #define HAVE_PAGE_AGP 1
+ 
+ /* fs/proc/kcore.c */
+-- 
+1.7.3.2
+
+
+From 4cd35860df16d7d3bd55ce4d4500bfe59c46a849 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 24 Feb 2010 11:10:45 -0800
+Subject: [PATCH 04/21] agp: use DMA API when compiled for Xen as well
+
+Xen guests need translation between pseudo-physical and real machine
+physical addresses when accessing graphics devices, so use the DMA API
+in that case too.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/char/agp/intel-gtt.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/char/agp/intel-gtt.c b/drivers/char/agp/intel-gtt.c
+index 75e0a34..ce63e5c 100644
+--- a/drivers/char/agp/intel-gtt.c
++++ b/drivers/char/agp/intel-gtt.c
+@@ -20,8 +20,12 @@
+  * an Intel IOMMU. So make the correct use of the PCI DMA API contingent
+  * on the Intel IOMMU support (CONFIG_DMAR).
+  * Only newer chipsets need to bother with this, of course.
++ *
++ * Xen guests accessing graphics hardware also need proper translation
++ * between pseudo-physical addresses and real machine addresses, which
++ * is also achieved by using the DMA API.
+  */
+-#ifdef CONFIG_DMAR
++#if defined(CONFIG_DMAR) || defined(CONFIG_XEN)
+ #define USE_PCI_DMA_API 1
+ #else
+ #define USE_PCI_DMA_API 0
+-- 
+1.7.3.2
+
+
+From 31b643ec05a644705d75d6d047917710b414487e Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Thu, 30 Sep 2010 12:37:26 +0100
+Subject: [PATCH 05/21] xen: implement XENMEM_machphys_mapping
+
+This hypercall allows Xen to specify a non-default location for the
+machine to physical mapping. This capability is used when running a 32
+bit domain 0 on a 64 bit hypervisor to shrink the hypervisor hole to
+exactly the size required.
+
+[ Impact: add Xen hypercall definitions ]
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+---
+ arch/x86/include/asm/xen/interface.h    |    6 +++---
+ arch/x86/include/asm/xen/interface_32.h |    5 +++++
+ arch/x86/include/asm/xen/interface_64.h |   13 +------------
+ arch/x86/include/asm/xen/page.h         |    7 ++++---
+ arch/x86/xen/enlighten.c                |    7 +++++++
+ arch/x86/xen/mmu.c                      |   14 ++++++++++++++
+ include/xen/interface/memory.h          |   13 +++++++++++++
+ 7 files changed, 47 insertions(+), 18 deletions(-)
+
+diff --git a/arch/x86/include/asm/xen/interface.h b/arch/x86/include/asm/xen/interface.h
+index e8506c1..1c10c88 100644
+--- a/arch/x86/include/asm/xen/interface.h
++++ b/arch/x86/include/asm/xen/interface.h
+@@ -61,9 +61,9 @@ DEFINE_GUEST_HANDLE(void);
+ #define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
+ #endif
+ 
+-#ifndef machine_to_phys_mapping
+-#define machine_to_phys_mapping ((unsigned long *)HYPERVISOR_VIRT_START)
+-#endif
++#define MACH2PHYS_VIRT_START  mk_unsigned_long(__MACH2PHYS_VIRT_START)
++#define MACH2PHYS_VIRT_END    mk_unsigned_long(__MACH2PHYS_VIRT_END)
++#define MACH2PHYS_NR_ENTRIES  ((MACH2PHYS_VIRT_END-MACH2PHYS_VIRT_START)>>__MACH2PHYS_SHIFT)
+ 
+ /* Maximum number of virtual CPUs in multi-processor guests. */
+ #define MAX_VIRT_CPUS 32
+diff --git a/arch/x86/include/asm/xen/interface_32.h b/arch/x86/include/asm/xen/interface_32.h
+index 42a7e00..8413688 100644
+--- a/arch/x86/include/asm/xen/interface_32.h
++++ b/arch/x86/include/asm/xen/interface_32.h
+@@ -32,6 +32,11 @@
+ /* And the trap vector is... */
+ #define TRAP_INSTR "int $0x82"
+ 
++#define __MACH2PHYS_VIRT_START 0xF5800000
++#define __MACH2PHYS_VIRT_END   0xF6800000
++
++#define __MACH2PHYS_SHIFT      2
++
+ /*
+  * Virtual addresses beyond this are not modifiable by guest OSes. The
+  * machine->physical mapping table starts at this address, read-only.
+diff --git a/arch/x86/include/asm/xen/interface_64.h b/arch/x86/include/asm/xen/interface_64.h
+index 100d266..839a481 100644
+--- a/arch/x86/include/asm/xen/interface_64.h
++++ b/arch/x86/include/asm/xen/interface_64.h
+@@ -39,18 +39,7 @@
+ #define __HYPERVISOR_VIRT_END   0xFFFF880000000000
+ #define __MACH2PHYS_VIRT_START  0xFFFF800000000000
+ #define __MACH2PHYS_VIRT_END    0xFFFF804000000000
+-
+-#ifndef HYPERVISOR_VIRT_START
+-#define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
+-#define HYPERVISOR_VIRT_END   mk_unsigned_long(__HYPERVISOR_VIRT_END)
+-#endif
+-
+-#define MACH2PHYS_VIRT_START  mk_unsigned_long(__MACH2PHYS_VIRT_START)
+-#define MACH2PHYS_VIRT_END    mk_unsigned_long(__MACH2PHYS_VIRT_END)
+-#define MACH2PHYS_NR_ENTRIES  ((MACH2PHYS_VIRT_END-MACH2PHYS_VIRT_START)>>3)
+-#ifndef machine_to_phys_mapping
+-#define machine_to_phys_mapping ((unsigned long *)HYPERVISOR_VIRT_START)
+-#endif
++#define __MACH2PHYS_SHIFT       3
+ 
+ /*
+  * int HYPERVISOR_set_segment_base(unsigned int which, unsigned long base)
+diff --git a/arch/x86/include/asm/xen/page.h b/arch/x86/include/asm/xen/page.h
+index bf5f7d3..d5fb2e8 100644
+--- a/arch/x86/include/asm/xen/page.h
++++ b/arch/x86/include/asm/xen/page.h
+@@ -5,6 +5,7 @@
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
+ #include <linux/pfn.h>
++#include <linux/mm.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+@@ -35,6 +36,8 @@ typedef struct xpaddr {
+ #define MAX_DOMAIN_PAGES						\
+     ((unsigned long)((u64)CONFIG_XEN_MAX_DOMAIN_MEMORY * 1024 * 1024 * 1024 / PAGE_SIZE))
+ 
++extern unsigned long *machine_to_phys_mapping;
++extern unsigned int   machine_to_phys_order;
+ 
+ extern unsigned long get_phys_to_machine(unsigned long pfn);
+ extern void set_phys_to_machine(unsigned long pfn, unsigned long mfn);
+@@ -62,10 +65,8 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
+ 	if (xen_feature(XENFEAT_auto_translated_physmap))
+ 		return mfn;
+ 
+-#if 0
+ 	if (unlikely((mfn >> machine_to_phys_order) != 0))
+-		return max_mapnr;
+-#endif
++		return ~0;
+ 
+ 	pfn = 0;
+ 	/*
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 7d46c84..adfc2f4 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -74,6 +74,11 @@ DEFINE_PER_CPU(struct vcpu_info, xen_vcpu_info);
+ enum xen_domain_type xen_domain_type = XEN_NATIVE;
+ EXPORT_SYMBOL_GPL(xen_domain_type);
+ 
++unsigned long *machine_to_phys_mapping = (void *)MACH2PHYS_VIRT_START;
++EXPORT_SYMBOL(machine_to_phys_mapping);
++unsigned int   machine_to_phys_order;
++EXPORT_SYMBOL(machine_to_phys_order);
++
+ struct start_info *xen_start_info;
+ EXPORT_SYMBOL_GPL(xen_start_info);
+ 
+@@ -1098,6 +1103,8 @@ asmlinkage void __init xen_start_kernel(void)
+ 
+ 	xen_domain_type = XEN_PV_DOMAIN;
+ 
++	xen_setup_machphys_mapping();
++
+ 	/* Install Xen paravirt ops */
+ 	pv_info = xen_info;
+ 	pv_init_ops = xen_init_ops;
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index 42086ac..9625f2a 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -1737,6 +1737,20 @@ static __init void xen_map_identity_early(pmd_t *pmd, unsigned long max_pfn)
+ 	set_page_prot(pmd, PAGE_KERNEL_RO);
+ }
+ 
++void __init xen_setup_machphys_mapping(void)
++{
++	struct xen_machphys_mapping mapping;
++	unsigned long machine_to_phys_nr_ents;
++
++	if (HYPERVISOR_memory_op(XENMEM_machphys_mapping, &mapping) == 0) {
++		machine_to_phys_mapping = (unsigned long *)mapping.v_start;
++		machine_to_phys_nr_ents = mapping.max_mfn + 1;
++	} else {
++		machine_to_phys_nr_ents = MACH2PHYS_NR_ENTRIES;
++	}
++	machine_to_phys_order = fls(machine_to_phys_nr_ents - 1);
++}
++
+ #ifdef CONFIG_X86_64
+ static void convert_pfn_mfn(void *v)
+ {
+diff --git a/include/xen/interface/memory.h b/include/xen/interface/memory.h
+index d3938d3..134d33d 100644
+--- a/include/xen/interface/memory.h
++++ b/include/xen/interface/memory.h
+@@ -141,6 +141,19 @@ struct xen_machphys_mfn_list {
+ DEFINE_GUEST_HANDLE_STRUCT(xen_machphys_mfn_list);
+ 
+ /*
++ * Returns the location in virtual address space of the machine_to_phys
++ * mapping table. Architectures which do not have a m2p table, or which do not
++ * map it by default into guest address space, do not implement this command.
++ * arg == addr of xen_machphys_mapping_t.
++ */
++#define XENMEM_machphys_mapping     12
++struct xen_machphys_mapping {
++    unsigned long v_start, v_end; /* Start and end virtual addresses.   */
++    unsigned long max_mfn;        /* Maximum MFN that can be looked up. */
++};
++DEFINE_GUEST_HANDLE_STRUCT(xen_machphys_mapping_t);
++
++/*
+  * Sets the GPFN at which a particular page appears in the specified guest's
+  * pseudophysical address space.
+  * arg == addr of xen_add_to_physmap_t.
+-- 
+1.7.3.2
+
+
+From 4ffb5de0f02bad2b0ebe7a9a6a45bc5855c15369 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 9 Aug 2010 14:35:36 -0700
+Subject: [PATCH 06/21] pvops: make pte_flags() go via pvops
+
+As part of PAT support in Xen we need to fiddle with the page flags.
+For consistency, we need to make sure the conversion happens both ways
+when converting from kernel<->Xen, so pte_flags() must go via pvops.
+
+Unfortunately this undermines the original rationale for introducing
+pte_flags (which avoids a pvop call for a common operation in the
+mm code)...
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/pgtable.h       |    5 +++++
+ arch/x86/include/asm/pgtable_types.h |    5 -----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 7198bcf..ce5b845 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -78,6 +78,11 @@ extern struct list_head pgd_list;
+ 
+ #endif	/* CONFIG_PARAVIRT */
+ 
++static inline pteval_t pte_flags(pte_t pte)
++{
++	return pte_val(pte) & PTE_FLAGS_MASK;
++}
++
+ /*
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index d1f4a76..a81b0ed 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -265,11 +265,6 @@ static inline pteval_t native_pte_val(pte_t pte)
+ 	return pte.pte;
+ }
+ 
+-static inline pteval_t pte_flags(pte_t pte)
+-{
+-	return native_pte_val(pte) & PTE_FLAGS_MASK;
+-}
+-
+ #define pgprot_val(x)	((x).pgprot)
+ #define __pgprot(x)	((pgprot_t) { (x) } )
+ 
+-- 
+1.7.3.2
+
+
+From 313e74412105c670ff8900ec8099a3a5df1fa83c Mon Sep 17 00:00:00 2001
+From: Vasiliy Kulikov <segooon@gmail.com>
+Date: Thu, 28 Oct 2010 15:39:02 +0400
+Subject: [PATCH 07/21] xen: xenfs: privcmd: check put_user() return code
+
+put_user() may fail.  In this case propagate error code from
+privcmd_ioctl_mmap_batch().
+
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/privcmd.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/xen/xenfs/privcmd.c b/drivers/xen/xenfs/privcmd.c
 index f80be7f..2eb04c8 100644
@@ -37,3 +450,1762 @@ index f80be7f..2eb04c8 100644
  			       &pagelist,
  			       mmap_return_errors, &state);
  	}
+-- 
+1.7.3.2
+
+
+From a2d771c036eb8c040683089ca04c36dfb93a0e60 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Fri, 29 Oct 2010 16:56:19 +0100
+Subject: [PATCH 08/21] xen: correct size of level2_kernel_pgt
+
+sizeof(pmd_t *) is 4 bytes on 32-bit PAE leading to an allocation of
+only 2048 bytes. The correct size is sizeof(pmd_t) giving us a full
+page allocation.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index c237b81..21ed8d7 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -2126,7 +2126,7 @@ __init pgd_t *xen_setup_kernel_pagetable(pgd_t *pgd,
+ {
+ 	pmd_t *kernel_pmd;
+ 
+-	level2_kernel_pgt = extend_brk(sizeof(pmd_t *) * PTRS_PER_PMD, PAGE_SIZE);
++	level2_kernel_pgt = extend_brk(sizeof(pmd_t) * PTRS_PER_PMD, PAGE_SIZE);
+ 
+ 	max_pfn_mapped = PFN_DOWN(__pa(xen_start_info->pt_base) +
+ 				  xen_start_info->nr_pt_frames * PAGE_SIZE +
+-- 
+1.7.3.2
+
+
+From c64e38ea17a81721da0393584fd807f8434050fa Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 1 Nov 2010 14:32:27 -0400
+Subject: [PATCH 09/21] xen/blkfront: map REQ_FLUSH into a full barrier
+
+Implement a flush as a full barrier, since we have nothing weaker.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/block/xen-blkfront.c |   19 +++++--------------
+ 1 files changed, 5 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 06e2812..3a318d8 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -245,14 +245,11 @@ static int blkif_ioctl(struct block_device *bdev, fmode_t mode,
+ }
+ 
+ /*
+- * blkif_queue_request
++ * Generate a Xen blkfront IO request from a blk layer request.  Reads
++ * and writes are handled as expected.  Since we lack a loose flush
++ * request, we map flushes into a full ordered barrier.
+  *
+- * request block io
+- *
+- * id: for guest use only.
+- * operation: BLKIF_OP_{READ,WRITE,PROBE}
+- * buffer: buffer to read/write into. this should be a
+- *   virtual address in the guest os.
++ * @req: a request struct
+  */
+ static int blkif_queue_request(struct request *req)
+ {
+@@ -289,7 +286,7 @@ static int blkif_queue_request(struct request *req)
+ 
+ 	ring_req->operation = rq_data_dir(req) ?
+ 		BLKIF_OP_WRITE : BLKIF_OP_READ;
+-	if (req->cmd_flags & REQ_HARDBARRIER)
++	if (req->cmd_flags & REQ_FLUSH)
+ 		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
+ 
+ 	ring_req->nr_segments = blk_rq_map_sg(req->q, req, info->sg);
+@@ -1069,14 +1066,8 @@ static void blkfront_connect(struct blkfront_info *info)
+ 	 */
+ 	info->feature_flush = 0;
+ 
+-	/*
+-	 * The driver doesn't properly handled empty flushes, so
+-	 * lets disable barrier support for now.
+-	 */
+-#if 0
+ 	if (!err && barrier)
+ 		info->feature_flush = REQ_FLUSH;
+-#endif
+ 
+ 	err = xlvbd_alloc_gendisk(sectors, info, binfo, sector_size);
+ 	if (err) {
+-- 
+1.7.3.2
+
+
+From a945b9801a9bfd4a98bcfd9f6656b5027b254e3f Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 1 Nov 2010 17:03:14 -0400
+Subject: [PATCH 10/21] xen/blkfront: change blk_shadow.request to proper pointer
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/block/xen-blkfront.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 3a318d8..31c8a64 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -65,7 +65,7 @@ enum blkif_state {
+ 
+ struct blk_shadow {
+ 	struct blkif_request req;
+-	unsigned long request;
++	struct request *request;
+ 	unsigned long frame[BLKIF_MAX_SEGMENTS_PER_REQUEST];
+ };
+ 
+@@ -136,7 +136,7 @@ static void add_id_to_freelist(struct blkfront_info *info,
+ 			       unsigned long id)
+ {
+ 	info->shadow[id].req.id  = info->shadow_free;
+-	info->shadow[id].request = 0;
++	info->shadow[id].request = NULL;
+ 	info->shadow_free = id;
+ }
+ 
+@@ -278,7 +278,7 @@ static int blkif_queue_request(struct request *req)
+ 	/* Fill out a communications ring structure. */
+ 	ring_req = RING_GET_REQUEST(&info->ring, info->ring.req_prod_pvt);
+ 	id = get_id_from_freelist(info);
+-	info->shadow[id].request = (unsigned long)req;
++	info->shadow[id].request = req;
+ 
+ 	ring_req->id = id;
+ 	ring_req->sector_number = (blkif_sector_t)blk_rq_pos(req);
+@@ -633,7 +633,7 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
+ 
+ 		bret = RING_GET_RESPONSE(&info->ring, i);
+ 		id   = bret->id;
+-		req  = (struct request *)info->shadow[id].request;
++		req  = info->shadow[id].request;
+ 
+ 		blkif_completion(&info->shadow[id]);
+ 
+@@ -898,7 +898,7 @@ static int blkif_recover(struct blkfront_info *info)
+ 	/* Stage 3: Find pending requests and requeue them. */
+ 	for (i = 0; i < BLK_RING_SIZE; i++) {
+ 		/* Not in use? */
+-		if (copy[i].request == 0)
++		if (!copy[i].request)
+ 			continue;
+ 
+ 		/* Grab a request slot and copy shadow state into it. */
+@@ -915,9 +915,7 @@ static int blkif_recover(struct blkfront_info *info)
+ 				req->seg[j].gref,
+ 				info->xbdev->otherend_id,
+ 				pfn_to_mfn(info->shadow[req->id].frame[j]),
+-				rq_data_dir(
+-					(struct request *)
+-					info->shadow[req->id].request));
++				rq_data_dir(info->shadow[req->id].request));
+ 		info->shadow[req->id].req = *req;
+ 
+ 		info->ring.req_prod_pvt++;
+-- 
+1.7.3.2
+
+
+From be2f8373c188ed1f5d36003c9928e4d695213080 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 2 Nov 2010 10:38:33 -0400
+Subject: [PATCH 11/21] xen/blkfront: Implement FUA with BLKIF_OP_WRITE_BARRIER
+
+The BLKIF_OP_WRITE_BARRIER is a full ordered barrier, so we can use it
+to implement FUA as well as a plain FLUSH.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/block/xen-blkfront.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 31c8a64..76b874a 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -286,8 +286,18 @@ static int blkif_queue_request(struct request *req)
+ 
+ 	ring_req->operation = rq_data_dir(req) ?
+ 		BLKIF_OP_WRITE : BLKIF_OP_READ;
+-	if (req->cmd_flags & REQ_FLUSH)
++
++	if (req->cmd_flags & (REQ_FLUSH | REQ_FUA)) {
++		/*
++		 * Ideally we could just do an unordered
++		 * flush-to-disk, but all we have is a full write
++		 * barrier at the moment.  However, a barrier write is
++		 * a superset of FUA, so we can implement it the same
++		 * way.  (It's also a FLUSH+FUA, since it is
++		 * guaranteed ordered WRT previous writes.)
++		 */
+ 		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
++	}
+ 
+ 	ring_req->nr_segments = blk_rq_map_sg(req->q, req, info->sg);
+ 	BUG_ON(ring_req->nr_segments > BLKIF_MAX_SEGMENTS_PER_REQUEST);
+@@ -1065,7 +1075,7 @@ static void blkfront_connect(struct blkfront_info *info)
+ 	info->feature_flush = 0;
+ 
+ 	if (!err && barrier)
+-		info->feature_flush = REQ_FLUSH;
++		info->feature_flush = REQ_FLUSH | REQ_FUA;
+ 
+ 	err = xlvbd_alloc_gendisk(sectors, info, binfo, sector_size);
+ 	if (err) {
+-- 
+1.7.3.2
+
+
+From dcb8baeceaa1c629bbd06f472cea023ad08a0c33 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 2 Nov 2010 11:55:58 -0400
+Subject: [PATCH 12/21] xen/blkfront: cope with backend that fail empty BLKIF_OP_WRITE_BARRIER requests
+
+Some(?) Xen block backends fail BLKIF_OP_WRITE_BARRIER requests, which
+Linux uses as a cache flush operation.  In that case, disable use
+of FLUSH.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Daniel Stodden <daniel.stodden@citrix.com>
+---
+ drivers/block/xen-blkfront.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 76b874a..4f9e22f 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -656,6 +656,16 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
+ 				printk(KERN_WARNING "blkfront: %s: write barrier op failed\n",
+ 				       info->gd->disk_name);
+ 				error = -EOPNOTSUPP;
++			}
++			if (unlikely(bret->status == BLKIF_RSP_ERROR &&
++				     info->shadow[id].req.nr_segments == 0)) {
++				printk(KERN_WARNING "blkfront: %s: empty write barrier op failed\n",
++				       info->gd->disk_name);
++				error = -EOPNOTSUPP;
++			}
++			if (unlikely(error)) {
++				if (error == -EOPNOTSUPP)
++					error = 0;
+ 				info->feature_flush = 0;
+ 				xlvbd_flush(info);
+ 			}
+-- 
+1.7.3.2
+
+
+From aed8ff456bd7847683776e5c4d0dd4e4abc5087e Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 10 Nov 2010 12:28:57 -0800
+Subject: [PATCH 13/21] x86: demacro set_iopl_mask()
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/processor.h |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index cae9c3c..32f75be 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -591,7 +591,10 @@ static inline void load_sp0(struct tss_struct *tss,
+ 	native_load_sp0(tss, thread);
+ }
+ 
+-#define set_iopl_mask native_set_iopl_mask
++static inline void set_iopl_mask(unsigned mask)
++{
++	native_set_iopl_mask(mask);
++}
+ #endif /* CONFIG_PARAVIRT */
+ 
+ /*
+-- 
+1.7.3.2
+
+
+From 640524e029f5b5cb93462c7bccdd93141f53ae65 Mon Sep 17 00:00:00 2001
+From: Christophe Saout <chtephan@leto.intern.saout.de>
+Date: Sat, 17 Jan 2009 17:30:17 +0100
+Subject: [PATCH 14/21] x86/paravirt: paravirtualize IO permission bitmap
+
+Paravirtualized x86 systems don't have an exposed TSS, as it is only
+directly visible in ring 0.  The IO permission bitmap is part of
+the TSS, so with out a TSS, it must be paravirtualized separately,
+like the iopl mask.
+
+[ Impact: make ioperm bitmap work under Xen ]
+
+Signed-off-by: Christophe Saout <chtephan@leto.intern.saout.de>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/paravirt.h       |    7 +++++++
+ arch/x86/include/asm/paravirt_types.h |    2 ++
+ arch/x86/include/asm/processor.h      |    9 +++++++++
+ arch/x86/kernel/ioport.c              |   29 ++++++++++++++++++++++-------
+ arch/x86/kernel/paravirt.c            |    1 +
+ arch/x86/kernel/process.c             |   28 ++++++++--------------------
+ 6 files changed, 49 insertions(+), 27 deletions(-)
+
+diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
+index 18e3b8a..1764f4a 100644
+--- a/arch/x86/include/asm/paravirt.h
++++ b/arch/x86/include/asm/paravirt.h
+@@ -330,11 +330,18 @@ static inline void write_idt_entry(gate_desc *dt, int entry, const gate_desc *g)
+ {
+ 	PVOP_VCALL3(pv_cpu_ops.write_idt_entry, dt, entry, g);
+ }
++
+ static inline void set_iopl_mask(unsigned mask)
+ {
+ 	PVOP_VCALL1(pv_cpu_ops.set_iopl_mask, mask);
+ }
+ 
++static inline void set_io_bitmap(struct thread_struct *thread,
++				 unsigned long bytes_updated)
++{
++	PVOP_VCALL2(pv_cpu_ops.set_io_bitmap, thread, bytes_updated);
++}
++
+ /* The paravirtualized I/O functions */
+ static inline void slow_down_io(void)
+ {
+diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
+index b82bac9..dcb0c44 100644
+--- a/arch/x86/include/asm/paravirt_types.h
++++ b/arch/x86/include/asm/paravirt_types.h
+@@ -135,6 +135,8 @@ struct pv_cpu_ops {
+ 	void (*load_sp0)(struct tss_struct *tss, struct thread_struct *t);
+ 
+ 	void (*set_iopl_mask)(unsigned mask);
++	void (*set_io_bitmap)(struct thread_struct *thread,
++			      unsigned long bytes_updated);
+ 
+ 	void (*wbinvd)(void);
+ 	void (*io_delay)(void);
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index 32f75be..9c5528e 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -551,6 +551,9 @@ static inline void native_set_iopl_mask(unsigned mask)
+ #endif
+ }
+ 
++extern void native_set_io_bitmap(struct thread_struct *thread,
++				 unsigned long updated_bytes);
++
+ static inline void
+ native_load_sp0(struct tss_struct *tss, struct thread_struct *thread)
+ {
+@@ -595,6 +598,12 @@ static inline void set_iopl_mask(unsigned mask)
+ {
+ 	native_set_iopl_mask(mask);
+ }
++
++static inline void set_io_bitmap(struct thread_struct *thread,
++				 unsigned long updated_bytes)
++{
++	native_set_io_bitmap(thread, updated_bytes);
++}
+ #endif /* CONFIG_PARAVIRT */
+ 
+ /*
+diff --git a/arch/x86/kernel/ioport.c b/arch/x86/kernel/ioport.c
+index 8eec0ec..8ead1f0 100644
+--- a/arch/x86/kernel/ioport.c
++++ b/arch/x86/kernel/ioport.c
+@@ -30,13 +30,29 @@ static void set_bitmap(unsigned long *bitmap, unsigned int base,
+ 	}
+ }
+ 
++void native_set_io_bitmap(struct thread_struct *t,
++			  unsigned long bytes_updated)
++{
++	struct tss_struct *tss;
++
++	if (!bytes_updated)
++		return;
++
++	tss = &__get_cpu_var(init_tss);
++
++	/* Update the TSS: */
++	if (t->io_bitmap_ptr)
++		memcpy(tss->io_bitmap, t->io_bitmap_ptr, bytes_updated);
++	else
++		memset(tss->io_bitmap, 0xff, bytes_updated);
++}
++
+ /*
+  * this changes the io permissions bitmap in the current task.
+  */
+ asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int turn_on)
+ {
+ 	struct thread_struct *t = &current->thread;
+-	struct tss_struct *tss;
+ 	unsigned int i, max_long, bytes, bytes_updated;
+ 
+ 	if ((from + num <= from) || (from + num > IO_BITMAP_BITS))
+@@ -61,13 +77,13 @@ asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int turn_on)
+ 	}
+ 
+ 	/*
+-	 * do it in the per-thread copy and in the TSS ...
++	 * do it in the per-thread copy
+ 	 *
+-	 * Disable preemption via get_cpu() - we must not switch away
++	 * Disable preemption - we must not switch away
+ 	 * because the ->io_bitmap_max value must match the bitmap
+ 	 * contents:
+ 	 */
+-	tss = &per_cpu(init_tss, get_cpu());
++	preempt_disable();
+ 
+ 	set_bitmap(t->io_bitmap_ptr, from, num, !turn_on);
+ 
+@@ -85,10 +101,9 @@ asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int turn_on)
+ 
+ 	t->io_bitmap_max = bytes;
+ 
+-	/* Update the TSS: */
+-	memcpy(tss->io_bitmap, t->io_bitmap_ptr, bytes_updated);
++	set_io_bitmap(t, bytes_updated);
+ 
+-	put_cpu();
++	preempt_enable();
+ 
+ 	return 0;
+ }
+diff --git a/arch/x86/kernel/paravirt.c b/arch/x86/kernel/paravirt.c
+index c5b2500..febd851 100644
+--- a/arch/x86/kernel/paravirt.c
++++ b/arch/x86/kernel/paravirt.c
+@@ -376,6 +376,7 @@ struct pv_cpu_ops pv_cpu_ops = {
+ 	.swapgs = native_swapgs,
+ 
+ 	.set_iopl_mask = native_set_iopl_mask,
++	.set_io_bitmap = native_set_io_bitmap,
+ 	.io_delay = native_io_delay,
+ 
+ 	.start_context_switch = paravirt_nop,
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index 57d1868..a48e82a 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -74,16 +74,12 @@ void exit_thread(void)
+ 	unsigned long *bp = t->io_bitmap_ptr;
+ 
+ 	if (bp) {
+-		struct tss_struct *tss = &per_cpu(init_tss, get_cpu());
+-
++		preempt_disable();
+ 		t->io_bitmap_ptr = NULL;
+ 		clear_thread_flag(TIF_IO_BITMAP);
+-		/*
+-		 * Careful, clear this in the TSS too:
+-		 */
+-		memset(tss->io_bitmap, 0xff, t->io_bitmap_max);
++		set_io_bitmap(t, t->io_bitmap_max);
+ 		t->io_bitmap_max = 0;
+-		put_cpu();
++		preempt_enable();
+ 		kfree(bp);
+ 	}
+ }
+@@ -214,19 +210,11 @@ void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
+ 			hard_enable_TSC();
+ 	}
+ 
+-	if (test_tsk_thread_flag(next_p, TIF_IO_BITMAP)) {
+-		/*
+-		 * Copy the relevant range of the IO bitmap.
+-		 * Normally this is 128 bytes or less:
+-		 */
+-		memcpy(tss->io_bitmap, next->io_bitmap_ptr,
+-		       max(prev->io_bitmap_max, next->io_bitmap_max));
+-	} else if (test_tsk_thread_flag(prev_p, TIF_IO_BITMAP)) {
+-		/*
+-		 * Clear any possible leftover bits:
+-		 */
+-		memset(tss->io_bitmap, 0xff, prev->io_bitmap_max);
+-	}
++	if (test_tsk_thread_flag(next_p, TIF_IO_BITMAP) ||
++	    test_tsk_thread_flag(prev_p, TIF_IO_BITMAP))
++		set_io_bitmap(next,
++			      max(prev->io_bitmap_max, next->io_bitmap_max));
++
+ 	propagate_user_return_notify(prev_p, next_p);
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 950952701cf9e218c2269d13b8538f3c07cff762 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 18 Jun 2009 15:04:16 -0700
+Subject: [PATCH 15/21] xen: implement IO permission bitmap
+
+Add Xen implementation of IO permission bitmap pvop.
+
+[ Impact: allow guests to set usermode IO permission bitmaps. ]
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/enlighten.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 235c0f4..4ad88fd 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -700,6 +700,18 @@ static void xen_set_iopl_mask(unsigned mask)
+ 	HYPERVISOR_physdev_op(PHYSDEVOP_set_iopl, &set_iopl);
+ }
+ 
++static void xen_set_io_bitmap(struct thread_struct *thread,
++			      unsigned long bytes_updated)
++{
++	struct physdev_set_iobitmap set_iobitmap;
++
++	set_xen_guest_handle(set_iobitmap.bitmap,
++			     (char *)thread->io_bitmap_ptr);
++	set_iobitmap.nr_ports = thread->io_bitmap_ptr ? IO_BITMAP_BITS : 0;
++	WARN_ON(HYPERVISOR_physdev_op(PHYSDEVOP_set_iobitmap,
++				      &set_iobitmap));
++}
++
+ static void xen_io_delay(void)
+ {
+ }
+@@ -997,6 +1009,7 @@ static const struct pv_cpu_ops xen_cpu_ops __initdata = {
+ 	.load_sp0 = xen_load_sp0,
+ 
+ 	.set_iopl_mask = xen_set_iopl_mask,
++	.set_io_bitmap = xen_set_io_bitmap,
+ 	.io_delay = xen_io_delay,
+ 
+ 	/* Xen takes care of %gs when switching to usermode for us */
+-- 
+1.7.3.2
+
+
+From 6903591f314b8947d0e362bda7715e90eb9df75e Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Mon, 1 Nov 2010 16:30:09 +0000
+Subject: [PATCH 16/21] xen: events: do not unmask event channels on resume
+
+The IRQ core code will take care of disabling and reenabling
+interrupts over suspend resume automatically, therefore we do not need
+to do this in the Xen event channel code.
+
+The only exception is those event channels marked IRQF_NO_SUSPEND
+which the IRQ core ignores. We must unmask these ourselves, taking
+care to obey the current IRQ_DISABLED status. Failure check for
+IRQ_DISABLED leads to enabling polled only event channels, such as
+that associated with the pv spinlocks, which must never be enabled:
+
+[   21.970432] ------------[ cut here ]------------
+[   21.970432] kernel BUG at arch/x86/xen/spinlock.c:343!
+[   21.970432] invalid opcode: 0000 [#1] SMP
+[   21.970432] last sysfs file: /sys/devices/virtual/net/lo/operstate
+[   21.970432] Modules linked in:
+[   21.970432]
+[   21.970432] Pid: 0, comm: swapper Not tainted (2.6.32.24-x86_32p-xen-01034-g787c727 #34)
+[   21.970432] EIP: 0061:[<c102e209>] EFLAGS: 00010046 CPU: 3
+[   21.970432] EIP is at dummy_handler+0x3/0x7
+[   21.970432] EAX: 0000021c EBX: dfc16880 ECX: 0000001a EDX: 00000000
+[   21.970432] ESI: dfc02c00 EDI: 00000001 EBP: dfc47e10 ESP: dfc47e10
+[   21.970432]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0069
+[   21.970432] Process swapper (pid: 0, ti=dfc46000 task=dfc39440 task.ti=dfc46000)
+[   21.970432] Stack:
+[   21.970432]  dfc47e30 c10a39f0 0000021c 00000000 00000000 dfc16880 0000021c 00000001
+[   21.970432] <0> dfc47e40 c10a4f08 0000021c 00000000 dfc47e78 c12240a7 c1839284 c1839284
+[   21.970432] <0> 00000200 00000000 00000000 f5720000 c1f3d028 c1f3d02c 00000180 dfc47e90
+[   21.970432] Call Trace:
+[   21.970432]  [<c10a39f0>] ? handle_IRQ_event+0x5f/0x122
+[   21.970432]  [<c10a4f08>] ? handle_percpu_irq+0x2f/0x55
+[   21.970432]  [<c12240a7>] ? __xen_evtchn_do_upcall+0xdb/0x15f
+[   21.970432]  [<c122481e>] ? xen_evtchn_do_upcall+0x20/0x30
+[   21.970432]  [<c1030d47>] ? xen_do_upcall+0x7/0xc
+[   21.970432]  [<c102007b>] ? apic_reg_read+0xd3/0x22d
+[   21.970432]  [<c1002227>] ? hypercall_page+0x227/0x1005
+[   21.970432]  [<c102d30b>] ? xen_force_evtchn_callback+0xf/0x14
+[   21.970432]  [<c102da7c>] ? check_events+0x8/0xc
+[   21.970432]  [<c102da3b>] ? xen_irq_enable_direct_end+0x0/0x1
+[   21.970432]  [<c105e485>] ? finish_task_switch+0x62/0xba
+[   21.970432]  [<c14e3f84>] ? schedule+0x808/0x89d
+[   21.970432]  [<c1084dc5>] ? hrtimer_start_expires+0x1a/0x22
+[   21.970432]  [<c1085154>] ? tick_nohz_restart_sched_tick+0x15a/0x162
+[   21.970432]  [<c102f43a>] ? cpu_idle+0x6d/0x6f
+[   21.970432]  [<c14db29e>] ? cpu_bringup_and_idle+0xd/0xf
+[   21.970432] Code: 5d 0f 95 c0 0f b6 c0 c3 55 66 83 78 02 00 89 e5 5d 0f 95 \
+c0 0f b6 c0 c3 55 b2 01 86 10 31 c0 84 d2 89 e5 0f 94 c0 5d c3 55 89 e5 <0f> 0b \
+eb fe 55 80 3d 4c ce 84 c1 00 89 e5 57 56 89 c6 53 74 15
+[   21.970432] EIP: [<c102e209>] dummy_handler+0x3/0x7 SS:ESP 0069:dfc47e10
+[   21.970432] ---[ end trace c0b71f7e12cf3011 ]---
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/events.c |   25 ++++++++++++++++++-------
+ 1 files changed, 18 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 97612f5..321a0c8 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -1299,9 +1299,6 @@ static void restore_cpu_virqs(unsigned int cpu)
+ 		evtchn_to_irq[evtchn] = irq;
+ 		irq_info[irq] = mk_virq_info(evtchn, virq);
+ 		bind_evtchn_to_cpu(evtchn, cpu);
+-
+-		/* Ready for use. */
+-		unmask_evtchn(evtchn);
+ 	}
+ }
+ 
+@@ -1327,10 +1324,6 @@ static void restore_cpu_ipis(unsigned int cpu)
+ 		evtchn_to_irq[evtchn] = irq;
+ 		irq_info[irq] = mk_ipi_info(evtchn, ipi);
+ 		bind_evtchn_to_cpu(evtchn, cpu);
+-
+-		/* Ready for use. */
+-		unmask_evtchn(evtchn);
+-
+ 	}
+ }
+ 
+@@ -1390,6 +1383,7 @@ void xen_poll_irq(int irq)
+ void xen_irq_resume(void)
+ {
+ 	unsigned int cpu, irq, evtchn;
++	struct irq_desc *desc;
+ 
+ 	init_evtchn_cpu_bindings();
+ 
+@@ -1408,6 +1402,23 @@ void xen_irq_resume(void)
+ 		restore_cpu_virqs(cpu);
+ 		restore_cpu_ipis(cpu);
+ 	}
++
++	/*
++	 * Unmask any IRQF_NO_SUSPEND IRQs which are enabled. These
++	 * are not handled by the IRQ core.
++	 */
++	for_each_irq_desc(irq, desc) {
++		if (!desc->action || !(desc->action->flags & IRQF_NO_SUSPEND))
++			continue;
++		if (desc->status & IRQ_DISABLED)
++			continue;
++
++		evtchn = evtchn_from_irq(irq);
++		if (evtchn == -1)
++			continue;
++
++		unmask_evtchn(evtchn);
++	}
+ }
+ 
+ static struct irq_chip xen_dynamic_chip __read_mostly = {
+-- 
+1.7.3.2
+
+
+From 9ec23a7f6d2537faf14368e066e307c06812c4ca Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Thu, 28 Oct 2010 11:32:29 -0700
+Subject: [PATCH 17/21] xen: do not release any memory under 1M in domain 0
+
+We already deliberately setup a 1-1 P2M for the region up to 1M in
+order to allow code which assumes this region is already mapped to
+work without having to convert everything to ioremap.
+
+Domain 0 should not return any apparently unused memory regions
+(reserved or otherwise) in this region to Xen since the e820 may not
+accurately reflect what the BIOS has stashed in this region.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/setup.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index b1dbdaa..769c4b0 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -118,16 +118,18 @@ static unsigned long __init xen_return_unused_memory(unsigned long max_pfn,
+ 						     const struct e820map *e820)
+ {
+ 	phys_addr_t max_addr = PFN_PHYS(max_pfn);
+-	phys_addr_t last_end = 0;
++	phys_addr_t last_end = ISA_END_ADDRESS;
+ 	unsigned long released = 0;
+ 	int i;
+ 
++	/* Free any unused memory above the low 1Mbyte. */
+ 	for (i = 0; i < e820->nr_map && last_end < max_addr; i++) {
+ 		phys_addr_t end = e820->map[i].addr;
+ 		end = min(max_addr, end);
+ 
+-		released += xen_release_chunk(last_end, end);
+-		last_end = e820->map[i].addr + e820->map[i].size;
++		if (last_end < end)
++			released += xen_release_chunk(last_end, end);
++		last_end = max(last_end, e820->map[i].addr + e820->map[i].size);
+ 	}
+ 
+ 	if (last_end < max_addr)
+@@ -164,6 +166,7 @@ char * __init xen_memory_setup(void)
+ 		XENMEM_memory_map;
+ 	rc = HYPERVISOR_memory_op(op, &memmap);
+ 	if (rc == -ENOSYS) {
++		BUG_ON(xen_initial_domain());
+ 		memmap.nr_entries = 1;
+ 		map[0].addr = 0ULL;
+ 		map[0].size = mem_end;
+@@ -201,12 +204,13 @@ char * __init xen_memory_setup(void)
+ 	}
+ 
+ 	/*
+-	 * Even though this is normal, usable memory under Xen, reserve
+-	 * ISA memory anyway because too many things think they can poke
++	 * In domU, the ISA region is normal, usable memory, but we
++	 * reserve ISA memory anyway because too many things poke
+ 	 * about in there.
+ 	 *
+-	 * In a dom0 kernel, this region is identity mapped with the
+-	 * hardware ISA area, so it really is out of bounds.
++	 * In Dom0, the host E820 information can leave gaps in the
++	 * ISA range, which would cause us to release those pages.  To
++	 * avoid this, we unconditionally reserve them here.
+ 	 */
+ 	e820_add_region(ISA_START_ADDRESS, ISA_END_ADDRESS - ISA_START_ADDRESS,
+ 			E820_RESERVED);
+-- 
+1.7.3.2
+
+
+From e060e7af98182494b764d002eba7fa022fe91bdf Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Date: Thu, 11 Nov 2010 12:37:43 -0800
+Subject: [PATCH 18/21] xen: set vma flag VM_PFNMAP in the privcmd mmap file_op
+
+Set VM_PFNMAP in the privcmd mmap file_op, rather than later in
+xen_remap_domain_mfn_range when it is too late because
+vma_wants_writenotify has already been called and vm_page_prot has
+already been modified.
+
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c          |    3 ++-
+ drivers/xen/xenfs/privcmd.c |    5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index f08ea04..792de43 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -2299,7 +2299,8 @@ int xen_remap_domain_mfn_range(struct vm_area_struct *vma,
+ 
+ 	prot = __pgprot(pgprot_val(prot) | _PAGE_IOMAP);
+ 
+-	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
++	BUG_ON(!((vma->vm_flags & (VM_PFNMAP | VM_RESERVED | VM_IO)) ==
++				(VM_PFNMAP | VM_RESERVED | VM_IO)));
+ 
+ 	rmd.mfn = mfn;
+ 	rmd.prot = prot;
+diff --git a/drivers/xen/xenfs/privcmd.c b/drivers/xen/xenfs/privcmd.c
+index 2eb04c8..88474d4 100644
+--- a/drivers/xen/xenfs/privcmd.c
++++ b/drivers/xen/xenfs/privcmd.c
+@@ -380,8 +380,9 @@ static int privcmd_mmap(struct file *file, struct vm_area_struct *vma)
+ 	if (xen_feature(XENFEAT_auto_translated_physmap))
+ 		return -ENOSYS;
+ 
+-	/* DONTCOPY is essential for Xen as copy_page_range is broken. */
+-	vma->vm_flags |= VM_RESERVED | VM_IO | VM_DONTCOPY;
++	/* DONTCOPY is essential for Xen because copy_page_range doesn't know
++	 * how to recreate these mappings */
++	vma->vm_flags |= VM_RESERVED | VM_IO | VM_DONTCOPY | VM_PFNMAP;
+ 	vma->vm_ops = &privcmd_vm_ops;
+ 	vma->vm_private_data = NULL;
+ 
+-- 
+1.7.3.2
+
+
+From a188301f0e78daed011dde56139630d88299a954 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Mon, 9 Feb 2009 12:05:49 -0800
+Subject: [PATCH 19/21] xen: define gnttab_set_map_op/unmap_op
+
+Impact: hypercall definitions
+
+These functions populate the gnttab data structures used by the
+granttab map and unmap ops and are used in the backend drivers.
+
+Originally xen-unstable.hg 9625:c3bb51c443a7
+
+[ Include Stefano's fix for phys_addr_t ]
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ include/xen/grant_table.h |   39 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletions(-)
+
+diff --git a/include/xen/grant_table.h b/include/xen/grant_table.h
+index 9a73170..1821aa1 100644
+--- a/include/xen/grant_table.h
++++ b/include/xen/grant_table.h
+@@ -37,10 +37,16 @@
+ #ifndef __ASM_GNTTAB_H__
+ #define __ASM_GNTTAB_H__
+ 
+-#include <asm/xen/hypervisor.h>
++#include <asm/page.h>
++
++#include <xen/interface/xen.h>
+ #include <xen/interface/grant_table.h>
++
++#include <asm/xen/hypervisor.h>
+ #include <asm/xen/grant_table.h>
+ 
++#include <xen/features.h>
++
+ /* NR_GRANT_FRAMES must be less than or equal to that configured in Xen */
+ #define NR_GRANT_FRAMES 4
+ 
+@@ -107,6 +113,37 @@ void gnttab_grant_foreign_access_ref(grant_ref_t ref, domid_t domid,
+ void gnttab_grant_foreign_transfer_ref(grant_ref_t, domid_t domid,
+ 				       unsigned long pfn);
+ 
++static inline void
++gnttab_set_map_op(struct gnttab_map_grant_ref *map, phys_addr_t addr,
++		  uint32_t flags, grant_ref_t ref, domid_t domid)
++{
++	if (flags & GNTMAP_contains_pte)
++		map->host_addr = addr;
++	else if (xen_feature(XENFEAT_auto_translated_physmap))
++		map->host_addr = __pa(addr);
++	else
++		map->host_addr = addr;
++
++	map->flags = flags;
++	map->ref = ref;
++	map->dom = domid;
++}
++
++static inline void
++gnttab_set_unmap_op(struct gnttab_unmap_grant_ref *unmap, phys_addr_t addr,
++		    uint32_t flags, grant_handle_t handle)
++{
++	if (flags & GNTMAP_contains_pte)
++		unmap->host_addr = addr;
++	else if (xen_feature(XENFEAT_auto_translated_physmap))
++		unmap->host_addr = __pa(addr);
++	else
++		unmap->host_addr = addr;
++
++	unmap->handle = handle;
++	unmap->dev_bus_addr = 0;
++}
++
+ int arch_gnttab_map_shared(unsigned long *frames, unsigned long nr_gframes,
+ 			   unsigned long max_nr_gframes,
+ 			   struct grant_entry **__shared);
+-- 
+1.7.3.2
+
+
+From 56385560d6d8fd4c89c4f328d3ff0ecc9c44c52d Mon Sep 17 00:00:00 2001
+From: Gerd Hoffmann <kraxel@redhat.com>
+Date: Tue, 3 Mar 2009 12:27:55 -0800
+Subject: [PATCH 20/21] xen/gntdev: allow usermode to map granted pages
+
+The gntdev driver allows usermode to map granted pages from other
+domains.  This is typically used to implement a Xen backend driver
+in user mode.
+
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Signed-off-by: Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/Kconfig  |    7 +
+ drivers/xen/Makefile |    4 +
+ drivers/xen/gntdev.c |  646 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/xen/gntdev.h |  119 +++++++++
+ 4 files changed, 776 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/xen/gntdev.c
+ create mode 100644 include/xen/gntdev.h
+
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index 6e6180c..0c6d2a1 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -62,6 +62,13 @@ config XEN_SYS_HYPERVISOR
+ 	 virtual environment, /sys/hypervisor will still be present,
+ 	 but will have no xen contents.
+ 
++config XEN_GNTDEV
++	tristate "userspace grant access device driver"
++	depends on XEN
++	select MMU_NOTIFIER
++	help
++	  Allows userspace processes use grants.
++	  
+ config XEN_PLATFORM_PCI
+ 	tristate "xen platform pci device driver"
+ 	depends on XEN_PVHVM
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index eb8a78d..7ed8418 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -9,8 +9,12 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+ obj-$(CONFIG_XEN_XENCOMM)	+= xencomm.o
+ obj-$(CONFIG_XEN_BALLOON)	+= balloon.o
+ obj-$(CONFIG_XEN_DEV_EVTCHN)	+= evtchn.o
++obj-$(CONFIG_XEN_GNTDEV)	+= xen-gntdev.o
+ obj-$(CONFIG_XENFS)		+= xenfs/
+ obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
+ obj-$(CONFIG_XEN_PLATFORM_PCI)	+= platform-pci.o
+ obj-$(CONFIG_SWIOTLB_XEN)	+= swiotlb-xen.o
+ obj-$(CONFIG_XEN_DOM0)		+= pci.o
++
++xen-gntdev-y				:= gntdev.o
++
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+new file mode 100644
+index 0000000..45898d4
+--- /dev/null
++++ b/drivers/xen/gntdev.c
+@@ -0,0 +1,646 @@
++/******************************************************************************
++ * gntdev.c
++ *
++ * Device for accessing (in user-space) pages that have been granted by other
++ * domains.
++ *
++ * Copyright (c) 2006-2007, D G Murray.
++ *           (c) 2009 Gerd Hoffmann <kraxel@redhat.com>
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/miscdevice.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/mman.h>
++#include <linux/mmu_notifier.h>
++#include <linux/types.h>
++#include <linux/uaccess.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/slab.h>
++
++#include <xen/xen.h>
++#include <xen/grant_table.h>
++#include <xen/gntdev.h>
++#include <asm/xen/hypervisor.h>
++#include <asm/xen/hypercall.h>
++#include <asm/xen/page.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Derek G. Murray <Derek.Murray@cl.cam.ac.uk>, "
++	      "Gerd Hoffmann <kraxel@redhat.com>");
++MODULE_DESCRIPTION("User-space granted page access driver");
++
++static int debug = 0;
++module_param(debug, int, 0644);
++static int limit = 1024;
++module_param(limit, int, 0644);
++
++struct gntdev_priv {
++	struct list_head maps;
++	uint32_t used;
++	uint32_t limit;
++	spinlock_t lock;
++	struct mm_struct *mm;
++	struct mmu_notifier mn;
++};
++
++struct grant_map {
++	struct list_head next;
++	struct gntdev_priv *priv;
++	struct vm_area_struct *vma;
++	int index;
++	int count;
++	int flags;
++	int is_mapped;
++	struct ioctl_gntdev_grant_ref *grants;
++	struct gnttab_map_grant_ref   *map_ops;
++	struct gnttab_unmap_grant_ref *unmap_ops;
++};
++
++/* ------------------------------------------------------------------ */
++
++static void gntdev_print_maps(struct gntdev_priv *priv,
++			      char *text, int text_index)
++{
++	struct grant_map *map;
++
++	printk("%s: maps list (priv %p, usage %d/%d)\n",
++	       __FUNCTION__, priv, priv->used, priv->limit);
++	list_for_each_entry(map, &priv->maps, next)
++		printk("  index %2d, count %2d %s\n",
++		       map->index, map->count,
++		       map->index == text_index && text ? text : "");
++}
++
++static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
++{
++	struct grant_map *add;
++
++	add = kzalloc(sizeof(struct grant_map), GFP_KERNEL);
++	if (NULL == add)
++		return NULL;
++
++	add->grants    = kzalloc(sizeof(add->grants[0])    * count, GFP_KERNEL);
++	add->map_ops   = kzalloc(sizeof(add->map_ops[0])   * count, GFP_KERNEL);
++	add->unmap_ops = kzalloc(sizeof(add->unmap_ops[0]) * count, GFP_KERNEL);
++	if (NULL == add->grants  ||
++	    NULL == add->map_ops ||
++	    NULL == add->unmap_ops)
++		goto err;
++
++	add->index = 0;
++	add->count = count;
++	add->priv  = priv;
++
++	if (add->count + priv->used > priv->limit)
++		goto err;
++
++	return add;
++
++err:
++	kfree(add->grants);
++	kfree(add->map_ops);
++	kfree(add->unmap_ops);
++	kfree(add);
++	return NULL;
++}
++
++static void gntdev_add_map(struct gntdev_priv *priv, struct grant_map *add)
++{
++	struct grant_map *map;
++
++	list_for_each_entry(map, &priv->maps, next) {
++		if (add->index + add->count < map->index) {
++			list_add_tail(&add->next, &map->next);
++			goto done;
++		}
++		add->index = map->index + map->count;
++	}
++	list_add_tail(&add->next, &priv->maps);
++
++done:
++	priv->used += add->count;
++	if (debug)
++		gntdev_print_maps(priv, "[new]", add->index);
++}
++
++static struct grant_map *gntdev_find_map_index(struct gntdev_priv *priv, int index,
++					       int count)
++{
++	struct grant_map *map;
++
++	list_for_each_entry(map, &priv->maps, next) {
++		if (map->index != index)
++			continue;
++		if (map->count != count)
++			continue;
++		return map;
++	}
++	return NULL;
++}
++
++static struct grant_map *gntdev_find_map_vaddr(struct gntdev_priv *priv,
++					       unsigned long vaddr)
++{
++	struct grant_map *map;
++
++	list_for_each_entry(map, &priv->maps, next) {
++		if (!map->vma)
++			continue;
++		if (vaddr < map->vma->vm_start)
++			continue;
++		if (vaddr >= map->vma->vm_end)
++			continue;
++		return map;
++	}
++	return NULL;
++}
++
++static int gntdev_del_map(struct grant_map *map)
++{
++	int i;
++
++	if (map->vma)
++		return -EBUSY;
++	for (i = 0; i < map->count; i++)
++		if (map->unmap_ops[i].handle)
++			return -EBUSY;
++
++	map->priv->used -= map->count;
++	list_del(&map->next);
++	return 0;
++}
++
++static void gntdev_free_map(struct grant_map *map)
++{
++	if (!map)
++		return;
++	kfree(map->grants);
++	kfree(map->map_ops);
++	kfree(map->unmap_ops);
++	kfree(map);
++}
++
++/* ------------------------------------------------------------------ */
++
++static int find_grant_ptes(pte_t *pte, pgtable_t token, unsigned long addr, void *data)
++{
++	struct grant_map *map = data;
++	unsigned int pgnr = (addr - map->vma->vm_start) >> PAGE_SHIFT;
++	u64 pte_maddr;
++
++	BUG_ON(pgnr >= map->count);
++	pte_maddr  = (u64)pfn_to_mfn(page_to_pfn(token)) << PAGE_SHIFT;
++	pte_maddr += (unsigned long)pte & ~PAGE_MASK;
++	gnttab_set_map_op(&map->map_ops[pgnr], pte_maddr, map->flags,
++			  map->grants[pgnr].ref,
++			  map->grants[pgnr].domid);
++	gnttab_set_unmap_op(&map->unmap_ops[pgnr], pte_maddr, map->flags,
++			    0 /* handle */);
++	return 0;
++}
++
++static int map_grant_pages(struct grant_map *map)
++{
++	int i, err = 0;
++
++	if (debug)
++		printk("%s: map %d+%d\n", __FUNCTION__, map->index, map->count);
++	err = HYPERVISOR_grant_table_op(GNTTABOP_map_grant_ref,
++					map->map_ops, map->count);
++	if (WARN_ON(err))
++		return err;
++
++	for (i = 0; i < map->count; i++) {
++		if (map->map_ops[i].status)
++			err = -EINVAL;
++		map->unmap_ops[i].handle = map->map_ops[i].handle;
++	}
++	return err;
++}
++
++static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
++{
++	int i, err = 0;
++
++	if (debug)
++		printk("%s: map %d+%d [%d+%d]\n", __FUNCTION__,
++		       map->index, map->count, offset, pages);
++	err = HYPERVISOR_grant_table_op(GNTTABOP_unmap_grant_ref,
++					map->unmap_ops + offset, pages);
++	if (WARN_ON(err))
++		return err;
++
++	for (i = 0; i < pages; i++) {
++		if (map->unmap_ops[offset+i].status)
++			err = -EINVAL;
++		map->unmap_ops[offset+i].handle = 0;
++	}
++	return err;
++}
++
++/* ------------------------------------------------------------------ */
++
++static void gntdev_vma_close(struct vm_area_struct *vma)
++{
++	struct grant_map *map = vma->vm_private_data;
++
++	if (debug)
++		printk("%s\n", __FUNCTION__);
++	map->is_mapped = 0;
++	map->vma = NULL;
++	vma->vm_private_data = NULL;
++}
++
++static int gntdev_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	if (debug)
++		printk("%s: vaddr %p, pgoff %ld (shouldn't happen)\n",
++		       __FUNCTION__, vmf->virtual_address, vmf->pgoff);
++	vmf->flags = VM_FAULT_ERROR;
++	return 0;
++}
++
++static struct vm_operations_struct gntdev_vmops = {
++	.close = gntdev_vma_close,
++	.fault = gntdev_vma_fault,
++};
++
++/* ------------------------------------------------------------------ */
++
++static void mn_invl_range_start(struct mmu_notifier *mn,
++				struct mm_struct *mm,
++				unsigned long start, unsigned long end)
++{
++	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
++	struct grant_map *map;
++	unsigned long mstart, mend;
++	int err;
++
++	spin_lock(&priv->lock);
++	list_for_each_entry(map, &priv->maps, next) {
++		if (!map->vma)
++			continue;
++		if (!map->is_mapped)
++			continue;
++		if (map->vma->vm_start >= end)
++			continue;
++		if (map->vma->vm_end <= start)
++			continue;
++		mstart = max(start, map->vma->vm_start);
++		mend   = min(end,   map->vma->vm_end);
++		if (debug)
++			printk("%s: map %d+%d (%lx %lx), range %lx %lx, mrange %lx %lx\n",
++			       __FUNCTION__, map->index, map->count,
++			       map->vma->vm_start, map->vma->vm_end,
++			       start, end, mstart, mend);
++		err = unmap_grant_pages(map,
++					(mstart - map->vma->vm_start) >> PAGE_SHIFT,
++					(mend - mstart) >> PAGE_SHIFT);
++		WARN_ON(err);
++	}
++	spin_unlock(&priv->lock);
++}
++
++static void mn_invl_page(struct mmu_notifier *mn,
++			 struct mm_struct *mm,
++			 unsigned long address)
++{
++	mn_invl_range_start(mn, mm, address, address + PAGE_SIZE);
++}
++
++static void mn_release(struct mmu_notifier *mn,
++		       struct mm_struct *mm)
++{
++	struct gntdev_priv *priv = container_of(mn, struct gntdev_priv, mn);
++	struct grant_map *map;
++	int err;
++
++	spin_lock(&priv->lock);
++	list_for_each_entry(map, &priv->maps, next) {
++		if (!map->vma)
++			continue;
++		if (debug)
++			printk("%s: map %d+%d (%lx %lx)\n",
++			       __FUNCTION__, map->index, map->count,
++			       map->vma->vm_start, map->vma->vm_end);
++		err = unmap_grant_pages(map, 0, map->count);
++		WARN_ON(err);
++	}
++	spin_unlock(&priv->lock);
++}
++
++struct mmu_notifier_ops gntdev_mmu_ops = {
++	.release                = mn_release,
++	.invalidate_page        = mn_invl_page,
++	.invalidate_range_start = mn_invl_range_start,
++};
++
++/* ------------------------------------------------------------------ */
++
++static int gntdev_open(struct inode *inode, struct file *flip)
++{
++	struct gntdev_priv *priv;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&priv->maps);
++	spin_lock_init(&priv->lock);
++	priv->limit = limit;
++
++	priv->mm = get_task_mm(current);
++	if (!priv->mm) {
++		kfree(priv);
++		return -ENOMEM;
++	}
++	priv->mn.ops = &gntdev_mmu_ops;
++	mmu_notifier_register(&priv->mn, priv->mm);
++	mmput(priv->mm);
++
++	flip->private_data = priv;
++	if (debug)
++		printk("%s: priv %p\n", __FUNCTION__, priv);
++
++	return 0;
++}
++
++static int gntdev_release(struct inode *inode, struct file *flip)
++{
++	struct gntdev_priv *priv = flip->private_data;
++	struct grant_map *map;
++	int err;
++
++	if (debug)
++		printk("%s: priv %p\n", __FUNCTION__, priv);
++
++	spin_lock(&priv->lock);
++	while (!list_empty(&priv->maps)) {
++		map = list_entry(priv->maps.next, struct grant_map, next);
++		err = gntdev_del_map(map);
++		if (WARN_ON(err))
++			gntdev_free_map(map);
++
++	}
++	spin_unlock(&priv->lock);
++
++	mmu_notifier_unregister(&priv->mn, priv->mm);
++	kfree(priv);
++	return 0;
++}
++
++static long gntdev_ioctl_map_grant_ref(struct gntdev_priv *priv,
++				       struct ioctl_gntdev_map_grant_ref __user *u)
++{
++	struct ioctl_gntdev_map_grant_ref op;
++	struct grant_map *map;
++	int err;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++	if (debug)
++		printk("%s: priv %p, add %d\n", __FUNCTION__, priv,
++		       op.count);
++	if (unlikely(op.count <= 0))
++		return -EINVAL;
++	if (unlikely(op.count > priv->limit))
++		return -EINVAL;
++
++	err = -ENOMEM;
++	map = gntdev_alloc_map(priv, op.count);
++	if (!map)
++		return err;
++	if (copy_from_user(map->grants, &u->refs,
++			   sizeof(map->grants[0]) * op.count) != 0) {
++		gntdev_free_map(map);
++		return err;
++	}
++
++	spin_lock(&priv->lock);
++	gntdev_add_map(priv, map);
++	op.index = map->index << PAGE_SHIFT;
++	spin_unlock(&priv->lock);
++
++	if (copy_to_user(u, &op, sizeof(op)) != 0) {
++		spin_lock(&priv->lock);
++		gntdev_del_map(map);
++		spin_unlock(&priv->lock);
++		gntdev_free_map(map);
++		return err;
++	}
++	return 0;
++}
++
++static long gntdev_ioctl_unmap_grant_ref(struct gntdev_priv *priv,
++					 struct ioctl_gntdev_unmap_grant_ref __user *u)
++{
++	struct ioctl_gntdev_unmap_grant_ref op;
++	struct grant_map *map;
++	int err = -EINVAL;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++	if (debug)
++		printk("%s: priv %p, del %d+%d\n", __FUNCTION__, priv,
++		       (int)op.index, (int)op.count);
++
++	spin_lock(&priv->lock);
++	map = gntdev_find_map_index(priv, op.index >> PAGE_SHIFT, op.count);
++	if (map)
++		err = gntdev_del_map(map);
++	spin_unlock(&priv->lock);
++	if (!err)
++		gntdev_free_map(map);
++	return err;
++}
++
++static long gntdev_ioctl_get_offset_for_vaddr(struct gntdev_priv *priv,
++					      struct ioctl_gntdev_get_offset_for_vaddr __user *u)
++{
++	struct ioctl_gntdev_get_offset_for_vaddr op;
++	struct grant_map *map;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++	if (debug)
++		printk("%s: priv %p, offset for vaddr %lx\n", __FUNCTION__, priv,
++		       (unsigned long)op.vaddr);
++
++	spin_lock(&priv->lock);
++	map = gntdev_find_map_vaddr(priv, op.vaddr);
++	if (map == NULL ||
++	    map->vma->vm_start != op.vaddr) {
++		spin_unlock(&priv->lock);
++		return -EINVAL;
++	}
++	op.offset = map->index << PAGE_SHIFT;
++	op.count = map->count;
++	spin_unlock(&priv->lock);
++
++	if (copy_to_user(u, &op, sizeof(op)) != 0)
++		return -EFAULT;
++	return 0;
++}
++
++static long gntdev_ioctl_set_max_grants(struct gntdev_priv *priv,
++					struct ioctl_gntdev_set_max_grants __user *u)
++{
++	struct ioctl_gntdev_set_max_grants op;
++
++	if (copy_from_user(&op, u, sizeof(op)) != 0)
++		return -EFAULT;
++	if (debug)
++		printk("%s: priv %p, limit %d\n", __FUNCTION__, priv, op.count);
++	if (op.count > limit)
++		return -EINVAL;
++
++	spin_lock(&priv->lock);
++	priv->limit = op.count;
++	spin_unlock(&priv->lock);
++	return 0;
++}
++
++static long gntdev_ioctl(struct file *flip,
++			 unsigned int cmd, unsigned long arg)
++{
++	struct gntdev_priv *priv = flip->private_data;
++	void __user *ptr = (void __user *)arg;
++
++	switch (cmd) {
++	case IOCTL_GNTDEV_MAP_GRANT_REF:
++		return gntdev_ioctl_map_grant_ref(priv, ptr);
++
++	case IOCTL_GNTDEV_UNMAP_GRANT_REF:
++		return gntdev_ioctl_unmap_grant_ref(priv, ptr);
++
++	case IOCTL_GNTDEV_GET_OFFSET_FOR_VADDR:
++		return gntdev_ioctl_get_offset_for_vaddr(priv, ptr);
++
++	case IOCTL_GNTDEV_SET_MAX_GRANTS:
++		return gntdev_ioctl_set_max_grants(priv, ptr);
++
++	default:
++		if (debug)
++			printk("%s: priv %p, unknown cmd %x\n",
++			       __FUNCTION__, priv, cmd);
++		return -ENOIOCTLCMD;
++	}
++
++	return 0;
++}
++
++static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
++{
++	struct gntdev_priv *priv = flip->private_data;
++	int index = vma->vm_pgoff;
++	int count = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
++	struct grant_map *map;
++	int err = -EINVAL;
++
++	if ((vma->vm_flags & VM_WRITE) && !(vma->vm_flags & VM_SHARED))
++		return -EINVAL;
++
++	if (debug)
++		printk("%s: map %d+%d at %lx (pgoff %lx)\n", __FUNCTION__,
++		       index, count, vma->vm_start, vma->vm_pgoff);
++
++	spin_lock(&priv->lock);
++	map = gntdev_find_map_index(priv, index, count);
++	if (!map)
++		goto unlock_out;
++	if (map->vma)
++		goto unlock_out;
++	if (priv->mm != vma->vm_mm) {
++		printk("%s: Huh? Other mm?\n", __FUNCTION__);
++		goto unlock_out;
++	}
++
++	vma->vm_ops = &gntdev_vmops;
++
++	vma->vm_flags |= VM_RESERVED;
++	vma->vm_flags |= VM_DONTCOPY;
++	vma->vm_flags |= VM_DONTEXPAND;
++
++	vma->vm_private_data = map;
++	map->vma = vma;
++
++	map->flags = GNTMAP_host_map | GNTMAP_application_map | GNTMAP_contains_pte;
++	if (!(vma->vm_flags & VM_WRITE))
++		map->flags |= GNTMAP_readonly;
++
++	err = apply_to_page_range(vma->vm_mm, vma->vm_start,
++				  vma->vm_end - vma->vm_start,
++				  find_grant_ptes, map);
++	if (err) {
++		goto unlock_out;
++		if (debug)
++			printk("%s: find_grant_ptes() failure.\n", __FUNCTION__);
++	}
++
++	err = map_grant_pages(map);
++	if (err) {
++		goto unlock_out;
++		if (debug)
++			printk("%s: map_grant_pages() failure.\n", __FUNCTION__);
++	}
++	map->is_mapped = 1;
++
++unlock_out:
++	spin_unlock(&priv->lock);
++	return err;
++}
++
++static const struct file_operations gntdev_fops = {
++	.owner = THIS_MODULE,
++	.open = gntdev_open,
++	.release = gntdev_release,
++	.mmap = gntdev_mmap,
++	.unlocked_ioctl = gntdev_ioctl
++};
++
++static struct miscdevice gntdev_miscdev = {
++	.minor        = MISC_DYNAMIC_MINOR,
++	.name         = "xen/gntdev",
++	.fops         = &gntdev_fops,
++};
++
++/* ------------------------------------------------------------------ */
++
++static int __init gntdev_init(void)
++{
++	int err;
++
++	if (!xen_domain())
++		return -ENODEV;
++
++	err = misc_register(&gntdev_miscdev);
++	if (err != 0) {
++		printk(KERN_ERR "Could not register gntdev device\n");
++		return err;
++	}
++	return 0;
++}
++
++static void __exit gntdev_exit(void)
++{
++	misc_deregister(&gntdev_miscdev);
++}
++
++module_init(gntdev_init);
++module_exit(gntdev_exit);
++
++/* ------------------------------------------------------------------ */
+diff --git a/include/xen/gntdev.h b/include/xen/gntdev.h
+new file mode 100644
+index 0000000..8bd1467
+--- /dev/null
++++ b/include/xen/gntdev.h
+@@ -0,0 +1,119 @@
++/******************************************************************************
++ * gntdev.h
++ * 
++ * Interface to /dev/xen/gntdev.
++ * 
++ * Copyright (c) 2007, D G Murray
++ * 
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation; or, when distributed
++ * separately from the Linux kernel or incorporated into other
++ * software packages, subject to the following license:
++ * 
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this source file (the "Software"), to deal in the Software without
++ * restriction, including without limitation the rights to use, copy, modify,
++ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
++ * and to permit persons to whom the Software is furnished to do so, subject to
++ * the following conditions:
++ * 
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ * 
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
++ * IN THE SOFTWARE.
++ */
++
++#ifndef __LINUX_PUBLIC_GNTDEV_H__
++#define __LINUX_PUBLIC_GNTDEV_H__
++
++struct ioctl_gntdev_grant_ref {
++	/* The domain ID of the grant to be mapped. */
++	uint32_t domid;
++	/* The grant reference of the grant to be mapped. */
++	uint32_t ref;
++};
++
++/*
++ * Inserts the grant references into the mapping table of an instance
++ * of gntdev. N.B. This does not perform the mapping, which is deferred
++ * until mmap() is called with @index as the offset.
++ */
++#define IOCTL_GNTDEV_MAP_GRANT_REF \
++_IOC(_IOC_NONE, 'G', 0, sizeof(struct ioctl_gntdev_map_grant_ref))
++struct ioctl_gntdev_map_grant_ref {
++	/* IN parameters */
++	/* The number of grants to be mapped. */
++	uint32_t count;
++	uint32_t pad;
++	/* OUT parameters */
++	/* The offset to be used on a subsequent call to mmap(). */
++	uint64_t index;
++	/* Variable IN parameter. */
++	/* Array of grant references, of size @count. */
++	struct ioctl_gntdev_grant_ref refs[1];
++};
++
++/*
++ * Removes the grant references from the mapping table of an instance of
++ * of gntdev. N.B. munmap() must be called on the relevant virtual address(es)
++ * before this ioctl is called, or an error will result.
++ */
++#define IOCTL_GNTDEV_UNMAP_GRANT_REF \
++_IOC(_IOC_NONE, 'G', 1, sizeof(struct ioctl_gntdev_unmap_grant_ref))       
++struct ioctl_gntdev_unmap_grant_ref {
++	/* IN parameters */
++	/* The offset was returned by the corresponding map operation. */
++	uint64_t index;
++	/* The number of pages to be unmapped. */
++	uint32_t count;
++	uint32_t pad;
++};
++
++/*
++ * Returns the offset in the driver's address space that corresponds
++ * to @vaddr. This can be used to perform a munmap(), followed by an
++ * UNMAP_GRANT_REF ioctl, where no state about the offset is retained by
++ * the caller. The number of pages that were allocated at the same time as
++ * @vaddr is returned in @count.
++ *
++ * N.B. Where more than one page has been mapped into a contiguous range, the
++ *      supplied @vaddr must correspond to the start of the range; otherwise
++ *      an error will result. It is only possible to munmap() the entire
++ *      contiguously-allocated range at once, and not any subrange thereof.
++ */
++#define IOCTL_GNTDEV_GET_OFFSET_FOR_VADDR \
++_IOC(_IOC_NONE, 'G', 2, sizeof(struct ioctl_gntdev_get_offset_for_vaddr))
++struct ioctl_gntdev_get_offset_for_vaddr {
++	/* IN parameters */
++	/* The virtual address of the first mapped page in a range. */
++	uint64_t vaddr;
++	/* OUT parameters */
++	/* The offset that was used in the initial mmap() operation. */
++	uint64_t offset;
++	/* The number of pages mapped in the VM area that begins at @vaddr. */
++	uint32_t count;
++	uint32_t pad;
++};
++
++/*
++ * Sets the maximum number of grants that may mapped at once by this gntdev
++ * instance.
++ *
++ * N.B. This must be called before any other ioctl is performed on the device.
++ */
++#define IOCTL_GNTDEV_SET_MAX_GRANTS \
++_IOC(_IOC_NONE, 'G', 3, sizeof(struct ioctl_gntdev_set_max_grants))
++struct ioctl_gntdev_set_max_grants {
++	/* IN parameter */
++	/* The maximum number of grants that may be mapped at once. */
++	uint32_t count;
++};
++
++#endif /* __LINUX_PUBLIC_GNTDEV_H__ */
+-- 
+1.7.3.2
+
+
+From 8c79aad3bd8a379bd0bd144895b55098aca2ccea Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 11 Nov 2010 14:39:12 -0800
+Subject: [PATCH 21/21] xen/gntdev: add VM_PFNMAP to vma
+
+These pages are from other domains, so don't have any local PFN.
+VM_PFNMAP is the closest concept Linux has to this.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/gntdev.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 45898d4..cf61c7d 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -574,6 +574,7 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 	vma->vm_flags |= VM_RESERVED;
+ 	vma->vm_flags |= VM_DONTCOPY;
+ 	vma->vm_flags |= VM_DONTEXPAND;
++	vma->vm_flags |= VM_PFNMAP;
+ 
+ 	vma->vm_private_data = map;
+ 	map->vma = vma;
+-- 
+1.7.3.2
+

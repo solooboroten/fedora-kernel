@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 1
 # The git snapshot level
-%define gitrev 7
+%define gitrev 8
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -1302,9 +1302,9 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
-ApplyPatch xen.upstream.core.patch
-ApplyPatch xen.pcifront.fixes.patch
-ApplyPatch xen.pvhvm.fixes.patch
+#ApplyPatch xen.upstream.core.patch
+#ApplyPatch xen.pcifront.fixes.patch
+#ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
 
@@ -1918,6 +1918,10 @@ fi
 #                 ||     ||
 
 %changelog
+* Fri Nov 12 2010 Michael Young <m.a.young@durham.ac.uk>
+- Try again with xen patches from xen/next-2.6.37
+- Build new XEN_GNTDEV option as a module
+
 * Thu Nov 11 2010 Michael Young <m.a.young@durham.ac.uk>
 - experiment with patch format by adding various xen bugfixes
 
