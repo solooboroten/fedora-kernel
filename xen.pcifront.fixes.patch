@@ -1,193 +1,116 @@
-From 1688c3d6000b1183bcb604c8c85f742a579990e5 Mon Sep 17 00:00:00 2001
+From 723ee043b152e4ed7d901fb791a513bc60bb9a9c Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Date: Sun, 31 Oct 2010 17:04:09 -0400
-Subject: [PATCH 1/5] MAINTAINERS: Update mailing list name for Xen pieces.
+Date: Tue, 16 Nov 2010 12:09:59 -0500
+Subject: [PATCH] xen: set IO permission early (before early_cpu_init())
 
-While the 'xen-devel@lists.xen.org' is more apt, it is not yet
-ready. Revert the name back to the old lists.xensource.com for
-right now.
+This patch is based off "xen dom0: Set up basic IO permissions for dom0."
+by Juan Quintela <quintela@redhat.com>.
 
+On AMD machines when we boot the kernel as Domain 0 we get this nasty:
+
+mapping kernel into physical memory
+Xen: setup ISA identity maps
+about to get started...
+(XEN) traps.c:475:d0 Unhandled general protection fault fault/trap [#13] on VCPU 0 [ec=0000]
+(XEN) domain_crash_sync called from entry.S
+(XEN) Domain 0 (vcpu#0) crashed on cpu#0:
+(XEN) ----[ Xen-4.1-101116  x86_64  debug=y  Not tainted ]----
+(XEN) CPU:    0
+(XEN) RIP:    e033:[<ffffffff8130271b>]
+(XEN) RFLAGS: 0000000000000282   EM: 1   CONTEXT: pv guest
+(XEN) rax: 000000008000c068   rbx: ffffffff8186c680   rcx: 0000000000000068
+(XEN) rdx: 0000000000000cf8   rsi: 000000000000c000   rdi: 0000000000000000
+(XEN) rbp: ffffffff81801e98   rsp: ffffffff81801e50   r8:  ffffffff81801eac
+(XEN) r9:  ffffffff81801ea8   r10: ffffffff81801eb4   r11: 00000000ffffffff
+(XEN) r12: ffffffff8186c694   r13: ffffffff81801f90   r14: ffffffffffffffff
+(XEN) r15: 0000000000000000   cr0: 000000008005003b   cr4: 00000000000006f0
+(XEN) cr3: 0000000221803000   cr2: 0000000000000000
+(XEN) ds: 0000   es: 0000   fs: 0000   gs: 0000   ss: e02b   cs: e033
+(XEN) Guest stack trace from rsp=ffffffff81801e50:
+
+RIP points to read_pci_config() function.
+
+The issue is that we don't set IO permissions for the Linux kernel early enough.
+
+The call sequence used to be:
+
+    xen_start_kernel()
+	x86_init.oem.arch_setup = xen_setup_arch;
+        setup_arch:
+           - early_cpu_init
+               - early_init_amd
+                  - read_pci_config
+           - x86_init.oem.arch_setup [ xen_arch_setup ]
+               - set IO permissions.
+
+We need to set the IO permissions earlier on, which this patch does.
+
+Acked-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/x86/xen/enlighten.c |   12 +++++++++++-
+ arch/x86/xen/setup.c     |    8 --------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0094224..acf13f2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6613,7 +6613,7 @@ F:	drivers/xen/*swiotlb*
- XEN HYPERVISOR INTERFACE
- M:	Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
- M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
--L:	xen-devel@lists.xen.org
-+L:	xen-devel@lists.xensource.com
- L:	virtualization@lists.osdl.org
- S:	Supported
- F:	arch/x86/xen/
--- 
-1.7.3.2
-
-
-From 07cf2a64c2ad3408a0e12aa4cd6040b30c09381d Mon Sep 17 00:00:00 2001
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Sat, 6 Nov 2010 10:06:49 +0100
-Subject: [PATCH 2/5] xen: fix memory leak in Xen PCI MSI/MSI-X allocator.
-
-Stanse found that xen_setup_msi_irqs leaks memory when
-xen_allocate_pirq fails. Free the memory in that fail path.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: xen-devel@lists.xensource.com
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
----
- arch/x86/pci/xen.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index 117f5b8..d7b5109 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -147,8 +147,10 @@ static int xen_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- 		irq = xen_allocate_pirq(v[i], 0, /* not sharable */
- 			(type == PCI_CAP_ID_MSIX) ?
- 			"pcifront-msi-x" : "pcifront-msi");
--		if (irq < 0)
--			return -1;
-+		if (irq < 0) {
-+			ret = -1;
-+			goto free;
-+		}
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 235c0f4..759b762 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -1090,6 +1090,8 @@ static void __init xen_setup_stackprotector(void)
+ /* First C function to be called on Xen boot */
+ asmlinkage void __init xen_start_kernel(void)
+ {
++	struct physdev_set_iopl set_iopl;
++	int rc;
+ 	pgd_t *pgd;
  
- 		ret = set_irq_msi(irq, msidesc);
- 		if (ret)
-@@ -164,7 +166,7 @@ error:
- 	if (ret == -ENODEV)
- 		dev_err(&dev->dev, "Xen PCI frontend has not registered" \
- 			" MSI/MSI-X support!\n");
+ 	if (!xen_start_info)
+@@ -1202,10 +1204,18 @@ asmlinkage void __init xen_start_kernel(void)
+ #else
+ 	pv_info.kernel_rpl = 0;
+ #endif
 -
-+free:
- 	kfree(v);
- 	return ret;
- }
--- 
-1.7.3.2
-
-
-From c8ac3902fb7a98c45ed54d98ad6f1c8168f47021 Mon Sep 17 00:00:00 2001
-From: Jesper Juhl <jj@chaosbits.net>
-Date: Sat, 30 Oct 2010 14:51:30 +0200
-Subject: [PATCH 3/5] xen-pcifront: Remove duplicate inclusion of headers.
-
-In drivers/pci/xen-pcifront.c the xen/xenbus.h header is included twice -
-once is enough.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- drivers/pci/xen-pcifront.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
-index a87c498..0579273 100644
---- a/drivers/pci/xen-pcifront.c
-+++ b/drivers/pci/xen-pcifront.c
-@@ -13,7 +13,6 @@
- #include <linux/spinlock.h>
- #include <linux/pci.h>
- #include <linux/msi.h>
--#include <xen/xenbus.h>
- #include <xen/interface/io/pciif.h>
- #include <asm/xen/pci.h>
- #include <linux/interrupt.h>
--- 
-1.7.3.2
-
-
-From 2a63dd7275b2278bd7e9203f74b9aa4f07e82a7a Mon Sep 17 00:00:00 2001
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Thu, 4 Nov 2010 15:31:30 +0100
-Subject: [PATCH 4/5] xen-pcifront: fix PCI reference leak
-
-Stanse found that when pdev is found and has no driver a reference is
-leaked in pcifront_common_process. So add pci_dev_put there. For the
-pdev == NULL case, pci_dev_put(NULL) is fine.
-
-[v2: Updated to not dereference pcidev->dev per Milton's observation]
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Milton Miller <miltonm@bga.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
----
- drivers/pci/xen-pcifront.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
-index 0579273..3a5a6fc 100644
---- a/drivers/pci/xen-pcifront.c
-+++ b/drivers/pci/xen-pcifront.c
-@@ -575,8 +575,9 @@ static pci_ers_result_t pcifront_common_process(int cmd,
+ 	/* set the limit of our address space */
+ 	xen_reserve_top();
  
- 	pcidev = pci_get_bus_and_slot(bus, devfn);
- 	if (!pcidev || !pcidev->driver) {
--		dev_err(&pcidev->dev,
--			"device or driver is NULL\n");
-+		dev_err(&pdev->xdev->dev, "device or AER driver is NULL\n");
-+		if (pcidev)
-+			pci_dev_put(pcidev);
- 		return result;
- 	}
- 	pdrv = pcidev->driver;
--- 
-1.7.3.2
-
-
-From b74831e6437c0cbbd310dc587579390a146dc7a0 Mon Sep 17 00:00:00 2001
-From: Joe Perches <joe@perches.com>
-Date: Wed, 10 Nov 2010 09:47:51 -0800
-Subject: [PATCH 5/5] MAINTAINERS: Mark XEN lists as moderated
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- MAINTAINERS |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index acf13f2..6a16f21 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6598,14 +6598,14 @@ F:	drivers/platform/x86
++	/* We used to do this in xen_arch_setup, but that is too late on AMD
++	 * were early_cpu_init (run before ->arch_setup()) calls early_amd_init
++	 * which pokes 0xcf8 port.
++	 */
++	set_iopl.iopl = 1;
++	rc = HYPERVISOR_physdev_op(PHYSDEVOP_set_iopl, &set_iopl);
++	if (rc != 0)
++		xen_raw_printk("physdev_op failed %d\n", rc);
++
+ #ifdef CONFIG_X86_32
+ 	/* set up basic CPUID stuff */
+ 	cpu_detect(&new_cpu_data);
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index 769c4b0..4abb1c3 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -337,9 +337,6 @@ void __cpuinit xen_enable_syscall(void)
  
- XEN PCI SUBSYSTEM
- M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
--L:	xen-devel@lists.xensource.com
-+L:	xen-devel@lists.xensource.com (moderated for non-subscribers)
- S:	Supported
- F:	arch/x86/pci/*xen*
- F:	drivers/pci/*xen*
+ void __init xen_arch_setup(void)
+ {
+-	struct physdev_set_iopl set_iopl;
+-	int rc;
+-
+ 	xen_panic_handler_init();
  
- XEN SWIOTLB SUBSYSTEM
- M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
--L:	xen-devel@lists.xensource.com
-+L:	xen-devel@lists.xensource.com (moderated for non-subscribers)
- S:	Supported
- F:	arch/x86/xen/*swiotlb*
- F:	drivers/xen/*swiotlb*
-@@ -6613,7 +6613,7 @@ F:	drivers/xen/*swiotlb*
- XEN HYPERVISOR INTERFACE
- M:	Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
- M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
--L:	xen-devel@lists.xensource.com
-+L:	xen-devel@lists.xensource.com (moderated for non-subscribers)
- L:	virtualization@lists.osdl.org
- S:	Supported
- F:	arch/x86/xen/
+ 	HYPERVISOR_vm_assist(VMASST_CMD_enable, VMASST_TYPE_4gb_segments);
+@@ -356,11 +353,6 @@ void __init xen_arch_setup(void)
+ 	xen_enable_sysenter();
+ 	xen_enable_syscall();
+ 
+-	set_iopl.iopl = 1;
+-	rc = HYPERVISOR_physdev_op(PHYSDEVOP_set_iopl, &set_iopl);
+-	if (rc != 0)
+-		printk(KERN_INFO "physdev_op failed %d\n", rc);
+-
+ #ifdef CONFIG_ACPI
+ 	if (!(xen_start_info->flags & SIF_INITDOMAIN)) {
+ 		printk(KERN_INFO "ACPI in unprivileged domain disabled\n");
 -- 
 1.7.3.2
 

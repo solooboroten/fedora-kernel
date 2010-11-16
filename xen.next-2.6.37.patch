@@ -1,7 +1,7 @@
 From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Feb 2009 12:58:42 -0800
-Subject: [PATCH 01/21] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
+Subject: [PATCH 01/23] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
 
 Set _PAGE_IOMAP in ptes mapping a VM_IO vma.  This says that the mapping
 is of a real piece of physical hardware, and not just system memory.
@@ -60,7 +60,7 @@ index 5c4ee42..5083449 100644
 From 5527f9bee43a910b019ad77d7de6620b3412759b Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 2 Oct 2009 09:49:05 -0700
-Subject: [PATCH 02/21] drm: recompute vma->vm_page_prot after changing vm_flags
+Subject: [PATCH 02/23] drm: recompute vma->vm_page_prot after changing vm_flags
 
 vm_get_page_prot() computes vm_page_prot depending on vm_flags, so
 we need to re-call it if we change flags.
@@ -97,7 +97,7 @@ index fe6cb77..2d15c5e 100644
 From 66aae0dade39748bb7e068c4518c6160394ae3aa Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 25 Feb 2010 16:38:29 -0800
-Subject: [PATCH 03/21] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
+Subject: [PATCH 03/23] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
 
 When mapping AGP memory, the offset is a machine address.  In Xen we
 need to make sure mappings of physical machine addresses have _PAGE_IO
@@ -128,7 +128,7 @@ index 076052c..3038ef6 100644
 From 4cd35860df16d7d3bd55ce4d4500bfe59c46a849 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 24 Feb 2010 11:10:45 -0800
-Subject: [PATCH 04/21] agp: use DMA API when compiled for Xen as well
+Subject: [PATCH 04/23] agp: use DMA API when compiled for Xen as well
 
 Xen guests need translation between pseudo-physical and real machine
 physical addresses when accessing graphics devices, so use the DMA API
@@ -164,7 +164,7 @@ index 75e0a34..ce63e5c 100644
 From 31b643ec05a644705d75d6d047917710b414487e Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 30 Sep 2010 12:37:26 +0100
-Subject: [PATCH 05/21] xen: implement XENMEM_machphys_mapping
+Subject: [PATCH 05/23] xen: implement XENMEM_machphys_mapping
 
 This hypercall allows Xen to specify a non-default location for the
 machine to physical mapping. This capability is used when running a 32
@@ -357,7 +357,7 @@ index d3938d3..134d33d 100644
 From 4ffb5de0f02bad2b0ebe7a9a6a45bc5855c15369 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 9 Aug 2010 14:35:36 -0700
-Subject: [PATCH 06/21] pvops: make pte_flags() go via pvops
+Subject: [PATCH 06/23] pvops: make pte_flags() go via pvops
 
 As part of PAT support in Xen we need to fiddle with the page flags.
 For consistency, we need to make sure the conversion happens both ways
@@ -412,7 +412,7 @@ index d1f4a76..a81b0ed 100644
 From 313e74412105c670ff8900ec8099a3a5df1fa83c Mon Sep 17 00:00:00 2001
 From: Vasiliy Kulikov <segooon@gmail.com>
 Date: Thu, 28 Oct 2010 15:39:02 +0400
-Subject: [PATCH 07/21] xen: xenfs: privcmd: check put_user() return code
+Subject: [PATCH 07/23] xen: xenfs: privcmd: check put_user() return code
 
 put_user() may fail.  In this case propagate error code from
 privcmd_ioctl_mmap_batch().
@@ -454,43 +454,10 @@ index f80be7f..2eb04c8 100644
 1.7.3.2
 
 
-From a2d771c036eb8c040683089ca04c36dfb93a0e60 Mon Sep 17 00:00:00 2001
-From: Ian Campbell <ian.campbell@citrix.com>
-Date: Fri, 29 Oct 2010 16:56:19 +0100
-Subject: [PATCH 08/21] xen: correct size of level2_kernel_pgt
-
-sizeof(pmd_t *) is 4 bytes on 32-bit PAE leading to an allocation of
-only 2048 bytes. The correct size is sizeof(pmd_t) giving us a full
-page allocation.
-
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/mmu.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
-index c237b81..21ed8d7 100644
---- a/arch/x86/xen/mmu.c
-+++ b/arch/x86/xen/mmu.c
-@@ -2126,7 +2126,7 @@ __init pgd_t *xen_setup_kernel_pagetable(pgd_t *pgd,
- {
- 	pmd_t *kernel_pmd;
- 
--	level2_kernel_pgt = extend_brk(sizeof(pmd_t *) * PTRS_PER_PMD, PAGE_SIZE);
-+	level2_kernel_pgt = extend_brk(sizeof(pmd_t) * PTRS_PER_PMD, PAGE_SIZE);
- 
- 	max_pfn_mapped = PFN_DOWN(__pa(xen_start_info->pt_base) +
- 				  xen_start_info->nr_pt_frames * PAGE_SIZE +
--- 
-1.7.3.2
-
-
 From c64e38ea17a81721da0393584fd807f8434050fa Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 1 Nov 2010 14:32:27 -0400
-Subject: [PATCH 09/21] xen/blkfront: map REQ_FLUSH into a full barrier
+Subject: [PATCH 08/23] xen/blkfront: map REQ_FLUSH into a full barrier
 
 Implement a flush as a full barrier, since we have nothing weaker.
 
@@ -523,15 +490,6 @@ index 06e2812..3a318d8 100644
   */
  static int blkif_queue_request(struct request *req)
  {
-@@ -289,7 +286,7 @@ static int blkif_queue_request(struct request *req)
- 
- 	ring_req->operation = rq_data_dir(req) ?
- 		BLKIF_OP_WRITE : BLKIF_OP_READ;
--	if (req->cmd_flags & REQ_HARDBARRIER)
-+	if (req->cmd_flags & REQ_FLUSH)
- 		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
- 
- 	ring_req->nr_segments = blk_rq_map_sg(req->q, req, info->sg);
 @@ -1069,14 +1066,8 @@ static void blkfront_connect(struct blkfront_info *info)
  	 */
  	info->feature_flush = 0;
@@ -554,7 +512,7 @@ index 06e2812..3a318d8 100644
 From a945b9801a9bfd4a98bcfd9f6656b5027b254e3f Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 1 Nov 2010 17:03:14 -0400
-Subject: [PATCH 10/21] xen/blkfront: change blk_shadow.request to proper pointer
+Subject: [PATCH 09/23] xen/blkfront: change blk_shadow.request to proper pointer
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -628,7 +586,7 @@ index 3a318d8..31c8a64 100644
 From be2f8373c188ed1f5d36003c9928e4d695213080 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 2 Nov 2010 10:38:33 -0400
-Subject: [PATCH 11/21] xen/blkfront: Implement FUA with BLKIF_OP_WRITE_BARRIER
+Subject: [PATCH 10/23] xen/blkfront: Implement FUA with BLKIF_OP_WRITE_BARRIER
 
 The BLKIF_OP_WRITE_BARRIER is a full ordered barrier, so we can use it
 to implement FUA as well as a plain FLUSH.
@@ -643,12 +601,10 @@ diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
 index 31c8a64..76b874a 100644
 --- a/drivers/block/xen-blkfront.c
 +++ b/drivers/block/xen-blkfront.c
-@@ -286,8 +286,18 @@ static int blkif_queue_request(struct request *req)
- 
+@@ -290,6 +287,18 @@ static int blkif_queue_request(struct request *req)
  	ring_req->operation = rq_data_dir(req) ?
  		BLKIF_OP_WRITE : BLKIF_OP_READ;
--	if (req->cmd_flags & REQ_FLUSH)
-+
+ 
 +	if (req->cmd_flags & (REQ_FLUSH | REQ_FUA)) {
 +		/*
 +		 * Ideally we could just do an unordered
@@ -658,11 +614,12 @@ index 31c8a64..76b874a 100644
 +		 * way.  (It's also a FLUSH+FUA, since it is
 +		 * guaranteed ordered WRT previous writes.)
 +		 */
- 		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
++		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
 +	}
- 
++
  	ring_req->nr_segments = blk_rq_map_sg(req->q, req, info->sg);
  	BUG_ON(ring_req->nr_segments > BLKIF_MAX_SEGMENTS_PER_REQUEST);
+ 
 @@ -1065,7 +1075,7 @@ static void blkfront_connect(struct blkfront_info *info)
  	info->feature_flush = 0;
  
@@ -679,7 +636,7 @@ index 31c8a64..76b874a 100644
 From dcb8baeceaa1c629bbd06f472cea023ad08a0c33 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 2 Nov 2010 11:55:58 -0400
-Subject: [PATCH 12/21] xen/blkfront: cope with backend that fail empty BLKIF_OP_WRITE_BARRIER requests
+Subject: [PATCH 11/23] xen/blkfront: cope with backend that fail empty BLKIF_OP_WRITE_BARRIER requests
 
 Some(?) Xen block backends fail BLKIF_OP_WRITE_BARRIER requests, which
 Linux uses as a cache flush operation.  In that case, disable use
@@ -716,10 +673,664 @@ index 76b874a..4f9e22f 100644
 1.7.3.2
 
 
+From 0aa82d86c699890ce3661927f176045fc8e47156 Mon Sep 17 00:00:00 2001
+From: Stephen Tweedie <sct@redhat.com>
+Date: Fri, 6 Feb 2009 19:09:47 -0800
+Subject: [PATCH 12/23] xen dom0: Add support for the platform_ops hypercall
+
+Minimal changes to get platform ops (renamed dom0_ops on pv_ops) working
+on pv_ops builds.  Pulls in upstream linux-2.6.18-xen.hg's platform.h
+
+[ Impact: add Xen hypercall definitions ]
+
+Signed-off-by: Stephen Tweedie <sct@redhat.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/xen/hypercall.h |    8 ++
+ include/xen/interface/platform.h     |  222 ++++++++++++++++++++++++++++++++++
+ include/xen/interface/xen.h          |    2 +
+ 3 files changed, 232 insertions(+), 0 deletions(-)
+ create mode 100644 include/xen/interface/platform.h
+
+diff --git a/arch/x86/include/asm/xen/hypercall.h b/arch/x86/include/asm/xen/hypercall.h
+index a3c28ae..3d10d04 100644
+--- a/arch/x86/include/asm/xen/hypercall.h
++++ b/arch/x86/include/asm/xen/hypercall.h
+@@ -45,6 +45,7 @@
+ #include <xen/interface/xen.h>
+ #include <xen/interface/sched.h>
+ #include <xen/interface/physdev.h>
++#include <xen/interface/platform.h>
+ 
+ /*
+  * The hypercall asms have to meet several constraints:
+@@ -299,6 +300,13 @@ HYPERVISOR_set_timer_op(u64 timeout)
+ }
+ 
+ static inline int
++HYPERVISOR_dom0_op(struct xen_platform_op *platform_op)
++{
++	platform_op->interface_version = XENPF_INTERFACE_VERSION;
++	return _hypercall1(int, dom0_op, platform_op);
++}
++
++static inline int
+ HYPERVISOR_set_debugreg(int reg, unsigned long value)
+ {
+ 	return _hypercall2(int, set_debugreg, reg, value);
+diff --git a/include/xen/interface/platform.h b/include/xen/interface/platform.h
+new file mode 100644
+index 0000000..83e4714
+--- /dev/null
++++ b/include/xen/interface/platform.h
+@@ -0,0 +1,222 @@
++/******************************************************************************
++ * platform.h
++ *
++ * Hardware platform operations. Intended for use by domain-0 kernel.
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to
++ * deal in the Software without restriction, including without limitation the
++ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
++ * sell copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++ * DEALINGS IN THE SOFTWARE.
++ *
++ * Copyright (c) 2002-2006, K Fraser
++ */
++
++#ifndef __XEN_PUBLIC_PLATFORM_H__
++#define __XEN_PUBLIC_PLATFORM_H__
++
++#include "xen.h"
++
++#define XENPF_INTERFACE_VERSION 0x03000001
++
++/*
++ * Set clock such that it would read <secs,nsecs> after 00:00:00 UTC,
++ * 1 January, 1970 if the current system time was <system_time>.
++ */
++#define XENPF_settime             17
++struct xenpf_settime {
++    /* IN variables. */
++    uint32_t secs;
++    uint32_t nsecs;
++    uint64_t system_time;
++};
++typedef struct xenpf_settime xenpf_settime_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_settime_t);
++
++/*
++ * Request memory range (@mfn, @mfn+@nr_mfns-1) to have type @type.
++ * On x86, @type is an architecture-defined MTRR memory type.
++ * On success, returns the MTRR that was used (@reg) and a handle that can
++ * be passed to XENPF_DEL_MEMTYPE to accurately tear down the new setting.
++ * (x86-specific).
++ */
++#define XENPF_add_memtype         31
++struct xenpf_add_memtype {
++    /* IN variables. */
++    unsigned long mfn;
++    uint64_t nr_mfns;
++    uint32_t type;
++    /* OUT variables. */
++    uint32_t handle;
++    uint32_t reg;
++};
++typedef struct xenpf_add_memtype xenpf_add_memtype_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_add_memtype_t);
++
++/*
++ * Tear down an existing memory-range type. If @handle is remembered then it
++ * should be passed in to accurately tear down the correct setting (in case
++ * of overlapping memory regions with differing types). If it is not known
++ * then @handle should be set to zero. In all cases @reg must be set.
++ * (x86-specific).
++ */
++#define XENPF_del_memtype         32
++struct xenpf_del_memtype {
++    /* IN variables. */
++    uint32_t handle;
++    uint32_t reg;
++};
++typedef struct xenpf_del_memtype xenpf_del_memtype_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_del_memtype_t);
++
++/* Read current type of an MTRR (x86-specific). */
++#define XENPF_read_memtype        33
++struct xenpf_read_memtype {
++    /* IN variables. */
++    uint32_t reg;
++    /* OUT variables. */
++    unsigned long mfn;
++    uint64_t nr_mfns;
++    uint32_t type;
++};
++typedef struct xenpf_read_memtype xenpf_read_memtype_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_read_memtype_t);
++
++#define XENPF_microcode_update    35
++struct xenpf_microcode_update {
++    /* IN variables. */
++    GUEST_HANDLE(void) data;          /* Pointer to microcode data */
++    uint32_t length;                  /* Length of microcode data. */
++};
++typedef struct xenpf_microcode_update xenpf_microcode_update_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_microcode_update_t);
++
++#define XENPF_platform_quirk      39
++#define QUIRK_NOIRQBALANCING      1 /* Do not restrict IO-APIC RTE targets */
++#define QUIRK_IOAPIC_BAD_REGSEL   2 /* IO-APIC REGSEL forgets its value    */
++#define QUIRK_IOAPIC_GOOD_REGSEL  3 /* IO-APIC REGSEL behaves properly     */
++struct xenpf_platform_quirk {
++    /* IN variables. */
++    uint32_t quirk_id;
++};
++typedef struct xenpf_platform_quirk xenpf_platform_quirk_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_platform_quirk_t);
++
++#define XENPF_firmware_info       50
++#define XEN_FW_DISK_INFO          1 /* from int 13 AH=08/41/48 */
++#define XEN_FW_DISK_MBR_SIGNATURE 2 /* from MBR offset 0x1b8 */
++#define XEN_FW_VBEDDC_INFO        3 /* from int 10 AX=4f15 */
++struct xenpf_firmware_info {
++	/* IN variables. */
++	uint32_t type;
++	uint32_t index;
++	/* OUT variables. */
++	union {
++		struct {
++			/* Int13, Fn48: Check Extensions Present. */
++			uint8_t device;                   /* %dl: bios device number */
++			uint8_t version;                  /* %ah: major version      */
++			uint16_t interface_support;       /* %cx: support bitmap     */
++			/* Int13, Fn08: Legacy Get Device Parameters. */
++			uint16_t legacy_max_cylinder;     /* %cl[7:6]:%ch: max cyl # */
++			uint8_t legacy_max_head;          /* %dh: max head #         */
++			uint8_t legacy_sectors_per_track; /* %cl[5:0]: max sector #  */
++			/* Int13, Fn41: Get Device Parameters (as filled into %ds:%esi). */
++			/* NB. First uint16_t of buffer must be set to buffer size.      */
++			GUEST_HANDLE(void) edd_params;
++		} disk_info; /* XEN_FW_DISK_INFO */
++		struct {
++			uint8_t device;                   /* bios device number  */
++			uint32_t mbr_signature;           /* offset 0x1b8 in mbr */
++		} disk_mbr_signature; /* XEN_FW_DISK_MBR_SIGNATURE */
++		struct {
++			/* Int10, AX=4F15: Get EDID info. */
++			uint8_t capabilities;
++			uint8_t edid_transfer_time;
++			/* must refer to 128-byte buffer */
++			GUEST_HANDLE(uchar) edid;
++		} vbeddc_info; /* XEN_FW_VBEDDC_INFO */
++	} u;
++};
++typedef struct xenpf_firmware_info xenpf_firmware_info_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_firmware_info_t);
++
++#define XENPF_enter_acpi_sleep    51
++struct xenpf_enter_acpi_sleep {
++	/* IN variables */
++	uint16_t pm1a_cnt_val;      /* PM1a control value. */
++	uint16_t pm1b_cnt_val;      /* PM1b control value. */
++	uint32_t sleep_state;       /* Which state to enter (Sn). */
++	uint32_t flags;             /* Must be zero. */
++};
++typedef struct xenpf_enter_acpi_sleep xenpf_enter_acpi_sleep_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_enter_acpi_sleep_t);
++
++#define XENPF_change_freq         52
++struct xenpf_change_freq {
++	/* IN variables */
++	uint32_t flags; /* Must be zero. */
++	uint32_t cpu;   /* Physical cpu. */
++	uint64_t freq;  /* New frequency (Hz). */
++};
++typedef struct xenpf_change_freq xenpf_change_freq_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_change_freq_t);
++
++/*
++ * Get idle times (nanoseconds since boot) for physical CPUs specified in the
++ * @cpumap_bitmap with range [0..@cpumap_nr_cpus-1]. The @idletime array is
++ * indexed by CPU number; only entries with the corresponding @cpumap_bitmap
++ * bit set are written to. On return, @cpumap_bitmap is modified so that any
++ * non-existent CPUs are cleared. Such CPUs have their @idletime array entry
++ * cleared.
++ */
++#define XENPF_getidletime         53
++struct xenpf_getidletime {
++	/* IN/OUT variables */
++	/* IN: CPUs to interrogate; OUT: subset of IN which are present */
++	GUEST_HANDLE(uchar) cpumap_bitmap;
++	/* IN variables */
++	/* Size of cpumap bitmap. */
++	uint32_t cpumap_nr_cpus;
++	/* Must be indexable for every cpu in cpumap_bitmap. */
++	GUEST_HANDLE(uint64_t) idletime;
++	/* OUT variables */
++	/* System time when the idletime snapshots were taken. */
++	uint64_t now;
++};
++typedef struct xenpf_getidletime xenpf_getidletime_t;
++DEFINE_GUEST_HANDLE_STRUCT(xenpf_getidletime_t);
++
++struct xen_platform_op {
++	uint32_t cmd;
++	uint32_t interface_version; /* XENPF_INTERFACE_VERSION */
++	union {
++		struct xenpf_settime           settime;
++		struct xenpf_add_memtype       add_memtype;
++		struct xenpf_del_memtype       del_memtype;
++		struct xenpf_read_memtype      read_memtype;
++		struct xenpf_microcode_update  microcode;
++		struct xenpf_platform_quirk    platform_quirk;
++		struct xenpf_firmware_info     firmware_info;
++		struct xenpf_enter_acpi_sleep  enter_acpi_sleep;
++		struct xenpf_change_freq       change_freq;
++		struct xenpf_getidletime       getidletime;
++		uint8_t                        pad[128];
++	} u;
++};
++typedef struct xen_platform_op xen_platform_op_t;
++DEFINE_GUEST_HANDLE_STRUCT(xen_platform_op_t);
++
++#endif /* __XEN_PUBLIC_PLATFORM_H__ */
+diff --git a/include/xen/interface/xen.h b/include/xen/interface/xen.h
+index 2befa3e..18b5599 100644
+--- a/include/xen/interface/xen.h
++++ b/include/xen/interface/xen.h
+@@ -461,6 +461,8 @@ typedef uint8_t xen_domain_handle_t[16];
+ #define __mk_unsigned_long(x) x ## UL
+ #define mk_unsigned_long(x) __mk_unsigned_long(x)
+ 
++DEFINE_GUEST_HANDLE(uint64_t);
++
+ #else /* __ASSEMBLY__ */
+ 
+ /* In assembly code we cannot use C numeric constant suffixes. */
+-- 
+1.7.3.2
+
+
+From 37a80bdde5957ffa81c2ecdffc4ccc2e874e34cb Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 27 Mar 2009 17:39:15 -0700
+Subject: [PATCH 13/23] xen: add CPU microcode update driver
+
+Xen does all the hard work for us, including choosing the right update
+method for this cpu type and actually doing it for all cpus.  We just
+need to supply it with the firmware blob.
+
+Because Xen updates all CPUs (and the kernel's virtual cpu numbers have
+no fixed relationship with the underlying physical cpus), we only bother
+doing anything for cpu "0".
+
+[ Impact: allow CPU microcode update in Xen dom0 ]
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/microcode.h |    9 ++
+ arch/x86/kernel/Makefile         |    1 +
+ arch/x86/kernel/microcode_core.c |    5 +-
+ arch/x86/kernel/microcode_xen.c  |  201 ++++++++++++++++++++++++++++++++++++++
+ arch/x86/xen/Kconfig             |    4 +
+ 5 files changed, 219 insertions(+), 1 deletions(-)
+ create mode 100644 arch/x86/kernel/microcode_xen.c
+
+diff --git a/arch/x86/include/asm/microcode.h b/arch/x86/include/asm/microcode.h
+index ef51b50..e15fca1 100644
+--- a/arch/x86/include/asm/microcode.h
++++ b/arch/x86/include/asm/microcode.h
+@@ -55,4 +55,13 @@ static inline struct microcode_ops * __init init_amd_microcode(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_MICROCODE_XEN
++extern struct microcode_ops * __init init_xen_microcode(void);
++#else
++static inline struct microcode_ops * __init init_xen_microcode(void)
++{
++	return NULL;
++}
++#endif
++
+ #endif /* _ASM_X86_MICROCODE_H */
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 9e13763..0036150 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -104,6 +104,7 @@ obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
+ microcode-y				:= microcode_core.o
+ microcode-$(CONFIG_MICROCODE_INTEL)	+= microcode_intel.o
+ microcode-$(CONFIG_MICROCODE_AMD)	+= microcode_amd.o
++microcode-$(CONFIG_MICROCODE_XEN)	+= microcode_xen.o
+ obj-$(CONFIG_MICROCODE)			+= microcode.o
+ 
+ obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
+diff --git a/arch/x86/kernel/microcode_core.c b/arch/x86/kernel/microcode_core.c
+index 1cca374..6550539 100644
+--- a/arch/x86/kernel/microcode_core.c
++++ b/arch/x86/kernel/microcode_core.c
+@@ -83,6 +83,7 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ 
++#include <xen/xen.h>
+ #include <asm/microcode.h>
+ #include <asm/processor.h>
+ 
+@@ -506,7 +507,9 @@ static int __init microcode_init(void)
+ 	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	int error;
+ 
+-	if (c->x86_vendor == X86_VENDOR_INTEL)
++	if (xen_pv_domain())
++		microcode_ops = init_xen_microcode();
++	else if (c->x86_vendor == X86_VENDOR_INTEL)
+ 		microcode_ops = init_intel_microcode();
+ 	else if (c->x86_vendor == X86_VENDOR_AMD)
+ 		microcode_ops = init_amd_microcode();
+diff --git a/arch/x86/kernel/microcode_xen.c b/arch/x86/kernel/microcode_xen.c
+new file mode 100644
+index 0000000..16c742e
+--- /dev/null
++++ b/arch/x86/kernel/microcode_xen.c
+@@ -0,0 +1,201 @@
++/*
++ * Xen microcode update driver
++ *
++ * Xen does most of the work here.  We just pass the whole blob into
++ * Xen, and it will apply it to all CPUs as appropriate.  Xen will
++ * worry about how different CPU models are actually updated.
++ */
++#include <linux/sched.h>
++#include <linux/module.h>
++#include <linux/firmware.h>
++#include <linux/vmalloc.h>
++#include <linux/uaccess.h>
++
++#include <asm/microcode.h>
++
++#include <xen/xen.h>
++#include <xen/interface/platform.h>
++#include <xen/interface/xen.h>
++
++#include <asm/xen/hypercall.h>
++#include <asm/xen/hypervisor.h>
++
++MODULE_DESCRIPTION("Xen microcode update driver");
++MODULE_LICENSE("GPL");
++
++struct xen_microcode {
++	size_t len;
++	char data[0];
++};
++
++static int xen_microcode_update(int cpu)
++{
++	int err;
++	struct xen_platform_op op;
++	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
++	struct xen_microcode *uc = uci->mc;
++
++	if (uc == NULL || uc->len == 0) {
++		/*
++		 * We do all cpus at once, so we don't need to do
++		 * other cpus explicitly (besides, these vcpu numbers
++		 * have no relationship to underlying physical cpus).
++		 */
++		return 0;
++	}
++
++	op.cmd = XENPF_microcode_update;
++	set_xen_guest_handle(op.u.microcode.data, uc->data);
++	op.u.microcode.length = uc->len;
++
++	err = HYPERVISOR_dom0_op(&op);
++
++	if (err != 0)
++		printk(KERN_WARNING "microcode_xen: microcode update failed: %d\n", err);
++
++	return err;
++}
++
++static enum ucode_state xen_request_microcode_fw(int cpu, struct device *device)
++{
++	char name[30];
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
++	const struct firmware *firmware;
++	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
++	enum ucode_state ret;
++	struct xen_microcode *uc;
++	size_t size;
++	int err;
++
++	switch (c->x86_vendor) {
++	case X86_VENDOR_INTEL:
++		snprintf(name, sizeof(name), "intel-ucode/%02x-%02x-%02x",
++			 c->x86, c->x86_model, c->x86_mask);
++		break;
++
++	case X86_VENDOR_AMD:
++		snprintf(name, sizeof(name), "amd-ucode/microcode_amd.bin");
++		break;
++
++	default:
++		return UCODE_NFOUND;
++	}
++
++	err = request_firmware(&firmware, name, device);
++	if (err) {
++		pr_debug("microcode: data file %s load failed\n", name);
++		return UCODE_NFOUND;
++	}
++
++	/*
++	 * Only bother getting real firmware for cpu 0; the others get
++	 * dummy placeholders.
++	 */
++	if (cpu == 0)
++		size = firmware->size;
++	else
++		size = 0;
++
++	if (uci->mc != NULL) {
++		vfree(uci->mc);
++		uci->mc = NULL;
++	}
++
++	ret = UCODE_ERROR;
++	uc = vmalloc(sizeof(*uc) + size);
++	if (uc == NULL)
++		goto out;
++
++	ret = UCODE_OK;
++	uc->len = size;
++	memcpy(uc->data, firmware->data, uc->len);
++
++	uci->mc = uc;
++
++out:
++	release_firmware(firmware);
++
++	return ret;
++}
++
++static enum ucode_state xen_request_microcode_user(int cpu,
++						   const void __user *buf, size_t size)
++{
++	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
++	struct xen_microcode *uc;
++	enum ucode_state ret;
++	size_t unread;
++
++	if (cpu != 0) {
++		/* No real firmware for non-zero cpus; just store a
++		   placeholder */
++		size = 0;
++	}
++
++	if (uci->mc != NULL) {
++		vfree(uci->mc);
++		uci->mc = NULL;
++	}
++
++	ret = UCODE_ERROR;
++	uc = vmalloc(sizeof(*uc) + size);
++	if (uc == NULL)
++		goto out;
++
++	uc->len = size;
++
++	ret = UCODE_NFOUND;
++
++	/* XXX This sporadically returns uncopied bytes, so we return
++	   EFAULT.  As far as I can see, the usermode code
++	   (microcode_ctl) isn't doing anything wrong... */
++	unread = copy_from_user(uc->data, buf, size);
++
++	if (unread != 0) {
++		printk(KERN_WARNING "failed to read %zd of %zd bytes at %p -> %p\n",
++		       unread, size, buf, uc->data);
++		goto out;
++	}
++
++	ret = UCODE_OK;
++
++out:
++	if (ret == 0)
++		uci->mc = uc;
++	else
++		vfree(uc);
++
++	return ret;
++}
++
++static void xen_microcode_fini_cpu(int cpu)
++{
++	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
++
++	vfree(uci->mc);
++	uci->mc = NULL;
++}
++
++static int xen_collect_cpu_info(int cpu, struct cpu_signature *sig)
++{
++	sig->sig = 0;
++	sig->pf = 0;
++	sig->rev = 0;
++
++	return 0;
++}
++
++static struct microcode_ops microcode_xen_ops = {
++	.request_microcode_user		  = xen_request_microcode_user,
++	.request_microcode_fw             = xen_request_microcode_fw,
++	.collect_cpu_info                 = xen_collect_cpu_info,
++	.apply_microcode                  = xen_microcode_update,
++	.microcode_fini_cpu               = xen_microcode_fini_cpu,
++};
++
++struct microcode_ops * __init init_xen_microcode(void)
++{
++	if (!xen_initial_domain())
++		return NULL;
++	return &microcode_xen_ops;
++}
+diff --git a/arch/x86/xen/Kconfig b/arch/x86/xen/Kconfig
+index 5b54892..384e0a5 100644
+--- a/arch/x86/xen/Kconfig
++++ b/arch/x86/xen/Kconfig
+@@ -48,3 +48,7 @@ config XEN_DEBUG_FS
+ 	help
+ 	  Enable statistics output and various tuning options in debugfs.
+ 	  Enabling this option may incur a significant performance overhead.
++
++config MICROCODE_XEN
++       def_bool y
++       depends on XEN_DOM0 && MICROCODE
+\ No newline at end of file
+-- 
+1.7.3.2
+
+
+From 049ad0809c51dedebab0b8e4bfcf58f5f26375b7 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 9 Nov 2010 17:32:26 -0800
+Subject: [PATCH 14/23] xen/microcode: partially enable even for non-privileged kernels
+
+Don't attempt to load microcode on non-privileged kernels.  Kernels
+compiled without privileged support just get vestigial Xen detection
+to skip loading altogether; kernels with privileged support will
+load microcode if running privileged.  In either case, the normal
+Intel/AMD microcode loader is skipped under Xen.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/microcode.h |    2 +-
+ arch/x86/kernel/Makefile         |    2 +-
+ arch/x86/xen/Kconfig             |    6 +++++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/include/asm/microcode.h b/arch/x86/include/asm/microcode.h
+index e15fca1..3e61afe 100644
+--- a/arch/x86/include/asm/microcode.h
++++ b/arch/x86/include/asm/microcode.h
+@@ -55,7 +55,7 @@ static inline struct microcode_ops * __init init_amd_microcode(void)
+ }
+ #endif
+ 
+-#ifdef CONFIG_MICROCODE_XEN
++#ifdef CONFIG_MICROCODE_XEN_LOADER
+ extern struct microcode_ops * __init init_xen_microcode(void);
+ #else
+ static inline struct microcode_ops * __init init_xen_microcode(void)
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 0036150..768c5dc 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -104,7 +104,7 @@ obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
+ microcode-y				:= microcode_core.o
+ microcode-$(CONFIG_MICROCODE_INTEL)	+= microcode_intel.o
+ microcode-$(CONFIG_MICROCODE_AMD)	+= microcode_amd.o
+-microcode-$(CONFIG_MICROCODE_XEN)	+= microcode_xen.o
++microcode-$(CONFIG_MICROCODE_XEN_LOADER)	+= microcode_xen.o
+ obj-$(CONFIG_MICROCODE)			+= microcode.o
+ 
+ obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
+diff --git a/arch/x86/xen/Kconfig b/arch/x86/xen/Kconfig
+index 384e0a5..9a0d2fc 100644
+--- a/arch/x86/xen/Kconfig
++++ b/arch/x86/xen/Kconfig
+@@ -51,4 +51,8 @@ config XEN_DEBUG_FS
+ 
+ config MICROCODE_XEN
+        def_bool y
+-       depends on XEN_DOM0 && MICROCODE
+\ No newline at end of file
++       depends on XEN && MICROCODE
++
++config MICROCODE_XEN_LOADER
++	def_bool y
++	depends on MICROCODE_XEN && DOM0
+-- 
+1.7.3.2
+
+
 From aed8ff456bd7847683776e5c4d0dd4e4abc5087e Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 10 Nov 2010 12:28:57 -0800
-Subject: [PATCH 13/21] x86: demacro set_iopl_mask()
+Subject: [PATCH 15/23] x86: demacro set_iopl_mask()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -749,7 +1360,7 @@ index cae9c3c..32f75be 100644
 From 640524e029f5b5cb93462c7bccdd93141f53ae65 Mon Sep 17 00:00:00 2001
 From: Christophe Saout <chtephan@leto.intern.saout.de>
 Date: Sat, 17 Jan 2009 17:30:17 +0100
-Subject: [PATCH 14/21] x86/paravirt: paravirtualize IO permission bitmap
+Subject: [PATCH 16/23] x86/paravirt: paravirtualize IO permission bitmap
 
 Paravirtualized x86 systems don't have an exposed TSS, as it is only
 directly visible in ring 0.  The IO permission bitmap is part of
@@ -965,7 +1576,7 @@ index 57d1868..a48e82a 100644
 From 950952701cf9e218c2269d13b8538f3c07cff762 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 18 Jun 2009 15:04:16 -0700
-Subject: [PATCH 15/21] xen: implement IO permission bitmap
+Subject: [PATCH 17/23] xen: implement IO permission bitmap
 
 Add Xen implementation of IO permission bitmap pvop.
 
@@ -1011,207 +1622,10 @@ index 235c0f4..4ad88fd 100644
 1.7.3.2
 
 
-From 6903591f314b8947d0e362bda7715e90eb9df75e Mon Sep 17 00:00:00 2001
-From: Ian Campbell <ian.campbell@citrix.com>
-Date: Mon, 1 Nov 2010 16:30:09 +0000
-Subject: [PATCH 16/21] xen: events: do not unmask event channels on resume
-
-The IRQ core code will take care of disabling and reenabling
-interrupts over suspend resume automatically, therefore we do not need
-to do this in the Xen event channel code.
-
-The only exception is those event channels marked IRQF_NO_SUSPEND
-which the IRQ core ignores. We must unmask these ourselves, taking
-care to obey the current IRQ_DISABLED status. Failure check for
-IRQ_DISABLED leads to enabling polled only event channels, such as
-that associated with the pv spinlocks, which must never be enabled:
-
-[   21.970432] ------------[ cut here ]------------
-[   21.970432] kernel BUG at arch/x86/xen/spinlock.c:343!
-[   21.970432] invalid opcode: 0000 [#1] SMP
-[   21.970432] last sysfs file: /sys/devices/virtual/net/lo/operstate
-[   21.970432] Modules linked in:
-[   21.970432]
-[   21.970432] Pid: 0, comm: swapper Not tainted (2.6.32.24-x86_32p-xen-01034-g787c727 #34)
-[   21.970432] EIP: 0061:[<c102e209>] EFLAGS: 00010046 CPU: 3
-[   21.970432] EIP is at dummy_handler+0x3/0x7
-[   21.970432] EAX: 0000021c EBX: dfc16880 ECX: 0000001a EDX: 00000000
-[   21.970432] ESI: dfc02c00 EDI: 00000001 EBP: dfc47e10 ESP: dfc47e10
-[   21.970432]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0069
-[   21.970432] Process swapper (pid: 0, ti=dfc46000 task=dfc39440 task.ti=dfc46000)
-[   21.970432] Stack:
-[   21.970432]  dfc47e30 c10a39f0 0000021c 00000000 00000000 dfc16880 0000021c 00000001
-[   21.970432] <0> dfc47e40 c10a4f08 0000021c 00000000 dfc47e78 c12240a7 c1839284 c1839284
-[   21.970432] <0> 00000200 00000000 00000000 f5720000 c1f3d028 c1f3d02c 00000180 dfc47e90
-[   21.970432] Call Trace:
-[   21.970432]  [<c10a39f0>] ? handle_IRQ_event+0x5f/0x122
-[   21.970432]  [<c10a4f08>] ? handle_percpu_irq+0x2f/0x55
-[   21.970432]  [<c12240a7>] ? __xen_evtchn_do_upcall+0xdb/0x15f
-[   21.970432]  [<c122481e>] ? xen_evtchn_do_upcall+0x20/0x30
-[   21.970432]  [<c1030d47>] ? xen_do_upcall+0x7/0xc
-[   21.970432]  [<c102007b>] ? apic_reg_read+0xd3/0x22d
-[   21.970432]  [<c1002227>] ? hypercall_page+0x227/0x1005
-[   21.970432]  [<c102d30b>] ? xen_force_evtchn_callback+0xf/0x14
-[   21.970432]  [<c102da7c>] ? check_events+0x8/0xc
-[   21.970432]  [<c102da3b>] ? xen_irq_enable_direct_end+0x0/0x1
-[   21.970432]  [<c105e485>] ? finish_task_switch+0x62/0xba
-[   21.970432]  [<c14e3f84>] ? schedule+0x808/0x89d
-[   21.970432]  [<c1084dc5>] ? hrtimer_start_expires+0x1a/0x22
-[   21.970432]  [<c1085154>] ? tick_nohz_restart_sched_tick+0x15a/0x162
-[   21.970432]  [<c102f43a>] ? cpu_idle+0x6d/0x6f
-[   21.970432]  [<c14db29e>] ? cpu_bringup_and_idle+0xd/0xf
-[   21.970432] Code: 5d 0f 95 c0 0f b6 c0 c3 55 66 83 78 02 00 89 e5 5d 0f 95 \
-c0 0f b6 c0 c3 55 b2 01 86 10 31 c0 84 d2 89 e5 0f 94 c0 5d c3 55 89 e5 <0f> 0b \
-eb fe 55 80 3d 4c ce 84 c1 00 89 e5 57 56 89 c6 53 74 15
-[   21.970432] EIP: [<c102e209>] dummy_handler+0x3/0x7 SS:ESP 0069:dfc47e10
-[   21.970432] ---[ end trace c0b71f7e12cf3011 ]---
-
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/events.c |   25 ++++++++++++++++++-------
- 1 files changed, 18 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-index 97612f5..321a0c8 100644
---- a/drivers/xen/events.c
-+++ b/drivers/xen/events.c
-@@ -1299,9 +1299,6 @@ static void restore_cpu_virqs(unsigned int cpu)
- 		evtchn_to_irq[evtchn] = irq;
- 		irq_info[irq] = mk_virq_info(evtchn, virq);
- 		bind_evtchn_to_cpu(evtchn, cpu);
--
--		/* Ready for use. */
--		unmask_evtchn(evtchn);
- 	}
- }
- 
-@@ -1327,10 +1324,6 @@ static void restore_cpu_ipis(unsigned int cpu)
- 		evtchn_to_irq[evtchn] = irq;
- 		irq_info[irq] = mk_ipi_info(evtchn, ipi);
- 		bind_evtchn_to_cpu(evtchn, cpu);
--
--		/* Ready for use. */
--		unmask_evtchn(evtchn);
--
- 	}
- }
- 
-@@ -1390,6 +1383,7 @@ void xen_poll_irq(int irq)
- void xen_irq_resume(void)
- {
- 	unsigned int cpu, irq, evtchn;
-+	struct irq_desc *desc;
- 
- 	init_evtchn_cpu_bindings();
- 
-@@ -1408,6 +1402,23 @@ void xen_irq_resume(void)
- 		restore_cpu_virqs(cpu);
- 		restore_cpu_ipis(cpu);
- 	}
-+
-+	/*
-+	 * Unmask any IRQF_NO_SUSPEND IRQs which are enabled. These
-+	 * are not handled by the IRQ core.
-+	 */
-+	for_each_irq_desc(irq, desc) {
-+		if (!desc->action || !(desc->action->flags & IRQF_NO_SUSPEND))
-+			continue;
-+		if (desc->status & IRQ_DISABLED)
-+			continue;
-+
-+		evtchn = evtchn_from_irq(irq);
-+		if (evtchn == -1)
-+			continue;
-+
-+		unmask_evtchn(evtchn);
-+	}
- }
- 
- static struct irq_chip xen_dynamic_chip __read_mostly = {
--- 
-1.7.3.2
-
-
-From 9ec23a7f6d2537faf14368e066e307c06812c4ca Mon Sep 17 00:00:00 2001
-From: Ian Campbell <ian.campbell@citrix.com>
-Date: Thu, 28 Oct 2010 11:32:29 -0700
-Subject: [PATCH 17/21] xen: do not release any memory under 1M in domain 0
-
-We already deliberately setup a 1-1 P2M for the region up to 1M in
-order to allow code which assumes this region is already mapped to
-work without having to convert everything to ioremap.
-
-Domain 0 should not return any apparently unused memory regions
-(reserved or otherwise) in this region to Xen since the e820 may not
-accurately reflect what the BIOS has stashed in this region.
-
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/setup.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
-
-diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-index b1dbdaa..769c4b0 100644
---- a/arch/x86/xen/setup.c
-+++ b/arch/x86/xen/setup.c
-@@ -118,16 +118,18 @@ static unsigned long __init xen_return_unused_memory(unsigned long max_pfn,
- 						     const struct e820map *e820)
- {
- 	phys_addr_t max_addr = PFN_PHYS(max_pfn);
--	phys_addr_t last_end = 0;
-+	phys_addr_t last_end = ISA_END_ADDRESS;
- 	unsigned long released = 0;
- 	int i;
- 
-+	/* Free any unused memory above the low 1Mbyte. */
- 	for (i = 0; i < e820->nr_map && last_end < max_addr; i++) {
- 		phys_addr_t end = e820->map[i].addr;
- 		end = min(max_addr, end);
- 
--		released += xen_release_chunk(last_end, end);
--		last_end = e820->map[i].addr + e820->map[i].size;
-+		if (last_end < end)
-+			released += xen_release_chunk(last_end, end);
-+		last_end = max(last_end, e820->map[i].addr + e820->map[i].size);
- 	}
- 
- 	if (last_end < max_addr)
-@@ -164,6 +166,7 @@ char * __init xen_memory_setup(void)
- 		XENMEM_memory_map;
- 	rc = HYPERVISOR_memory_op(op, &memmap);
- 	if (rc == -ENOSYS) {
-+		BUG_ON(xen_initial_domain());
- 		memmap.nr_entries = 1;
- 		map[0].addr = 0ULL;
- 		map[0].size = mem_end;
-@@ -201,12 +204,13 @@ char * __init xen_memory_setup(void)
- 	}
- 
- 	/*
--	 * Even though this is normal, usable memory under Xen, reserve
--	 * ISA memory anyway because too many things think they can poke
-+	 * In domU, the ISA region is normal, usable memory, but we
-+	 * reserve ISA memory anyway because too many things poke
- 	 * about in there.
- 	 *
--	 * In a dom0 kernel, this region is identity mapped with the
--	 * hardware ISA area, so it really is out of bounds.
-+	 * In Dom0, the host E820 information can leave gaps in the
-+	 * ISA range, which would cause us to release those pages.  To
-+	 * avoid this, we unconditionally reserve them here.
- 	 */
- 	e820_add_region(ISA_START_ADDRESS, ISA_END_ADDRESS - ISA_START_ADDRESS,
- 			E820_RESERVED);
--- 
-1.7.3.2
-
-
 From e060e7af98182494b764d002eba7fa022fe91bdf Mon Sep 17 00:00:00 2001
 From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 Date: Thu, 11 Nov 2010 12:37:43 -0800
-Subject: [PATCH 18/21] xen: set vma flag VM_PFNMAP in the privcmd mmap file_op
+Subject: [PATCH 18/23] xen: set vma flag VM_PFNMAP in the privcmd mmap file_op
 
 Set VM_PFNMAP in the privcmd mmap file_op, rather than later in
 xen_remap_domain_mfn_range when it is too late because
@@ -1262,7 +1676,7 @@ index 2eb04c8..88474d4 100644
 From a188301f0e78daed011dde56139630d88299a954 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:49 -0800
-Subject: [PATCH 19/21] xen: define gnttab_set_map_op/unmap_op
+Subject: [PATCH 19/23] xen: define gnttab_set_map_op/unmap_op
 
 Impact: hypercall definitions
 
@@ -1347,7 +1761,7 @@ index 9a73170..1821aa1 100644
 From 56385560d6d8fd4c89c4f328d3ff0ecc9c44c52d Mon Sep 17 00:00:00 2001
 From: Gerd Hoffmann <kraxel@redhat.com>
 Date: Tue, 3 Mar 2009 12:27:55 -0800
-Subject: [PATCH 20/21] xen/gntdev: allow usermode to map granted pages
+Subject: [PATCH 20/23] xen/gntdev: allow usermode to map granted pages
 
 The gntdev driver allows usermode to map granted pages from other
 domains.  This is typically used to implement a Xen backend driver
@@ -2184,7 +2598,7 @@ index 0000000..8bd1467
 From 8c79aad3bd8a379bd0bd144895b55098aca2ccea Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 11 Nov 2010 14:39:12 -0800
-Subject: [PATCH 21/21] xen/gntdev: add VM_PFNMAP to vma
+Subject: [PATCH 21/23] xen/gntdev: add VM_PFNMAP to vma
 
 These pages are from other domains, so don't have any local PFN.
 VM_PFNMAP is the closest concept Linux has to this.
@@ -2206,6 +2620,84 @@ index 45898d4..cf61c7d 100644
  
  	vma->vm_private_data = map;
  	map->vma = vma;
+-- 
+1.7.3.2
+
+
+From 744f9f104ea262de1dc3e29265870c649f0d9473 Mon Sep 17 00:00:00 2001
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Date: Sat, 13 Nov 2010 11:44:39 -0500
+Subject: [PATCH 22/23] xen: fix header export to userspace
+
+scripts/headers_install.pl prevents "__user" from being exported
+to userspace headers, so just use compiler.h to make sure that
+__user is defined and avoid the error.
+
+unifdef: linux-next-20101112/xx64/usr/include/xen/privcmd.h.tmp: 79: Premature EOF (#if line 33 depth 1)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc:	Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc:	xen-devel@lists.xensource.com (moderated for non-subscribers)
+Cc:	virtualization@lists.osdl.org
+Cc:	Tony Finch <dot@dotat.at>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ include/xen/privcmd.h |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
+
+diff --git a/include/xen/privcmd.h b/include/xen/privcmd.h
+index b42cdfd..17857fb 100644
+--- a/include/xen/privcmd.h
++++ b/include/xen/privcmd.h
+@@ -34,13 +34,10 @@
+ #define __LINUX_PUBLIC_PRIVCMD_H__
+ 
+ #include <linux/types.h>
++#include <linux/compiler.h>
+ 
+ typedef unsigned long xen_pfn_t;
+ 
+-#ifndef __user
+-#define __user
+-#endif
+-
+ struct privcmd_hypercall {
+ 	__u64 op;
+ 	__u64 arg[5];
+-- 
+1.7.3.2
+
+
+From fe61f1d737f7804e0bd440ace9724e669e2c2906 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 16 Nov 2010 11:06:46 -0800
+Subject: [PATCH 23/23] xen/xenfs: update xenfs_mount for new prototype
+
+.mount now returns a struct dentry *.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/super.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/xen/xenfs/super.c b/drivers/xen/xenfs/super.c
+index f6339d1..990ee42 100644
+--- a/drivers/xen/xenfs/super.c
++++ b/drivers/xen/xenfs/super.c
+@@ -121,9 +121,9 @@ static int xenfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	return rc;
+ }
+ 
+-static int xenfs_mount(struct file_system_type *fs_type,
+-			int flags, const char *dev_name,
+-			void *data)
++static struct dentry *xenfs_mount(struct file_system_type *fs_type,
++				  int flags, const char *dev_name,
++				  void *data)
+ {
+ 	return mount_single(fs_type, flags, data, xenfs_fill_super);
+ }
 -- 
 1.7.3.2
 

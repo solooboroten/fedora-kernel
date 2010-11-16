@@ -704,11 +704,11 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
 Patch20000: xen.next-2.6.37.patch
-Patch20001: xen.upstream.core.patch
+#Patch20001: xen.upstream.core.patch
 # git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git branches
 Patch20005: xen.pcifront.fixes.patch
 # git://xenbits.xen.org/people/sstabellini/linux-pvhvm branches
-Patch20010: xen.pvhvm.fixes.patch
+#Patch20010: xen.pvhvm.fixes.patch
 
 %endif
 
@@ -1301,7 +1301,7 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
 #ApplyPatch xen.upstream.core.patch
-#ApplyPatch xen.pcifront.fixes.patch
+ApplyPatch xen.pcifront.fixes.patch
 #ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
@@ -1916,6 +1916,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Tue Nov 16 2010 Michael Young <m.a.young@durham.ac.uk>
+- Update the xen/next-2.6.37 and xen-pcifront-fixes patches
+
 * Mon Nov 15 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc2.git0
 - Linux 2.6.37-rc2
 
