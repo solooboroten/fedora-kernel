@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 1
+%define rcrev 2
 # The git snapshot level
-%define gitrev 8
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -695,7 +695,6 @@ Patch12018: neuter_intel_microcode_load.patch
 Patch12030: tpm-fix-stall-on-boot.patch
 
 # Runtime power management
-Patch12200: linux-2.6-bluetooth-autosuspend.patch
 Patch12203: linux-2.6-usb-pci-autosuspend.patch
 Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
 Patch12205: runtime_pm_fixups.patch
@@ -1292,7 +1291,6 @@ ApplyPatch neuter_intel_microcode_load.patch
 ApplyPatch tpm-fix-stall-on-boot.patch
 
 # Runtime PM
-ApplyPatch linux-2.6-bluetooth-autosuspend.patch
 ApplyPatch linux-2.6-usb-pci-autosuspend.patch
 ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
 ApplyPatch runtime_pm_fixups.patch
@@ -1918,6 +1916,16 @@ fi
 #                 ||     ||
 
 %changelog
+* Mon Nov 15 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc2.git0
+- Linux 2.6.37-rc2
+
+* Sat Nov 13 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc1.git10
+- Linux 2.6.37-rc1-git10
+- SECURITY_DMESG_RESTRICT added, the principle of least surprise dictates
+  we should probably have it off. If you want to restrict dmesg access
+  you may use the kernel.dmesg_restrict sysctl.
+- linux-2.6-bluetooth-autosuspend.patch: merged upstream.
+
 * Fri Nov 12 2010 Michael Young <m.a.young@durham.ac.uk>
 - Try again with xen patches from xen/next-2.6.37
 - Build new XEN_GNTDEV option as a module
