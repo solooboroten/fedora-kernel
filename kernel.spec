@@ -83,7 +83,7 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 2
+%define rcrev 3
 # The git snapshot level
 %define gitrev 0
 # Set rpm version accordingly
@@ -176,7 +176,7 @@ Summary: The Linux kernel
 %else
 %define gittag .git0
 %endif
-%define pkg_release 0.%{fedora_build}%{?rctag}%{?gittag}%{?buildid}%{?dist}
+%define pkg_release 0%{?rctag}%{?gittag}.%{fedora_build}%{?buildid}%{?dist}
 
 %endif
 
@@ -1858,7 +1858,7 @@ fi
 %{expand:%%files %{?2}}\
 %defattr(-,root,root)\
 /%{image_install_path}/%{?-k:%{-k*}}%{!?-k:vmlinuz}-%{KVERREL}%{?2:.%{2}}\
-/boot/System.map-%{KVERREL}%{?2:.%{2}}\
+%attr(600,root,root) /boot/System.map-%{KVERREL}%{?2:.%{2}}\
 /boot/config-%{KVERREL}%{?2:.%{2}}\
 %dir /lib/modules/%{KVERREL}%{?2:.%{2}}\
 /lib/modules/%{KVERREL}%{?2:.%{2}}/kernel\
@@ -1916,6 +1916,30 @@ fi
 #                 ||     ||
 
 %changelog
+* Mon Nov 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git0.1
+- Linux 2.6.37-rc3
+
+* Sat Nov 20 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc2.git7.1
+- Linux 2.6.37-rc2-git7
+
+* Fri Nov 19 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc2.git5.1
+- Linux 2.6.37-rc2-git5
+
+* Thu Nov 18 2010 Kyle McMartin <kyle@redhat.com>
+- Move %{fedora_build} in the un-released (ie: -git/-rc) kernel case for
+  a variety of reasons, principally so that:
+  1: Bumping %baserelease isn't needed if we're just updating snapshots.
+  2: %buildid will sort as newer so we don't need to bump baserelease when
+     building bugzilla fixes.
+
+* Wed Nov 17 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc2.git2
+- Linux 2.6.37-rc2-git2
+- enable STRICT_DEVMEM on s390x.
+
+* Wed Nov 17 2010 Kyle McMartin <kyle@redhat.com>
+- Make vmlinuz/System.map root read-write only by default. You can just
+  chmod 644 them later if you (unlikely) need them without root.
+
 * Tue Nov 16 2010 Michael Young <m.a.young@durham.ac.uk>
 - Update the xen/next-2.6.37 and xen-pcifront-fixes patches
 
