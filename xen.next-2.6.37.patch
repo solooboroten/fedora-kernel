@@ -1,3 +1,415 @@
+From e3cc067b0a79d3a3672bfe7cfba12f2e8ae56039 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 18 Sep 2009 16:31:22 -0700
+Subject: [PATCH 01/44] xen/evtchn: track enabled state for each port
+
+enable/disable_irq() complain if the enables/disables are unbalanced,
+so keep track of the state and avoid redundant enables.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |   71 +++++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 56 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index af03195..4356a9a 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -69,10 +69,36 @@ struct per_user_data {
+ 	const char *name;
+ };
+ 
+-/* Who's bound to each port? */
+-static struct per_user_data *port_user[NR_EVENT_CHANNELS];
++/*
++ * Who's bound to each port?  This is logically an array of struct
++ * per_user_data *, but we encode the current enabled-state in bit 0.
++ */
++static unsigned long port_user[NR_EVENT_CHANNELS];
+ static DEFINE_SPINLOCK(port_user_lock); /* protects port_user[] and ring_prod */
+ 
++static inline struct per_user_data *get_port_user(unsigned port)
++{
++	return (struct per_user_data *)(port_user[port] & ~1);
++}
++
++static inline void set_port_user(unsigned port, struct per_user_data *u)
++{
++	port_user[port] = (unsigned long)u;
++}
++
++static inline bool get_port_enabled(unsigned port)
++{
++	return port_user[port] & 1;
++}
++
++static inline void set_port_enabled(unsigned port, bool enabled)
++{
++	if (enabled)
++		port_user[port] |= 1;
++	else
++		port_user[port] &= ~1;
++}
++
+ irqreturn_t evtchn_interrupt(int irq, void *data)
+ {
+ 	unsigned int port = (unsigned long)data;
+@@ -80,9 +106,15 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
+ 
+ 	spin_lock(&port_user_lock);
+ 
+-	u = port_user[port];
++	u = get_port_user(port);
++
++	if (WARN(!get_port_enabled(port),
++		 "Interrupt for port %d, but apparently not enabled; per-user %p\n",
++		 port, u))
++		goto out;
+ 
+ 	disable_irq_nosync(irq);
++	set_port_enabled(port, false);
+ 
+ 	if ((u->ring_prod - u->ring_cons) < EVTCHN_RING_SIZE) {
+ 		u->ring[EVTCHN_RING_MASK(u->ring_prod)] = port;
+@@ -92,10 +124,10 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
+ 			kill_fasync(&u->evtchn_async_queue,
+ 				    SIGIO, POLL_IN);
+ 		}
+-	} else {
++	} else
+ 		u->ring_overflow = 1;
+-	}
+ 
++out:
+ 	spin_unlock(&port_user_lock);
+ 
+ 	return IRQ_HANDLED;
+@@ -198,9 +230,18 @@ static ssize_t evtchn_write(struct file *file, const char __user *buf,
+ 		goto out;
+ 
+ 	spin_lock_irq(&port_user_lock);
+-	for (i = 0; i < (count/sizeof(evtchn_port_t)); i++)
+-		if ((kbuf[i] < NR_EVENT_CHANNELS) && (port_user[kbuf[i]] == u))
+-			enable_irq(irq_from_evtchn(kbuf[i]));
++
++	for (i = 0; i < (count/sizeof(evtchn_port_t)); i++) {
++		unsigned port = kbuf[i];
++
++		if (port < NR_EVENT_CHANNELS &&
++		    get_port_user(port) == u &&
++		    !get_port_enabled(port)) {
++			set_port_enabled(port, true);
++			enable_irq(irq_from_evtchn(port));
++		}
++	}
++
+ 	spin_unlock_irq(&port_user_lock);
+ 
+ 	rc = count;
+@@ -222,8 +263,8 @@ static int evtchn_bind_to_user(struct per_user_data *u, int port)
+ 	 * interrupt handler yet, and our caller has already
+ 	 * serialized bind operations.)
+ 	 */
+-	BUG_ON(port_user[port] != NULL);
+-	port_user[port] = u;
++	BUG_ON(get_port_user(port) != NULL);
++	set_port_user(port, u);
+ 
+ 	rc = bind_evtchn_to_irqhandler(port, evtchn_interrupt, IRQF_DISABLED,
+ 				       u->name, (void *)(unsigned long)port);
+@@ -242,7 +283,7 @@ static void evtchn_unbind_from_user(struct per_user_data *u, int port)
+ 	/* make sure we unbind the irq handler before clearing the port */
+ 	barrier();
+ 
+-	port_user[port] = NULL;
++	set_port_user(port, NULL);
+ }
+ 
+ static long evtchn_ioctl(struct file *file,
+@@ -333,7 +374,7 @@ static long evtchn_ioctl(struct file *file,
+ 		spin_lock_irq(&port_user_lock);
+ 
+ 		rc = -ENOTCONN;
+-		if (port_user[unbind.port] != u) {
++		if (get_port_user(unbind.port) != u) {
+ 			spin_unlock_irq(&port_user_lock);
+ 			break;
+ 		}
+@@ -355,7 +396,7 @@ static long evtchn_ioctl(struct file *file,
+ 
+ 		if (notify.port >= NR_EVENT_CHANNELS) {
+ 			rc = -EINVAL;
+-		} else if (port_user[notify.port] != u) {
++		} else if (get_port_user(notify.port) != u) {
+ 			rc = -ENOTCONN;
+ 		} else {
+ 			notify_remote_via_evtchn(notify.port);
+@@ -444,10 +485,10 @@ static int evtchn_release(struct inode *inode, struct file *filp)
+ 	free_page((unsigned long)u->ring);
+ 
+ 	for (i = 0; i < NR_EVENT_CHANNELS; i++) {
+-		if (port_user[i] != u)
++		if (get_port_user(i) != u)
+ 			continue;
+ 
+-		evtchn_unbind_from_user(port_user[i], i);
++		evtchn_unbind_from_user(get_port_user(i), i);
+ 	}
+ 
+ 	spin_unlock_irq(&port_user_lock);
+-- 
+1.7.3.2
+
+
+From 93afe0b75ef3675ca05320919a57de8b9bbb159c Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 18 Sep 2009 16:36:58 -0700
+Subject: [PATCH 02/44] xen/evtchn: dynamically allocate port_user array
+
+We only need the array when running as a Xen domain, so dynamically
+allocate it as needed to save on bss space.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index 4356a9a..709c32d 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -73,7 +73,7 @@ struct per_user_data {
+  * Who's bound to each port?  This is logically an array of struct
+  * per_user_data *, but we encode the current enabled-state in bit 0.
+  */
+-static unsigned long port_user[NR_EVENT_CHANNELS];
++static unsigned long *port_user;
+ static DEFINE_SPINLOCK(port_user_lock); /* protects port_user[] and ring_prod */
+ 
+ static inline struct per_user_data *get_port_user(unsigned port)
+@@ -522,8 +522,11 @@ static int __init evtchn_init(void)
+ 	if (!xen_domain())
+ 		return -ENODEV;
+ 
++	port_user = kcalloc(NR_EVENT_CHANNELS, sizeof(*port_user), GFP_KERNEL);
++	if (port_user == NULL)
++		return -ENOMEM;
++
+ 	spin_lock_init(&port_user_lock);
+-	memset(port_user, 0, sizeof(port_user));
+ 
+ 	/* Create '/dev/misc/evtchn'. */
+ 	err = misc_register(&evtchn_miscdev);
+@@ -539,6 +542,9 @@ static int __init evtchn_init(void)
+ 
+ static void __exit evtchn_cleanup(void)
+ {
++	kfree(port_user);
++	port_user = NULL;
++
+ 	misc_deregister(&evtchn_miscdev);
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 0edce91dcd83160019867a00746c679344dc0bbd Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 18 Sep 2009 16:55:29 -0700
+Subject: [PATCH 03/44] xen/evtchn: ports start enabled
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index 709c32d..72dc7f2 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -108,10 +108,9 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
+ 
+ 	u = get_port_user(port);
+ 
+-	if (WARN(!get_port_enabled(port),
+-		 "Interrupt for port %d, but apparently not enabled; per-user %p\n",
+-		 port, u))
+-		goto out;
++	WARN(!get_port_enabled(port),
++	     "Interrupt for port %d, but apparently not enabled; per-user %p\n",
++	     port, u);
+ 
+ 	disable_irq_nosync(irq);
+ 	set_port_enabled(port, false);
+@@ -127,7 +126,6 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
+ 	} else
+ 		u->ring_overflow = 1;
+ 
+-out:
+ 	spin_unlock(&port_user_lock);
+ 
+ 	return IRQ_HANDLED;
+@@ -265,6 +263,7 @@ static int evtchn_bind_to_user(struct per_user_data *u, int port)
+ 	 */
+ 	BUG_ON(get_port_user(port) != NULL);
+ 	set_port_user(port, u);
++	set_port_enabled(port, true); /* start enabled */
+ 
+ 	rc = bind_evtchn_to_irqhandler(port, evtchn_interrupt, IRQF_DISABLED,
+ 				       u->name, (void *)(unsigned long)port);
+-- 
+1.7.3.2
+
+
+From 1a1a17cddbfb1f81222b3f18ee8530c41fbc3b82 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 18 Sep 2009 17:13:41 -0700
+Subject: [PATCH 04/44] xen/evtchn: remove spurious barrier
+
+evtchn_unbind_from_user() is called under a lock, so there's no need to
+worry about the ordering of unbind_from_irqhandler vs clearing the port
+per-user data.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index 72dc7f2..f79ac5c 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -279,9 +279,6 @@ static void evtchn_unbind_from_user(struct per_user_data *u, int port)
+ 
+ 	unbind_from_irqhandler(irq, (void *)(unsigned long)port);
+ 
+-	/* make sure we unbind the irq handler before clearing the port */
+-	barrier();
+-
+ 	set_port_user(port, NULL);
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 3f5e554f669098c84c82ce75e7577f7e0f3fccde Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 28 May 2010 15:28:27 -0700
+Subject: [PATCH 05/44] xen/evtchn: don't do unbind_from_irqhandler under spinlock
+
+unbind_from_irqhandler can end up doing /proc operations, which can't
+happen under a spinlock.  So before removing the IRQ handler,
+disable the irq under the port_user lock (masking the underlying event
+channel and making sure the irq handler isn't running concurrently and
+won't start running), then remove the handler without the lock.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index f79ac5c..6a3a129 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -375,10 +375,12 @@ static long evtchn_ioctl(struct file *file,
+ 			break;
+ 		}
+ 
+-		evtchn_unbind_from_user(u, unbind.port);
++		disable_irq(irq_from_evtchn(unbind.port));
+ 
+ 		spin_unlock_irq(&port_user_lock);
+ 
++		evtchn_unbind_from_user(u, unbind.port);
++
+ 		rc = 0;
+ 		break;
+ 	}
+@@ -484,11 +486,18 @@ static int evtchn_release(struct inode *inode, struct file *filp)
+ 		if (get_port_user(i) != u)
+ 			continue;
+ 
+-		evtchn_unbind_from_user(get_port_user(i), i);
++		disable_irq(irq_from_evtchn(i));
+ 	}
+ 
+ 	spin_unlock_irq(&port_user_lock);
+ 
++	for (i = 0; i < NR_EVENT_CHANNELS; i++) {
++		if (get_port_user(i) != u)
++			continue;
++
++		evtchn_unbind_from_user(get_port_user(i), i);
++	}
++
+ 	kfree(u->name);
+ 	kfree(u);
+ 
+-- 
+1.7.3.2
+
+
+From 376d908f52427591cef4acd172db9c3ef28676ec Mon Sep 17 00:00:00 2001
+From: Bastian Blank <waldi@debian.org>
+Date: Fri, 28 May 2010 15:43:49 -0700
+Subject: [PATCH 06/44] xen/evtchn: Fix name of Xen event-channel device
+
+The Xen event-channel device is named evtchn in the kernel but always
+used as /dev/xen/evtchn in userspace. This patch fixes the name.
+
+Signed-off-by: Bastian Blank <waldi@debian.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index 6a3a129..68119f6 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -517,7 +517,7 @@ static const struct file_operations evtchn_fops = {
+ 
+ static struct miscdevice evtchn_miscdev = {
+ 	.minor        = MISC_DYNAMIC_MINOR,
+-	.name         = "evtchn",
++	.name         = "xen/evtchn",
+ 	.fops         = &evtchn_fops,
+ };
+ static int __init evtchn_init(void)
+-- 
+1.7.3.2
+
+
+From 70697d540c0598ad023a391d4c895044db9a6624 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 5 Oct 2010 11:13:44 -0700
+Subject: [PATCH 07/44] xen/evtchn: add missing static
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index 68119f6..f3594ec 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -99,7 +99,7 @@ static inline void set_port_enabled(unsigned port, bool enabled)
+ 		port_user[port] &= ~1;
+ }
+ 
+-irqreturn_t evtchn_interrupt(int irq, void *data)
++static irqreturn_t evtchn_interrupt(int irq, void *data)
+ {
+ 	unsigned int port = (unsigned long)data;
+ 	struct per_user_data *u;
+-- 
+1.7.3.2
+
+
 From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Feb 2009 12:58:42 -0800
@@ -1260,69 +1672,6 @@ index 5b54892..384e0a5 100644
 +       def_bool y
 +       depends on XEN_DOM0 && MICROCODE
 \ No newline at end of file
--- 
-1.7.3.2
-
-
-From 049ad0809c51dedebab0b8e4bfcf58f5f26375b7 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 9 Nov 2010 17:32:26 -0800
-Subject: [PATCH 14/23] xen/microcode: partially enable even for non-privileged kernels
-
-Don't attempt to load microcode on non-privileged kernels.  Kernels
-compiled without privileged support just get vestigial Xen detection
-to skip loading altogether; kernels with privileged support will
-load microcode if running privileged.  In either case, the normal
-Intel/AMD microcode loader is skipped under Xen.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/include/asm/microcode.h |    2 +-
- arch/x86/kernel/Makefile         |    2 +-
- arch/x86/xen/Kconfig             |    6 +++++-
- 3 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/arch/x86/include/asm/microcode.h b/arch/x86/include/asm/microcode.h
-index e15fca1..3e61afe 100644
---- a/arch/x86/include/asm/microcode.h
-+++ b/arch/x86/include/asm/microcode.h
-@@ -55,7 +55,7 @@ static inline struct microcode_ops * __init init_amd_microcode(void)
- }
- #endif
- 
--#ifdef CONFIG_MICROCODE_XEN
-+#ifdef CONFIG_MICROCODE_XEN_LOADER
- extern struct microcode_ops * __init init_xen_microcode(void);
- #else
- static inline struct microcode_ops * __init init_xen_microcode(void)
-diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-index 0036150..768c5dc 100644
---- a/arch/x86/kernel/Makefile
-+++ b/arch/x86/kernel/Makefile
-@@ -104,7 +104,7 @@ obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
- microcode-y				:= microcode_core.o
- microcode-$(CONFIG_MICROCODE_INTEL)	+= microcode_intel.o
- microcode-$(CONFIG_MICROCODE_AMD)	+= microcode_amd.o
--microcode-$(CONFIG_MICROCODE_XEN)	+= microcode_xen.o
-+microcode-$(CONFIG_MICROCODE_XEN_LOADER)	+= microcode_xen.o
- obj-$(CONFIG_MICROCODE)			+= microcode.o
- 
- obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
-diff --git a/arch/x86/xen/Kconfig b/arch/x86/xen/Kconfig
-index 384e0a5..9a0d2fc 100644
---- a/arch/x86/xen/Kconfig
-+++ b/arch/x86/xen/Kconfig
-@@ -51,4 +51,8 @@ config XEN_DEBUG_FS
- 
- config MICROCODE_XEN
-        def_bool y
--       depends on XEN_DOM0 && MICROCODE
-\ No newline at end of file
-+       depends on XEN && MICROCODE
-+
-+config MICROCODE_XEN_LOADER
-+	def_bool y
-+	depends on MICROCODE_XEN && DOM0
 -- 
 1.7.3.2
 
@@ -2697,6 +3046,520 @@ index f6339d1..990ee42 100644
 +				  void *data)
  {
  	return mount_single(fs_type, flags, data, xenfs_fill_super);
+ }
+-- 
+1.7.3.2
+
+
+From 1c6969ec8e6328e8d288fc585310e9e52fc9db04 Mon Sep 17 00:00:00 2001
+From: Jan Beulich <jbeulich@novell.com>
+Date: Tue, 16 Nov 2010 14:55:33 -0800
+Subject: [PATCH 33/44] xen/evtchn: clear secondary CPUs' cpu_evtchn_mask[] after restore
+
+To bind all event channels to CPU#0, it is not sufficient to set all
+of its cpu_evtchn_mask[] bits; all other CPUs also need to get their
+bits cleared. Otherwise, evtchn_do_upcall() will start handling
+interrupts on CPUs they're not intended to run on, which can be
+particularly bad for per-CPU ones.
+
+[ linux-2.6.18-xen.hg 7de7453dee36 ]
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/events.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 321a0c8..d770b8c 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -286,9 +286,9 @@ static void bind_evtchn_to_cpu(unsigned int chn, unsigned int cpu)
+ 
+ static void init_evtchn_cpu_bindings(void)
+ {
++	int i;
+ #ifdef CONFIG_SMP
+ 	struct irq_desc *desc;
+-	int i;
+ 
+ 	/* By default all event channels notify CPU#0. */
+ 	for_each_irq_desc(i, desc) {
+@@ -296,7 +296,10 @@ static void init_evtchn_cpu_bindings(void)
+ 	}
+ #endif
+ 
+-	memset(cpu_evtchn_mask(0), ~0, sizeof(struct cpu_evtchn_s));
++	for_each_possible_cpu(i)
++		memset(cpu_evtchn_mask(i),
++		       (i == 0) ? ~0 : 0, sizeof(struct cpu_evtchn_s));
++
+ }
+ 
+ static inline void clear_evtchn(int port)
+-- 
+1.7.3.2
+
+
+From e04195644eea7c6c14007922257704ec67156cd1 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 16 Nov 2010 14:56:47 -0800
+Subject: [PATCH 34/44] xen/events: use locked set|clear_bit() for cpu_evtchn_mask
+
+The per-cpu event channel masks can be updated unlocked from multiple
+CPUs, so use the locked variant.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/events.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index d770b8c..d6d4f76 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -278,8 +278,8 @@ static void bind_evtchn_to_cpu(unsigned int chn, unsigned int cpu)
+ 	cpumask_copy(irq_to_desc(irq)->affinity, cpumask_of(cpu));
+ #endif
+ 
+-	__clear_bit(chn, cpu_evtchn_mask(cpu_from_irq(irq)));
+-	__set_bit(chn, cpu_evtchn_mask(cpu));
++	clear_bit(chn, cpu_evtchn_mask(cpu_from_irq(irq)));
++	set_bit(chn, cpu_evtchn_mask(cpu));
+ 
+ 	irq_info[irq].cpu = cpu;
+ }
+-- 
+1.7.3.2
+
+
+From 9045d47ea362e6a3727ee3f1b69a1b656976772e Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 18 Nov 2010 17:14:46 -0800
+Subject: [PATCH 36/44] Revert "xen/privcmd: create address space to allow writable mmaps"
+
+This reverts commit 24a89b5be4cf2b7f1b49b56b6cb4a7b71fccf241.
+
+We should no longer need an address space now that we're correctly
+setting VM_PFNMAP on our vmas.
+
+Conflicts:
+
+	drivers/xen/xenfs/super.c
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/super.c |   40 ++++------------------------------------
+ 1 files changed, 4 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/xen/xenfs/super.c b/drivers/xen/xenfs/super.c
+index 990ee42..1aa3897 100644
+--- a/drivers/xen/xenfs/super.c
++++ b/drivers/xen/xenfs/super.c
+@@ -12,8 +12,6 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/magic.h>
+-#include <linux/mm.h>
+-#include <linux/backing-dev.h>
+ 
+ #include <xen/xen.h>
+ 
+@@ -24,28 +22,12 @@
+ MODULE_DESCRIPTION("Xen filesystem");
+ MODULE_LICENSE("GPL");
+ 
+-static int xenfs_set_page_dirty(struct page *page)
+-{
+-	return !TestSetPageDirty(page);
+-}
+-
+-static const struct address_space_operations xenfs_aops = {
+-	.set_page_dirty = xenfs_set_page_dirty,
+-};
+-
+-static struct backing_dev_info xenfs_backing_dev_info = {
+-	.ra_pages	= 0,	/* No readahead */
+-	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
+-};
+-
+ static struct inode *xenfs_make_inode(struct super_block *sb, int mode)
+ {
+ 	struct inode *ret = new_inode(sb);
+ 
+ 	if (ret) {
+ 		ret->i_mode = mode;
+-		ret->i_mapping->a_ops = &xenfs_aops;
+-		ret->i_mapping->backing_dev_info = &xenfs_backing_dev_info;
+ 		ret->i_uid = ret->i_gid = 0;
+ 		ret->i_blocks = 0;
+ 		ret->i_atime = ret->i_mtime = ret->i_ctime = CURRENT_TIME;
+@@ -137,25 +119,11 @@ static struct file_system_type xenfs_type = {
+ 
+ static int __init xenfs_init(void)
+ {
+-	int err;
+-	if (!xen_domain()) {
+-		printk(KERN_INFO "xenfs: not registering filesystem on non-xen platform\n");
+-		return 0;
+-	}
+-
+-	err = register_filesystem(&xenfs_type);
+-	if (err) {
+-		printk(KERN_ERR "xenfs: Unable to register filesystem!\n");
+-		goto out;
+-	}
+-
+-	err = bdi_init(&xenfs_backing_dev_info);
+-	if (err)
+-		unregister_filesystem(&xenfs_type);
+-
+- out:
++	if (xen_domain())
++		return register_filesystem(&xenfs_type);
+ 
+-	return err;
++	printk(KERN_INFO "XENFS: not registering filesystem on non-xen platform\n");
++	return 0;
+ }
+ 
+ static void __exit xenfs_exit(void)
+-- 
+1.7.3.2
+
+
+From bc7fc5e33e1a093e5f9e196595843bb096471586 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 18 Nov 2010 22:32:17 -0800
+Subject: [PATCH 38/44] xen/evtchn: the evtchn device is non-seekable
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/evtchn.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index fec6ba3..dd8e5e0 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -431,7 +431,7 @@ static int evtchn_open(struct inode *inode, struct file *filp)
+ 
+ 	filp->private_data = u;
+ 
+-	return 0;
++	return nonseekable_open(inode, filp);;
+ }
+ 
+ static int evtchn_release(struct inode *inode, struct file *filp)
+@@ -467,7 +467,7 @@ static const struct file_operations evtchn_fops = {
+ 	.fasync  = evtchn_fasync,
+ 	.open    = evtchn_open,
+ 	.release = evtchn_release,
+-	.llseek = noop_llseek,
++	.llseek	 = no_llseek,
+ };
+ 
+ static struct miscdevice evtchn_miscdev = {
+-- 
+1.7.3.2
+
+
+From b5d827b641b192ceb6968c21feb544c744e43108 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Mon, 7 Dec 2009 17:10:27 -0800
+Subject: [PATCH 39/44] xen: make evtchn's name less generic
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/Makefile |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index eb8a78d..533a199 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -8,7 +8,7 @@ obj-$(CONFIG_BLOCK)		+= biomerge.o
+ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+ obj-$(CONFIG_XEN_XENCOMM)	+= xencomm.o
+ obj-$(CONFIG_XEN_BALLOON)	+= balloon.o
+-obj-$(CONFIG_XEN_DEV_EVTCHN)	+= evtchn.o
++obj-$(CONFIG_XEN_DEV_EVTCHN)	+= xen-evtchn.o
+ obj-$(CONFIG_XEN_GNTDEV)	+= xen-gntdev.o
+ obj-$(CONFIG_XENFS)		+= xenfs/
+ obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
+@@ -16,3 +16,5 @@
+ 
+ xen-gntdev-y				:= gntdev.o
+
++xen-evtchn-y			:= evtchn.o
++
+-- 
+1.7.3.2
+
+
+From 428ff7d9ce1f7e35b0dcf65c4ec0b429cbc2240b Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Fri, 19 Nov 2010 11:27:09 -0500
+Subject: [PATCH 40/44] xen/events: Use PIRQ instead of GSI value when unmapping MSI/MSI-X irqs.
+
+When we allocate a vector for MSI/MSI-X we save away the PIRQ, and the
+vector value. When we unmap (de-allocate) the MSI/MSI-X vector(s) we
+need to provide the PIRQ and the vector value. What we did instead
+was to provide the GSI (which was zero) and the vector value, and we
+got these unhappy error messages:
+
+(XEN) irq.c:1575: dom0: pirq 0 not mapped
+[    7.733415] unmap irq failed -22
+
+This patches fixes this and we use the PIRQ value instead of the GSI
+value.
+
+CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 321a0c8..7eb720b 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -752,7 +752,7 @@ int xen_destroy_irq(int irq)
+ 		goto out;
+ 
+ 	if (xen_initial_domain()) {
+-		unmap_irq.pirq = info->u.pirq.gsi;
++		unmap_irq.pirq = info->u.pirq.pirq;
+ 		unmap_irq.domid = DOMID_SELF;
+ 		rc = HYPERVISOR_physdev_op(PHYSDEVOP_unmap_pirq, &unmap_irq);
+ 		if (rc) {
+-- 
+1.7.3.2
+
+
+From 9be4d4575906af9698de660e477f949a076c87e1 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 31 Aug 2010 15:01:16 -0700
+Subject: [PATCH 41/44] xen: add extra pages to balloon
+
+Add extra pages in the pseudo-physical address space to the balloon
+so we can extend into them later.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/balloon.c |   15 +++++++++++----
+ include/xen/page.h    |    7 +++++++
+ 2 files changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index 500290b..df26ee9 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -119,7 +119,7 @@ static void scrub_page(struct page *page)
+ }
+ 
+ /* balloon_append: add the given page to the balloon. */
+-static void balloon_append(struct page *page)
++static void __balloon_append(struct page *page)
+ {
+ 	/* Lowmem is re-populated first, so highmem pages go at list tail. */
+ 	if (PageHighMem(page)) {
+@@ -130,7 +130,11 @@ static void balloon_append(struct page *page)
+ 		list_add(&page->lru, &ballooned_pages);
+ 		balloon_stats.balloon_low++;
+ 	}
++}
+ 
++static void balloon_append(struct page *page)
++{
++	__balloon_append(page);
+ 	totalram_pages--;
+ }
+ 
+@@ -416,10 +420,13 @@ static int __init balloon_init(void)
+ 	register_balloon(&balloon_sysdev);
+ 
+ 	/* Initialise the balloon with excess memory space. */
+-	for (pfn = xen_start_info->nr_pages; pfn < max_pfn; pfn++) {
++	for (pfn = PFN_UP(xen_extra_mem_start);
++	     pfn < PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size);
++	     pfn++) {
+ 		page = pfn_to_page(pfn);
+-		if (!PageReserved(page))
+-			balloon_append(page);
++		/* totalram_pages doesn't include the boot-time
++		   balloon extension, so don't subtract from it. */
++		__balloon_append(page);
+ 	}
+ 
+ 	target_watch.callback = watch_target;
+diff --git a/include/xen/page.h b/include/xen/page.h
+index eaf85fa..0be36b9 100644
+--- a/include/xen/page.h
++++ b/include/xen/page.h
+@@ -1 +1,8 @@
++#ifndef _XEN_PAGE_H
++#define _XEN_PAGE_H
++
+ #include <asm/xen/page.h>
++
++extern phys_addr_t xen_extra_mem_start, xen_extra_mem_size;
++
++#endif	/* _XEN_PAGE_H */
+-- 
+1.7.3.2
+
+
+From 2f70e0acd496398671606767122846278126a88b Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Thu, 2 Sep 2010 23:11:17 -0700
+Subject: [PATCH 42/44] xen/balloon: the balloon_lock is useless
+
+The balloon_lock is useless, since it protects nothing against nothing.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/balloon.c |   12 ++----------
+ 1 files changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index df26ee9..77b5dc3 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -195,7 +195,7 @@ static unsigned long current_target(void)
+ 
+ static int increase_reservation(unsigned long nr_pages)
+ {
+-	unsigned long  pfn, i, flags;
++	unsigned long  pfn, i;
+ 	struct page   *page;
+ 	long           rc;
+ 	struct xen_memory_reservation reservation = {
+@@ -207,8 +207,6 @@ static int increase_reservation(unsigned long nr_pages)
+ 	if (nr_pages > ARRAY_SIZE(frame_list))
+ 		nr_pages = ARRAY_SIZE(frame_list);
+ 
+-	spin_lock_irqsave(&xen_reservation_lock, flags);
+-
+ 	page = balloon_first_page();
+ 	for (i = 0; i < nr_pages; i++) {
+ 		BUG_ON(page == NULL);
+@@ -251,14 +249,12 @@ static int increase_reservation(unsigned long nr_pages)
+ 	balloon_stats.current_pages += rc;
+ 
+  out:
+-	spin_unlock_irqrestore(&xen_reservation_lock, flags);
+-
+ 	return rc < 0 ? rc : rc != nr_pages;
+ }
+ 
+ static int decrease_reservation(unsigned long nr_pages)
+ {
+-	unsigned long  pfn, i, flags;
++	unsigned long  pfn, i;
+ 	struct page   *page;
+ 	int            need_sleep = 0;
+ 	int ret;
+@@ -296,8 +292,6 @@ static int decrease_reservation(unsigned long nr_pages)
+ 	kmap_flush_unused();
+ 	flush_tlb_all();
+ 
+-	spin_lock_irqsave(&xen_reservation_lock, flags);
+-
+ 	/* No more mappings: invalidate P2M and add to balloon. */
+ 	for (i = 0; i < nr_pages; i++) {
+ 		pfn = mfn_to_pfn(frame_list[i]);
+@@ -312,8 +306,6 @@ static int decrease_reservation(unsigned long nr_pages)
+ 
+ 	balloon_stats.current_pages -= nr_pages;
+ 
+-	spin_unlock_irqrestore(&xen_reservation_lock, flags);
+-
+ 	return need_sleep;
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 66946f676776a6ef333db1cf7453ecf8a66c90df Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 14 Sep 2010 10:32:32 -0700
+Subject: [PATCH 43/44] xen/balloon: make sure we only include remaining extra ram
+
+If the user specifies mem= on the kernel command line, some or all
+of the extra memory E820 region may be clipped away, so make sure
+we don't try to add more extra memory than exists in E820.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/balloon.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index 77b5dc3..2b17ad5 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -50,6 +50,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+ #include <asm/tlb.h>
++#include <asm/e820.h>
+ 
+ #include <asm/xen/hypervisor.h>
+ #include <asm/xen/hypercall.h>
+@@ -391,7 +392,7 @@ static struct notifier_block xenstore_notifier;
+ 
+ static int __init balloon_init(void)
+ {
+-	unsigned long pfn;
++	unsigned long pfn, extra_pfn_end;
+ 	struct page *page;
+ 
+ 	if (!xen_pv_domain())
+@@ -412,8 +413,10 @@ static int __init balloon_init(void)
+ 	register_balloon(&balloon_sysdev);
+ 
+ 	/* Initialise the balloon with excess memory space. */
++	extra_pfn_end = min(e820_end_of_ram_pfn(),
++			    (unsigned long)PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size));
+ 	for (pfn = PFN_UP(xen_extra_mem_start);
+-	     pfn < PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size);
++	     pfn < extra_pfn_end;
+ 	     pfn++) {
+ 		page = pfn_to_page(pfn);
+ 		/* totalram_pages doesn't include the boot-time
+-- 
+1.7.3.2
+
+
+From d2a817130cdc142f1c80a8e60eca824a321926af Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 19 Nov 2010 23:27:06 -0800
+Subject: [PATCH 44/44] xen: re-enable boot-time ballooning
+
+Now that the balloon driver doesn't stumble over non-RAM pages, we
+can enable the extra space for ballooning.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/setup.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index 769c4b0..630fb53 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -248,8 +248,7 @@ char * __init xen_memory_setup(void)
+ 	else
+ 		extra_pages = 0;
+ 
+-	if (!xen_initial_domain())
+-		xen_add_extra_mem(extra_pages);
++	xen_add_extra_mem(extra_pages);
+ 
+ 	return "Xen";
  }
 -- 
 1.7.3.2
