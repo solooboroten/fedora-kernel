@@ -1916,7 +1916,7 @@ fi
 #                 ||     ||
 
 %changelog
-* Tue Nov 16 2010 Michael Young <m.a.young@durham.ac.uk>
+* Mon Nov 22 2010 Michael Young <m.a.young@durham.ac.uk>
 - Update the xen/next-2.6.37 patch and rebuild for rc3
 
 * Mon Nov 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git0.1
