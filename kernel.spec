@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 3
+%define rcrev 4
 # The git snapshot level
-%define gitrev 0
+%define gitrev 1
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -650,6 +650,7 @@ Patch1555: fix_xen_guest_on_old_EC2.patch
 # DRM
 
 # nouveau + drm fixes
+Patch1801: drm-fixes.patch
 Patch1810: drm-nouveau-updates.patch
 Patch1819: drm-intel-big-hammer.patch
 # intel drm is all merged upstream
@@ -700,6 +701,11 @@ Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
 Patch12205: runtime_pm_fixups.patch
 
 Patch12303: dmar-disable-when-ricoh-multifunction.patch
+
+Patch12400: tty-dont-allow-reopen-when-ldisc-is-changing.patch
+Patch12401: debug-tty-print-dev-name.patch
+Patch12402: tty-ldisc-fix-open-flag-handling.patch
+Patch12403: tty-open-hangup-race-fixup.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1182,7 +1188,7 @@ ApplyPatch acpi-update-battery-information-on-notification-0x81.patch
 ApplyPatch linux-2.6-debug-sizeof-structs.patch
 ApplyPatch linux-2.6-debug-nmi-timeout.patch
 ApplyPatch linux-2.6-debug-taint-vm.patch
-###FIX###ApplyPatch linux-2.6-debug-vm-would-have-oomkilled.patch
+ApplyPatch linux-2.6-debug-vm-would-have-oomkilled.patch
 ApplyPatch linux-2.6-debug-always-inline-kzalloc.patch
 
 #
@@ -1248,6 +1254,7 @@ ApplyPatch linux-2.6-e1000-ich9-montevina.patch
 ApplyPatch fix_xen_guest_on_old_EC2.patch
 
 # DRM core
+ApplyPatch drm-fixes.patch
 
 # Nouveau DRM
 ApplyOptionalPatch drm-nouveau-updates.patch
@@ -1297,6 +1304,12 @@ ApplyPatch runtime_pm_fixups.patch
 
 # rhbz#605888
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
+
+# rhbz#630464
+ApplyPatch tty-dont-allow-reopen-when-ldisc-is-changing.patch
+ApplyPatch debug-tty-print-dev-name.patch
+ApplyPatch tty-ldisc-fix-open-flag-handling.patch
+ApplyPatch tty-open-hangup-race-fixup.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
@@ -1916,6 +1929,38 @@ fi
 #                 ||     ||
 
 %changelog
+* Wed Dec 01 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc4.git1.1
+- Linux 2.6.37-rc4-git1
+- Pull in DRM fixes that are queued for -rc5 [3074adc8]
+  + edp-fixes on top
+
+* Tue Nov 30 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc4.git0.1
+- Linux 2.6.37-rc4
+
+* Mon Nov 29 2010 Kyle McMartin <kyle@redhat.com>
+- Update debug-vm-would_have_oomkilled patch.
+
+* Mon Nov 29 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git6.1
+- Linux 2.6.37-rc3-git6
+- TTY: open/hangup race fixup (rhbz#630464)
+
+* Fri Nov 26 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git3.1
+- Linux 2.6.37-rc3-git3
+- Print tty->flags as well in debugging patch...
+
+* Fri Nov 26 2010 Kyle McMartin <kyle@redhat.com>
+- Copy tty_open WARN_ON debugging patch from rawhide.
+
+* Fri Nov 26 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git2.1
+- Linux 2.6.37-rc3-git2
+- CGROUP_MEM_RES_CTLR_SWAP_ENABLED is not set, so the cgroup memory
+  resource controller swap accounting is disabled by default. You can
+  enable it with 'swapaccount' if desired.
+- TTY: don't allow reopen when ldisc is changing (rhbz#630464)
+
+* Wed Nov 24 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc3.git1.1
+- Linux 2.6.37-rc3-git1
+
 * Mon Nov 22 2010 Michael Young <m.a.young@durham.ac.uk>
 - Update the xen/next-2.6.37 patch and rebuild for rc3
 
