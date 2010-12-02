@@ -1,419 +1,7 @@
-From e3cc067b0a79d3a3672bfe7cfba12f2e8ae56039 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 18 Sep 2009 16:31:22 -0700
-Subject: [PATCH 01/44] xen/evtchn: track enabled state for each port
-
-enable/disable_irq() complain if the enables/disables are unbalanced,
-so keep track of the state and avoid redundant enables.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |   71 +++++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 56 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index af03195..4356a9a 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -69,10 +69,36 @@ struct per_user_data {
- 	const char *name;
- };
- 
--/* Who's bound to each port? */
--static struct per_user_data *port_user[NR_EVENT_CHANNELS];
-+/*
-+ * Who's bound to each port?  This is logically an array of struct
-+ * per_user_data *, but we encode the current enabled-state in bit 0.
-+ */
-+static unsigned long port_user[NR_EVENT_CHANNELS];
- static DEFINE_SPINLOCK(port_user_lock); /* protects port_user[] and ring_prod */
- 
-+static inline struct per_user_data *get_port_user(unsigned port)
-+{
-+	return (struct per_user_data *)(port_user[port] & ~1);
-+}
-+
-+static inline void set_port_user(unsigned port, struct per_user_data *u)
-+{
-+	port_user[port] = (unsigned long)u;
-+}
-+
-+static inline bool get_port_enabled(unsigned port)
-+{
-+	return port_user[port] & 1;
-+}
-+
-+static inline void set_port_enabled(unsigned port, bool enabled)
-+{
-+	if (enabled)
-+		port_user[port] |= 1;
-+	else
-+		port_user[port] &= ~1;
-+}
-+
- irqreturn_t evtchn_interrupt(int irq, void *data)
- {
- 	unsigned int port = (unsigned long)data;
-@@ -80,9 +106,15 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
- 
- 	spin_lock(&port_user_lock);
- 
--	u = port_user[port];
-+	u = get_port_user(port);
-+
-+	if (WARN(!get_port_enabled(port),
-+		 "Interrupt for port %d, but apparently not enabled; per-user %p\n",
-+		 port, u))
-+		goto out;
- 
- 	disable_irq_nosync(irq);
-+	set_port_enabled(port, false);
- 
- 	if ((u->ring_prod - u->ring_cons) < EVTCHN_RING_SIZE) {
- 		u->ring[EVTCHN_RING_MASK(u->ring_prod)] = port;
-@@ -92,10 +124,10 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
- 			kill_fasync(&u->evtchn_async_queue,
- 				    SIGIO, POLL_IN);
- 		}
--	} else {
-+	} else
- 		u->ring_overflow = 1;
--	}
- 
-+out:
- 	spin_unlock(&port_user_lock);
- 
- 	return IRQ_HANDLED;
-@@ -198,9 +230,18 @@ static ssize_t evtchn_write(struct file *file, const char __user *buf,
- 		goto out;
- 
- 	spin_lock_irq(&port_user_lock);
--	for (i = 0; i < (count/sizeof(evtchn_port_t)); i++)
--		if ((kbuf[i] < NR_EVENT_CHANNELS) && (port_user[kbuf[i]] == u))
--			enable_irq(irq_from_evtchn(kbuf[i]));
-+
-+	for (i = 0; i < (count/sizeof(evtchn_port_t)); i++) {
-+		unsigned port = kbuf[i];
-+
-+		if (port < NR_EVENT_CHANNELS &&
-+		    get_port_user(port) == u &&
-+		    !get_port_enabled(port)) {
-+			set_port_enabled(port, true);
-+			enable_irq(irq_from_evtchn(port));
-+		}
-+	}
-+
- 	spin_unlock_irq(&port_user_lock);
- 
- 	rc = count;
-@@ -222,8 +263,8 @@ static int evtchn_bind_to_user(struct per_user_data *u, int port)
- 	 * interrupt handler yet, and our caller has already
- 	 * serialized bind operations.)
- 	 */
--	BUG_ON(port_user[port] != NULL);
--	port_user[port] = u;
-+	BUG_ON(get_port_user(port) != NULL);
-+	set_port_user(port, u);
- 
- 	rc = bind_evtchn_to_irqhandler(port, evtchn_interrupt, IRQF_DISABLED,
- 				       u->name, (void *)(unsigned long)port);
-@@ -242,7 +283,7 @@ static void evtchn_unbind_from_user(struct per_user_data *u, int port)
- 	/* make sure we unbind the irq handler before clearing the port */
- 	barrier();
- 
--	port_user[port] = NULL;
-+	set_port_user(port, NULL);
- }
- 
- static long evtchn_ioctl(struct file *file,
-@@ -333,7 +374,7 @@ static long evtchn_ioctl(struct file *file,
- 		spin_lock_irq(&port_user_lock);
- 
- 		rc = -ENOTCONN;
--		if (port_user[unbind.port] != u) {
-+		if (get_port_user(unbind.port) != u) {
- 			spin_unlock_irq(&port_user_lock);
- 			break;
- 		}
-@@ -355,7 +396,7 @@ static long evtchn_ioctl(struct file *file,
- 
- 		if (notify.port >= NR_EVENT_CHANNELS) {
- 			rc = -EINVAL;
--		} else if (port_user[notify.port] != u) {
-+		} else if (get_port_user(notify.port) != u) {
- 			rc = -ENOTCONN;
- 		} else {
- 			notify_remote_via_evtchn(notify.port);
-@@ -444,10 +485,10 @@ static int evtchn_release(struct inode *inode, struct file *filp)
- 	free_page((unsigned long)u->ring);
- 
- 	for (i = 0; i < NR_EVENT_CHANNELS; i++) {
--		if (port_user[i] != u)
-+		if (get_port_user(i) != u)
- 			continue;
- 
--		evtchn_unbind_from_user(port_user[i], i);
-+		evtchn_unbind_from_user(get_port_user(i), i);
- 	}
- 
- 	spin_unlock_irq(&port_user_lock);
--- 
-1.7.3.2
-
-
-From 93afe0b75ef3675ca05320919a57de8b9bbb159c Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 18 Sep 2009 16:36:58 -0700
-Subject: [PATCH 02/44] xen/evtchn: dynamically allocate port_user array
-
-We only need the array when running as a Xen domain, so dynamically
-allocate it as needed to save on bss space.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index 4356a9a..709c32d 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -73,7 +73,7 @@ struct per_user_data {
-  * Who's bound to each port?  This is logically an array of struct
-  * per_user_data *, but we encode the current enabled-state in bit 0.
-  */
--static unsigned long port_user[NR_EVENT_CHANNELS];
-+static unsigned long *port_user;
- static DEFINE_SPINLOCK(port_user_lock); /* protects port_user[] and ring_prod */
- 
- static inline struct per_user_data *get_port_user(unsigned port)
-@@ -522,8 +522,11 @@ static int __init evtchn_init(void)
- 	if (!xen_domain())
- 		return -ENODEV;
- 
-+	port_user = kcalloc(NR_EVENT_CHANNELS, sizeof(*port_user), GFP_KERNEL);
-+	if (port_user == NULL)
-+		return -ENOMEM;
-+
- 	spin_lock_init(&port_user_lock);
--	memset(port_user, 0, sizeof(port_user));
- 
- 	/* Create '/dev/misc/evtchn'. */
- 	err = misc_register(&evtchn_miscdev);
-@@ -539,6 +542,9 @@ static int __init evtchn_init(void)
- 
- static void __exit evtchn_cleanup(void)
- {
-+	kfree(port_user);
-+	port_user = NULL;
-+
- 	misc_deregister(&evtchn_miscdev);
- }
- 
--- 
-1.7.3.2
-
-
-From 0edce91dcd83160019867a00746c679344dc0bbd Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 18 Sep 2009 16:55:29 -0700
-Subject: [PATCH 03/44] xen/evtchn: ports start enabled
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index 709c32d..72dc7f2 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -108,10 +108,9 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
- 
- 	u = get_port_user(port);
- 
--	if (WARN(!get_port_enabled(port),
--		 "Interrupt for port %d, but apparently not enabled; per-user %p\n",
--		 port, u))
--		goto out;
-+	WARN(!get_port_enabled(port),
-+	     "Interrupt for port %d, but apparently not enabled; per-user %p\n",
-+	     port, u);
- 
- 	disable_irq_nosync(irq);
- 	set_port_enabled(port, false);
-@@ -127,7 +126,6 @@ irqreturn_t evtchn_interrupt(int irq, void *data)
- 	} else
- 		u->ring_overflow = 1;
- 
--out:
- 	spin_unlock(&port_user_lock);
- 
- 	return IRQ_HANDLED;
-@@ -265,6 +263,7 @@ static int evtchn_bind_to_user(struct per_user_data *u, int port)
- 	 */
- 	BUG_ON(get_port_user(port) != NULL);
- 	set_port_user(port, u);
-+	set_port_enabled(port, true); /* start enabled */
- 
- 	rc = bind_evtchn_to_irqhandler(port, evtchn_interrupt, IRQF_DISABLED,
- 				       u->name, (void *)(unsigned long)port);
--- 
-1.7.3.2
-
-
-From 1a1a17cddbfb1f81222b3f18ee8530c41fbc3b82 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 18 Sep 2009 17:13:41 -0700
-Subject: [PATCH 04/44] xen/evtchn: remove spurious barrier
-
-evtchn_unbind_from_user() is called under a lock, so there's no need to
-worry about the ordering of unbind_from_irqhandler vs clearing the port
-per-user data.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index 72dc7f2..f79ac5c 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -279,9 +279,6 @@ static void evtchn_unbind_from_user(struct per_user_data *u, int port)
- 
- 	unbind_from_irqhandler(irq, (void *)(unsigned long)port);
- 
--	/* make sure we unbind the irq handler before clearing the port */
--	barrier();
--
- 	set_port_user(port, NULL);
- }
- 
--- 
-1.7.3.2
-
-
-From 3f5e554f669098c84c82ce75e7577f7e0f3fccde Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 28 May 2010 15:28:27 -0700
-Subject: [PATCH 05/44] xen/evtchn: don't do unbind_from_irqhandler under spinlock
-
-unbind_from_irqhandler can end up doing /proc operations, which can't
-happen under a spinlock.  So before removing the IRQ handler,
-disable the irq under the port_user lock (masking the underlying event
-channel and making sure the irq handler isn't running concurrently and
-won't start running), then remove the handler without the lock.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |   13 +++++++++++--
- 1 files changed, 11 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index f79ac5c..6a3a129 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -375,10 +375,12 @@ static long evtchn_ioctl(struct file *file,
- 			break;
- 		}
- 
--		evtchn_unbind_from_user(u, unbind.port);
-+		disable_irq(irq_from_evtchn(unbind.port));
- 
- 		spin_unlock_irq(&port_user_lock);
- 
-+		evtchn_unbind_from_user(u, unbind.port);
-+
- 		rc = 0;
- 		break;
- 	}
-@@ -484,11 +486,18 @@ static int evtchn_release(struct inode *inode, struct file *filp)
- 		if (get_port_user(i) != u)
- 			continue;
- 
--		evtchn_unbind_from_user(get_port_user(i), i);
-+		disable_irq(irq_from_evtchn(i));
- 	}
- 
- 	spin_unlock_irq(&port_user_lock);
- 
-+	for (i = 0; i < NR_EVENT_CHANNELS; i++) {
-+		if (get_port_user(i) != u)
-+			continue;
-+
-+		evtchn_unbind_from_user(get_port_user(i), i);
-+	}
-+
- 	kfree(u->name);
- 	kfree(u);
- 
--- 
-1.7.3.2
-
-
-From 376d908f52427591cef4acd172db9c3ef28676ec Mon Sep 17 00:00:00 2001
-From: Bastian Blank <waldi@debian.org>
-Date: Fri, 28 May 2010 15:43:49 -0700
-Subject: [PATCH 06/44] xen/evtchn: Fix name of Xen event-channel device
-
-The Xen event-channel device is named evtchn in the kernel but always
-used as /dev/xen/evtchn in userspace. This patch fixes the name.
-
-Signed-off-by: Bastian Blank <waldi@debian.org>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index 6a3a129..68119f6 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -517,7 +517,7 @@ static const struct file_operations evtchn_fops = {
- 
- static struct miscdevice evtchn_miscdev = {
- 	.minor        = MISC_DYNAMIC_MINOR,
--	.name         = "evtchn",
-+	.name         = "xen/evtchn",
- 	.fops         = &evtchn_fops,
- };
- static int __init evtchn_init(void)
--- 
-1.7.3.2
-
-
-From 70697d540c0598ad023a391d4c895044db9a6624 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 5 Oct 2010 11:13:44 -0700
-Subject: [PATCH 07/44] xen/evtchn: add missing static
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/evtchn.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index 68119f6..f3594ec 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -99,7 +99,7 @@ static inline void set_port_enabled(unsigned port, bool enabled)
- 		port_user[port] &= ~1;
- }
- 
--irqreturn_t evtchn_interrupt(int irq, void *data)
-+static irqreturn_t evtchn_interrupt(int irq, void *data)
- {
- 	unsigned int port = (unsigned long)data;
- 	struct per_user_data *u;
--- 
-1.7.3.2
-
-
 From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Feb 2009 12:58:42 -0800
-Subject: [PATCH 01/23] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
+Subject: [PATCH 01/39] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
 
 Set _PAGE_IOMAP in ptes mapping a VM_IO vma.  This says that the mapping
 is of a real piece of physical hardware, and not just system memory.
@@ -472,7 +60,7 @@ index 5c4ee42..5083449 100644
 From 5527f9bee43a910b019ad77d7de6620b3412759b Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 2 Oct 2009 09:49:05 -0700
-Subject: [PATCH 02/23] drm: recompute vma->vm_page_prot after changing vm_flags
+Subject: [PATCH 02/39] drm: recompute vma->vm_page_prot after changing vm_flags
 
 vm_get_page_prot() computes vm_page_prot depending on vm_flags, so
 we need to re-call it if we change flags.
@@ -509,7 +97,7 @@ index fe6cb77..2d15c5e 100644
 From 66aae0dade39748bb7e068c4518c6160394ae3aa Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 25 Feb 2010 16:38:29 -0800
-Subject: [PATCH 03/23] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
+Subject: [PATCH 03/39] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
 
 When mapping AGP memory, the offset is a machine address.  In Xen we
 need to make sure mappings of physical machine addresses have _PAGE_IO
@@ -540,7 +128,7 @@ index 076052c..3038ef6 100644
 From 4cd35860df16d7d3bd55ce4d4500bfe59c46a849 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 24 Feb 2010 11:10:45 -0800
-Subject: [PATCH 04/23] agp: use DMA API when compiled for Xen as well
+Subject: [PATCH 04/39] agp: use DMA API when compiled for Xen as well
 
 Xen guests need translation between pseudo-physical and real machine
 physical addresses when accessing graphics devices, so use the DMA API
@@ -573,203 +161,10 @@ index 75e0a34..ce63e5c 100644
 1.7.3.2
 
 
-From 31b643ec05a644705d75d6d047917710b414487e Mon Sep 17 00:00:00 2001
-From: Ian Campbell <ian.campbell@citrix.com>
-Date: Thu, 30 Sep 2010 12:37:26 +0100
-Subject: [PATCH 05/23] xen: implement XENMEM_machphys_mapping
-
-This hypercall allows Xen to specify a non-default location for the
-machine to physical mapping. This capability is used when running a 32
-bit domain 0 on a 64 bit hypervisor to shrink the hypervisor hole to
-exactly the size required.
-
-[ Impact: add Xen hypercall definitions ]
-
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
----
- arch/x86/include/asm/xen/interface.h    |    6 +++---
- arch/x86/include/asm/xen/interface_32.h |    5 +++++
- arch/x86/include/asm/xen/interface_64.h |   13 +------------
- arch/x86/include/asm/xen/page.h         |    7 ++++---
- arch/x86/xen/enlighten.c                |    7 +++++++
- arch/x86/xen/mmu.c                      |   14 ++++++++++++++
- include/xen/interface/memory.h          |   13 +++++++++++++
- 7 files changed, 47 insertions(+), 18 deletions(-)
-
-diff --git a/arch/x86/include/asm/xen/interface.h b/arch/x86/include/asm/xen/interface.h
-index e8506c1..1c10c88 100644
---- a/arch/x86/include/asm/xen/interface.h
-+++ b/arch/x86/include/asm/xen/interface.h
-@@ -61,9 +61,9 @@ DEFINE_GUEST_HANDLE(void);
- #define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
- #endif
- 
--#ifndef machine_to_phys_mapping
--#define machine_to_phys_mapping ((unsigned long *)HYPERVISOR_VIRT_START)
--#endif
-+#define MACH2PHYS_VIRT_START  mk_unsigned_long(__MACH2PHYS_VIRT_START)
-+#define MACH2PHYS_VIRT_END    mk_unsigned_long(__MACH2PHYS_VIRT_END)
-+#define MACH2PHYS_NR_ENTRIES  ((MACH2PHYS_VIRT_END-MACH2PHYS_VIRT_START)>>__MACH2PHYS_SHIFT)
- 
- /* Maximum number of virtual CPUs in multi-processor guests. */
- #define MAX_VIRT_CPUS 32
-diff --git a/arch/x86/include/asm/xen/interface_32.h b/arch/x86/include/asm/xen/interface_32.h
-index 42a7e00..8413688 100644
---- a/arch/x86/include/asm/xen/interface_32.h
-+++ b/arch/x86/include/asm/xen/interface_32.h
-@@ -32,6 +32,11 @@
- /* And the trap vector is... */
- #define TRAP_INSTR "int $0x82"
- 
-+#define __MACH2PHYS_VIRT_START 0xF5800000
-+#define __MACH2PHYS_VIRT_END   0xF6800000
-+
-+#define __MACH2PHYS_SHIFT      2
-+
- /*
-  * Virtual addresses beyond this are not modifiable by guest OSes. The
-  * machine->physical mapping table starts at this address, read-only.
-diff --git a/arch/x86/include/asm/xen/interface_64.h b/arch/x86/include/asm/xen/interface_64.h
-index 100d266..839a481 100644
---- a/arch/x86/include/asm/xen/interface_64.h
-+++ b/arch/x86/include/asm/xen/interface_64.h
-@@ -39,18 +39,7 @@
- #define __HYPERVISOR_VIRT_END   0xFFFF880000000000
- #define __MACH2PHYS_VIRT_START  0xFFFF800000000000
- #define __MACH2PHYS_VIRT_END    0xFFFF804000000000
--
--#ifndef HYPERVISOR_VIRT_START
--#define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
--#define HYPERVISOR_VIRT_END   mk_unsigned_long(__HYPERVISOR_VIRT_END)
--#endif
--
--#define MACH2PHYS_VIRT_START  mk_unsigned_long(__MACH2PHYS_VIRT_START)
--#define MACH2PHYS_VIRT_END    mk_unsigned_long(__MACH2PHYS_VIRT_END)
--#define MACH2PHYS_NR_ENTRIES  ((MACH2PHYS_VIRT_END-MACH2PHYS_VIRT_START)>>3)
--#ifndef machine_to_phys_mapping
--#define machine_to_phys_mapping ((unsigned long *)HYPERVISOR_VIRT_START)
--#endif
-+#define __MACH2PHYS_SHIFT       3
- 
- /*
-  * int HYPERVISOR_set_segment_base(unsigned int which, unsigned long base)
-diff --git a/arch/x86/include/asm/xen/page.h b/arch/x86/include/asm/xen/page.h
-index bf5f7d3..d5fb2e8 100644
---- a/arch/x86/include/asm/xen/page.h
-+++ b/arch/x86/include/asm/xen/page.h
-@@ -5,6 +5,7 @@
- #include <linux/types.h>
- #include <linux/spinlock.h>
- #include <linux/pfn.h>
-+#include <linux/mm.h>
- 
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -35,6 +36,8 @@ typedef struct xpaddr {
- #define MAX_DOMAIN_PAGES						\
-     ((unsigned long)((u64)CONFIG_XEN_MAX_DOMAIN_MEMORY * 1024 * 1024 * 1024 / PAGE_SIZE))
- 
-+extern unsigned long *machine_to_phys_mapping;
-+extern unsigned int   machine_to_phys_order;
- 
- extern unsigned long get_phys_to_machine(unsigned long pfn);
- extern void set_phys_to_machine(unsigned long pfn, unsigned long mfn);
-@@ -62,10 +65,8 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
- 	if (xen_feature(XENFEAT_auto_translated_physmap))
- 		return mfn;
- 
--#if 0
- 	if (unlikely((mfn >> machine_to_phys_order) != 0))
--		return max_mapnr;
--#endif
-+		return ~0;
- 
- 	pfn = 0;
- 	/*
-diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-index 7d46c84..adfc2f4 100644
---- a/arch/x86/xen/enlighten.c
-+++ b/arch/x86/xen/enlighten.c
-@@ -74,6 +74,11 @@ DEFINE_PER_CPU(struct vcpu_info, xen_vcpu_info);
- enum xen_domain_type xen_domain_type = XEN_NATIVE;
- EXPORT_SYMBOL_GPL(xen_domain_type);
- 
-+unsigned long *machine_to_phys_mapping = (void *)MACH2PHYS_VIRT_START;
-+EXPORT_SYMBOL(machine_to_phys_mapping);
-+unsigned int   machine_to_phys_order;
-+EXPORT_SYMBOL(machine_to_phys_order);
-+
- struct start_info *xen_start_info;
- EXPORT_SYMBOL_GPL(xen_start_info);
- 
-@@ -1098,6 +1103,8 @@ asmlinkage void __init xen_start_kernel(void)
- 
- 	xen_domain_type = XEN_PV_DOMAIN;
- 
-+	xen_setup_machphys_mapping();
-+
- 	/* Install Xen paravirt ops */
- 	pv_info = xen_info;
- 	pv_init_ops = xen_init_ops;
-diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
-index 42086ac..9625f2a 100644
---- a/arch/x86/xen/mmu.c
-+++ b/arch/x86/xen/mmu.c
-@@ -1737,6 +1737,20 @@ static __init void xen_map_identity_early(pmd_t *pmd, unsigned long max_pfn)
- 	set_page_prot(pmd, PAGE_KERNEL_RO);
- }
- 
-+void __init xen_setup_machphys_mapping(void)
-+{
-+	struct xen_machphys_mapping mapping;
-+	unsigned long machine_to_phys_nr_ents;
-+
-+	if (HYPERVISOR_memory_op(XENMEM_machphys_mapping, &mapping) == 0) {
-+		machine_to_phys_mapping = (unsigned long *)mapping.v_start;
-+		machine_to_phys_nr_ents = mapping.max_mfn + 1;
-+	} else {
-+		machine_to_phys_nr_ents = MACH2PHYS_NR_ENTRIES;
-+	}
-+	machine_to_phys_order = fls(machine_to_phys_nr_ents - 1);
-+}
-+
- #ifdef CONFIG_X86_64
- static void convert_pfn_mfn(void *v)
- {
-diff --git a/include/xen/interface/memory.h b/include/xen/interface/memory.h
-index d3938d3..134d33d 100644
---- a/include/xen/interface/memory.h
-+++ b/include/xen/interface/memory.h
-@@ -141,6 +141,19 @@ struct xen_machphys_mfn_list {
- DEFINE_GUEST_HANDLE_STRUCT(xen_machphys_mfn_list);
- 
- /*
-+ * Returns the location in virtual address space of the machine_to_phys
-+ * mapping table. Architectures which do not have a m2p table, or which do not
-+ * map it by default into guest address space, do not implement this command.
-+ * arg == addr of xen_machphys_mapping_t.
-+ */
-+#define XENMEM_machphys_mapping     12
-+struct xen_machphys_mapping {
-+    unsigned long v_start, v_end; /* Start and end virtual addresses.   */
-+    unsigned long max_mfn;        /* Maximum MFN that can be looked up. */
-+};
-+DEFINE_GUEST_HANDLE_STRUCT(xen_machphys_mapping_t);
-+
-+/*
-  * Sets the GPFN at which a particular page appears in the specified guest's
-  * pseudophysical address space.
-  * arg == addr of xen_add_to_physmap_t.
--- 
-1.7.3.2
-
-
 From 4ffb5de0f02bad2b0ebe7a9a6a45bc5855c15369 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 9 Aug 2010 14:35:36 -0700
-Subject: [PATCH 06/23] pvops: make pte_flags() go via pvops
+Subject: [PATCH 06/39] pvops: make pte_flags() go via pvops
 
 As part of PAT support in Xen we need to fiddle with the page flags.
 For consistency, we need to make sure the conversion happens both ways
@@ -821,274 +216,10 @@ index d1f4a76..a81b0ed 100644
 1.7.3.2
 
 
-From 313e74412105c670ff8900ec8099a3a5df1fa83c Mon Sep 17 00:00:00 2001
-From: Vasiliy Kulikov <segooon@gmail.com>
-Date: Thu, 28 Oct 2010 15:39:02 +0400
-Subject: [PATCH 07/23] xen: xenfs: privcmd: check put_user() return code
-
-put_user() may fail.  In this case propagate error code from
-privcmd_ioctl_mmap_batch().
-
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/xenfs/privcmd.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/xen/xenfs/privcmd.c b/drivers/xen/xenfs/privcmd.c
-index f80be7f..2eb04c8 100644
---- a/drivers/xen/xenfs/privcmd.c
-+++ b/drivers/xen/xenfs/privcmd.c
-@@ -266,9 +266,7 @@ static int mmap_return_errors(void *data, void *state)
- 	xen_pfn_t *mfnp = data;
- 	struct mmap_batch_state *st = state;
- 
--	put_user(*mfnp, st->user++);
--
--	return 0;
-+	return put_user(*mfnp, st->user++);
- }
- 
- static struct vm_operations_struct privcmd_vm_ops;
-@@ -323,10 +321,8 @@ static long privcmd_ioctl_mmap_batch(void __user *udata)
- 	up_write(&mm->mmap_sem);
- 
- 	if (state.err > 0) {
--		ret = 0;
--
- 		state.user = m.arr;
--		traverse_pages(m.num, sizeof(xen_pfn_t),
-+		ret = traverse_pages(m.num, sizeof(xen_pfn_t),
- 			       &pagelist,
- 			       mmap_return_errors, &state);
- 	}
--- 
-1.7.3.2
-
-
-From c64e38ea17a81721da0393584fd807f8434050fa Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 1 Nov 2010 14:32:27 -0400
-Subject: [PATCH 08/23] xen/blkfront: map REQ_FLUSH into a full barrier
-
-Implement a flush as a full barrier, since we have nothing weaker.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
----
- drivers/block/xen-blkfront.c |   19 +++++--------------
- 1 files changed, 5 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 06e2812..3a318d8 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -245,14 +245,11 @@ static int blkif_ioctl(struct block_device *bdev, fmode_t mode,
- }
- 
- /*
-- * blkif_queue_request
-+ * Generate a Xen blkfront IO request from a blk layer request.  Reads
-+ * and writes are handled as expected.  Since we lack a loose flush
-+ * request, we map flushes into a full ordered barrier.
-  *
-- * request block io
-- *
-- * id: for guest use only.
-- * operation: BLKIF_OP_{READ,WRITE,PROBE}
-- * buffer: buffer to read/write into. this should be a
-- *   virtual address in the guest os.
-+ * @req: a request struct
-  */
- static int blkif_queue_request(struct request *req)
- {
-@@ -1069,14 +1066,8 @@ static void blkfront_connect(struct blkfront_info *info)
- 	 */
- 	info->feature_flush = 0;
- 
--	/*
--	 * The driver doesn't properly handled empty flushes, so
--	 * lets disable barrier support for now.
--	 */
--#if 0
- 	if (!err && barrier)
- 		info->feature_flush = REQ_FLUSH;
--#endif
- 
- 	err = xlvbd_alloc_gendisk(sectors, info, binfo, sector_size);
- 	if (err) {
--- 
-1.7.3.2
-
-
-From a945b9801a9bfd4a98bcfd9f6656b5027b254e3f Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 1 Nov 2010 17:03:14 -0400
-Subject: [PATCH 09/23] xen/blkfront: change blk_shadow.request to proper pointer
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/block/xen-blkfront.c |   14 ++++++--------
- 1 files changed, 6 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 3a318d8..31c8a64 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -65,7 +65,7 @@ enum blkif_state {
- 
- struct blk_shadow {
- 	struct blkif_request req;
--	unsigned long request;
-+	struct request *request;
- 	unsigned long frame[BLKIF_MAX_SEGMENTS_PER_REQUEST];
- };
- 
-@@ -136,7 +136,7 @@ static void add_id_to_freelist(struct blkfront_info *info,
- 			       unsigned long id)
- {
- 	info->shadow[id].req.id  = info->shadow_free;
--	info->shadow[id].request = 0;
-+	info->shadow[id].request = NULL;
- 	info->shadow_free = id;
- }
- 
-@@ -278,7 +278,7 @@ static int blkif_queue_request(struct request *req)
- 	/* Fill out a communications ring structure. */
- 	ring_req = RING_GET_REQUEST(&info->ring, info->ring.req_prod_pvt);
- 	id = get_id_from_freelist(info);
--	info->shadow[id].request = (unsigned long)req;
-+	info->shadow[id].request = req;
- 
- 	ring_req->id = id;
- 	ring_req->sector_number = (blkif_sector_t)blk_rq_pos(req);
-@@ -633,7 +633,7 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
- 
- 		bret = RING_GET_RESPONSE(&info->ring, i);
- 		id   = bret->id;
--		req  = (struct request *)info->shadow[id].request;
-+		req  = info->shadow[id].request;
- 
- 		blkif_completion(&info->shadow[id]);
- 
-@@ -898,7 +898,7 @@ static int blkif_recover(struct blkfront_info *info)
- 	/* Stage 3: Find pending requests and requeue them. */
- 	for (i = 0; i < BLK_RING_SIZE; i++) {
- 		/* Not in use? */
--		if (copy[i].request == 0)
-+		if (!copy[i].request)
- 			continue;
- 
- 		/* Grab a request slot and copy shadow state into it. */
-@@ -915,9 +915,7 @@ static int blkif_recover(struct blkfront_info *info)
- 				req->seg[j].gref,
- 				info->xbdev->otherend_id,
- 				pfn_to_mfn(info->shadow[req->id].frame[j]),
--				rq_data_dir(
--					(struct request *)
--					info->shadow[req->id].request));
-+				rq_data_dir(info->shadow[req->id].request));
- 		info->shadow[req->id].req = *req;
- 
- 		info->ring.req_prod_pvt++;
--- 
-1.7.3.2
-
-
-From be2f8373c188ed1f5d36003c9928e4d695213080 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 2 Nov 2010 10:38:33 -0400
-Subject: [PATCH 10/23] xen/blkfront: Implement FUA with BLKIF_OP_WRITE_BARRIER
-
-The BLKIF_OP_WRITE_BARRIER is a full ordered barrier, so we can use it
-to implement FUA as well as a plain FLUSH.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
----
- drivers/block/xen-blkfront.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 31c8a64..76b874a 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -290,6 +287,18 @@ static int blkif_queue_request(struct request *req)
- 	ring_req->operation = rq_data_dir(req) ?
- 		BLKIF_OP_WRITE : BLKIF_OP_READ;
- 
-+	if (req->cmd_flags & (REQ_FLUSH | REQ_FUA)) {
-+		/*
-+		 * Ideally we could just do an unordered
-+		 * flush-to-disk, but all we have is a full write
-+		 * barrier at the moment.  However, a barrier write is
-+		 * a superset of FUA, so we can implement it the same
-+		 * way.  (It's also a FLUSH+FUA, since it is
-+		 * guaranteed ordered WRT previous writes.)
-+		 */
-+		ring_req->operation = BLKIF_OP_WRITE_BARRIER;
-+	}
-+
- 	ring_req->nr_segments = blk_rq_map_sg(req->q, req, info->sg);
- 	BUG_ON(ring_req->nr_segments > BLKIF_MAX_SEGMENTS_PER_REQUEST);
- 
-@@ -1065,7 +1075,7 @@ static void blkfront_connect(struct blkfront_info *info)
- 	info->feature_flush = 0;
- 
- 	if (!err && barrier)
--		info->feature_flush = REQ_FLUSH;
-+		info->feature_flush = REQ_FLUSH | REQ_FUA;
- 
- 	err = xlvbd_alloc_gendisk(sectors, info, binfo, sector_size);
- 	if (err) {
--- 
-1.7.3.2
-
-
-From dcb8baeceaa1c629bbd06f472cea023ad08a0c33 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 2 Nov 2010 11:55:58 -0400
-Subject: [PATCH 11/23] xen/blkfront: cope with backend that fail empty BLKIF_OP_WRITE_BARRIER requests
-
-Some(?) Xen block backends fail BLKIF_OP_WRITE_BARRIER requests, which
-Linux uses as a cache flush operation.  In that case, disable use
-of FLUSH.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Daniel Stodden <daniel.stodden@citrix.com>
----
- drivers/block/xen-blkfront.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 76b874a..4f9e22f 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -656,6 +656,16 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
- 				printk(KERN_WARNING "blkfront: %s: write barrier op failed\n",
- 				       info->gd->disk_name);
- 				error = -EOPNOTSUPP;
-+			}
-+			if (unlikely(bret->status == BLKIF_RSP_ERROR &&
-+				     info->shadow[id].req.nr_segments == 0)) {
-+				printk(KERN_WARNING "blkfront: %s: empty write barrier op failed\n",
-+				       info->gd->disk_name);
-+				error = -EOPNOTSUPP;
-+			}
-+			if (unlikely(error)) {
-+				if (error == -EOPNOTSUPP)
-+					error = 0;
- 				info->feature_flush = 0;
- 				xlvbd_flush(info);
- 			}
--- 
-1.7.3.2
-
-
 From 0aa82d86c699890ce3661927f176045fc8e47156 Mon Sep 17 00:00:00 2001
 From: Stephen Tweedie <sct@redhat.com>
 Date: Fri, 6 Feb 2009 19:09:47 -0800
-Subject: [PATCH 12/23] xen dom0: Add support for the platform_ops hypercall
+Subject: [PATCH 07/39] xen dom0: Add support for the platform_ops hypercall
 
 Minimal changes to get platform ops (renamed dom0_ops on pv_ops) working
 on pv_ops builds.  Pulls in upstream linux-2.6.18-xen.hg's platform.h
@@ -1378,7 +509,7 @@ index 2befa3e..18b5599 100644
 From 37a80bdde5957ffa81c2ecdffc4ccc2e874e34cb Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 27 Mar 2009 17:39:15 -0700
-Subject: [PATCH 13/23] xen: add CPU microcode update driver
+Subject: [PATCH 08/39] xen: add CPU microcode update driver
 
 Xen does all the hard work for us, including choosing the right update
 method for this cpu type and actually doing it for all cpus.  We just
@@ -1679,7 +810,7 @@ index 5b54892..384e0a5 100644
 From aed8ff456bd7847683776e5c4d0dd4e4abc5087e Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 10 Nov 2010 12:28:57 -0800
-Subject: [PATCH 15/23] x86: demacro set_iopl_mask()
+Subject: [PATCH 10/39] x86: demacro set_iopl_mask()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -1709,7 +840,7 @@ index cae9c3c..32f75be 100644
 From 640524e029f5b5cb93462c7bccdd93141f53ae65 Mon Sep 17 00:00:00 2001
 From: Christophe Saout <chtephan@leto.intern.saout.de>
 Date: Sat, 17 Jan 2009 17:30:17 +0100
-Subject: [PATCH 16/23] x86/paravirt: paravirtualize IO permission bitmap
+Subject: [PATCH 11/39] x86/paravirt: paravirtualize IO permission bitmap
 
 Paravirtualized x86 systems don't have an exposed TSS, as it is only
 directly visible in ring 0.  The IO permission bitmap is part of
@@ -1925,7 +1056,7 @@ index 57d1868..a48e82a 100644
 From 950952701cf9e218c2269d13b8538f3c07cff762 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 18 Jun 2009 15:04:16 -0700
-Subject: [PATCH 17/23] xen: implement IO permission bitmap
+Subject: [PATCH 12/39] xen: implement IO permission bitmap
 
 Add Xen implementation of IO permission bitmap pvop.
 
@@ -1971,61 +1102,10 @@ index 235c0f4..4ad88fd 100644
 1.7.3.2
 
 
-From e060e7af98182494b764d002eba7fa022fe91bdf Mon Sep 17 00:00:00 2001
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Date: Thu, 11 Nov 2010 12:37:43 -0800
-Subject: [PATCH 18/23] xen: set vma flag VM_PFNMAP in the privcmd mmap file_op
-
-Set VM_PFNMAP in the privcmd mmap file_op, rather than later in
-xen_remap_domain_mfn_range when it is too late because
-vma_wants_writenotify has already been called and vm_page_prot has
-already been modified.
-
-Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/mmu.c          |    3 ++-
- drivers/xen/xenfs/privcmd.c |    5 +++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
-index f08ea04..792de43 100644
---- a/arch/x86/xen/mmu.c
-+++ b/arch/x86/xen/mmu.c
-@@ -2299,7 +2299,8 @@ int xen_remap_domain_mfn_range(struct vm_area_struct *vma,
- 
- 	prot = __pgprot(pgprot_val(prot) | _PAGE_IOMAP);
- 
--	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
-+	BUG_ON(!((vma->vm_flags & (VM_PFNMAP | VM_RESERVED | VM_IO)) ==
-+				(VM_PFNMAP | VM_RESERVED | VM_IO)));
- 
- 	rmd.mfn = mfn;
- 	rmd.prot = prot;
-diff --git a/drivers/xen/xenfs/privcmd.c b/drivers/xen/xenfs/privcmd.c
-index 2eb04c8..88474d4 100644
---- a/drivers/xen/xenfs/privcmd.c
-+++ b/drivers/xen/xenfs/privcmd.c
-@@ -380,8 +380,9 @@ static int privcmd_mmap(struct file *file, struct vm_area_struct *vma)
- 	if (xen_feature(XENFEAT_auto_translated_physmap))
- 		return -ENOSYS;
- 
--	/* DONTCOPY is essential for Xen as copy_page_range is broken. */
--	vma->vm_flags |= VM_RESERVED | VM_IO | VM_DONTCOPY;
-+	/* DONTCOPY is essential for Xen because copy_page_range doesn't know
-+	 * how to recreate these mappings */
-+	vma->vm_flags |= VM_RESERVED | VM_IO | VM_DONTCOPY | VM_PFNMAP;
- 	vma->vm_ops = &privcmd_vm_ops;
- 	vma->vm_private_data = NULL;
- 
--- 
-1.7.3.2
-
-
 From a188301f0e78daed011dde56139630d88299a954 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:49 -0800
-Subject: [PATCH 19/23] xen: define gnttab_set_map_op/unmap_op
+Subject: [PATCH 13/39] xen: define gnttab_set_map_op/unmap_op
 
 Impact: hypercall definitions
 
@@ -2110,7 +1190,7 @@ index 9a73170..1821aa1 100644
 From 56385560d6d8fd4c89c4f328d3ff0ecc9c44c52d Mon Sep 17 00:00:00 2001
 From: Gerd Hoffmann <kraxel@redhat.com>
 Date: Tue, 3 Mar 2009 12:27:55 -0800
-Subject: [PATCH 20/23] xen/gntdev: allow usermode to map granted pages
+Subject: [PATCH 14/39] xen/gntdev: allow usermode to map granted pages
 
 The gntdev driver allows usermode to map granted pages from other
 domains.  This is typically used to implement a Xen backend driver
@@ -2150,17 +1230,18 @@ diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
 index eb8a78d..7ed8418 100644
 --- a/drivers/xen/Makefile
 +++ b/drivers/xen/Makefile
-@@ -9,8 +9,12 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+@@ -9,6 +9,7 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
  obj-$(CONFIG_XEN_XENCOMM)	+= xencomm.o
  obj-$(CONFIG_XEN_BALLOON)	+= balloon.o
- obj-$(CONFIG_XEN_DEV_EVTCHN)	+= evtchn.o
+ obj-$(CONFIG_XEN_DEV_EVTCHN)	+= xen-evtchn.o
 +obj-$(CONFIG_XEN_GNTDEV)	+= xen-gntdev.o
  obj-$(CONFIG_XENFS)		+= xenfs/
  obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
  obj-$(CONFIG_XEN_PLATFORM_PCI)	+= platform-pci.o
- obj-$(CONFIG_SWIOTLB_XEN)	+= swiotlb-xen.o
- obj-$(CONFIG_XEN_DOM0)		+= pci.o
-+
+@@ -17,3 +18,5 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+ 
+ xen-evtchn-y			:= evtchn.o
+
 +xen-gntdev-y				:= gntdev.o
 +
 diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
@@ -2947,7 +2028,7 @@ index 0000000..8bd1467
 From 8c79aad3bd8a379bd0bd144895b55098aca2ccea Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 11 Nov 2010 14:39:12 -0800
-Subject: [PATCH 21/23] xen/gntdev: add VM_PFNMAP to vma
+Subject: [PATCH 15/39] xen/gntdev: add VM_PFNMAP to vma
 
 These pages are from other domains, so don't have any local PFN.
 VM_PFNMAP is the closest concept Linux has to this.
@@ -2973,593 +2054,1263 @@ index 45898d4..cf61c7d 100644
 1.7.3.2
 
 
-From 744f9f104ea262de1dc3e29265870c649f0d9473 Mon Sep 17 00:00:00 2001
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Date: Sat, 13 Nov 2010 11:44:39 -0500
-Subject: [PATCH 22/23] xen: fix header export to userspace
-
-scripts/headers_install.pl prevents "__user" from being exported
-to userspace headers, so just use compiler.h to make sure that
-__user is defined and avoid the error.
-
-unifdef: linux-next-20101112/xx64/usr/include/xen/privcmd.h.tmp: 79: Premature EOF (#if line 33 depth 1)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc:	Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc:	xen-devel@lists.xensource.com (moderated for non-subscribers)
-Cc:	virtualization@lists.osdl.org
-Cc:	Tony Finch <dot@dotat.at>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- include/xen/privcmd.h |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/include/xen/privcmd.h b/include/xen/privcmd.h
-index b42cdfd..17857fb 100644
---- a/include/xen/privcmd.h
-+++ b/include/xen/privcmd.h
-@@ -34,13 +34,10 @@
- #define __LINUX_PUBLIC_PRIVCMD_H__
- 
- #include <linux/types.h>
-+#include <linux/compiler.h>
- 
- typedef unsigned long xen_pfn_t;
- 
--#ifndef __user
--#define __user
--#endif
--
- struct privcmd_hypercall {
- 	__u64 op;
- 	__u64 arg[5];
--- 
-1.7.3.2
-
-
-From fe61f1d737f7804e0bd440ace9724e669e2c2906 Mon Sep 17 00:00:00 2001
+From c2d0879112825cddddd6c4f9b2645ff32acd6dc5 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 16 Nov 2010 11:06:46 -0800
-Subject: [PATCH 23/23] xen/xenfs: update xenfs_mount for new prototype
+Date: Mon, 22 Nov 2010 16:31:35 -0800
+Subject: [PATCH 20/39] xen: clean up "extra" memory handling some more
 
-.mount now returns a struct dentry *.
+Make sure that extra_pages is added for all E820_RAM regions beyond
+mem_end - completely excluded regions as well as the remains of partially
+included regions.
+
+Also makes sure the extra region is not unnecessarily high, and simplifies
+the logic to decide which regions should be added.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
- drivers/xen/xenfs/super.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/xen/setup.c |   21 +++++++++------------
+ 1 files changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/xen/xenfs/super.c b/drivers/xen/xenfs/super.c
-index f6339d1..990ee42 100644
---- a/drivers/xen/xenfs/super.c
-+++ b/drivers/xen/xenfs/super.c
-@@ -121,9 +121,9 @@ static int xenfs_fill_super(struct super_block *sb, void *data, int silent)
- 	return rc;
- }
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index 38fdffa..b85dcee 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -182,24 +182,21 @@ char * __init xen_memory_setup(void)
+ 	for (i = 0; i < memmap.nr_entries; i++) {
+ 		unsigned long long end = map[i].addr + map[i].size;
  
--static int xenfs_mount(struct file_system_type *fs_type,
--			int flags, const char *dev_name,
--			void *data)
-+static struct dentry *xenfs_mount(struct file_system_type *fs_type,
-+				  int flags, const char *dev_name,
-+				  void *data)
- {
- 	return mount_single(fs_type, flags, data, xenfs_fill_super);
- }
--- 
-1.7.3.2
-
-
-From 1c6969ec8e6328e8d288fc585310e9e52fc9db04 Mon Sep 17 00:00:00 2001
-From: Jan Beulich <jbeulich@novell.com>
-Date: Tue, 16 Nov 2010 14:55:33 -0800
-Subject: [PATCH 33/44] xen/evtchn: clear secondary CPUs' cpu_evtchn_mask[] after restore
-
-To bind all event channels to CPU#0, it is not sufficient to set all
-of its cpu_evtchn_mask[] bits; all other CPUs also need to get their
-bits cleared. Otherwise, evtchn_do_upcall() will start handling
-interrupts on CPUs they're not intended to run on, which can be
-particularly bad for per-CPU ones.
-
-[ linux-2.6.18-xen.hg 7de7453dee36 ]
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/events.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-index 321a0c8..d770b8c 100644
---- a/drivers/xen/events.c
-+++ b/drivers/xen/events.c
-@@ -286,9 +286,9 @@ static void bind_evtchn_to_cpu(unsigned int chn, unsigned int cpu)
+-		if (map[i].type == E820_RAM) {
+-			if (map[i].addr < mem_end && end > mem_end) {
+-				/* Truncate region to max_mem. */
+-				u64 delta = end - mem_end;
++		if (map[i].type == E820_RAM && end > mem_end) {
++			/* RAM off the end - may be partially included */
++			u64 delta = min(map[i].size, end - mem_end);
  
- static void init_evtchn_cpu_bindings(void)
- {
-+	int i;
- #ifdef CONFIG_SMP
- 	struct irq_desc *desc;
--	int i;
+-				map[i].size -= delta;
+-				extra_pages += PFN_DOWN(delta);
++			map[i].size -= delta;
++			end -= delta;
  
- 	/* By default all event channels notify CPU#0. */
- 	for_each_irq_desc(i, desc) {
-@@ -296,7 +296,10 @@ static void init_evtchn_cpu_bindings(void)
+-				end = mem_end;
+-			}
++			extra_pages += PFN_DOWN(delta);
+ 		}
+ 
+-		if (end > xen_extra_mem_start)
++		if (map[i].size > 0 && end > xen_extra_mem_start)
+ 			xen_extra_mem_start = end;
+ 
+-		/* If region is non-RAM or below mem_end, add what remains */
+-		if ((map[i].type != E820_RAM || map[i].addr < mem_end) &&
+-		    map[i].size > 0)
++		/* Add region if any remains */
++		if (map[i].size > 0)
+ 			e820_add_region(map[i].addr, map[i].size, map[i].type);
  	}
- #endif
  
--	memset(cpu_evtchn_mask(0), ~0, sizeof(struct cpu_evtchn_s));
-+	for_each_possible_cpu(i)
-+		memset(cpu_evtchn_mask(i),
-+		       (i == 0) ? ~0 : 0, sizeof(struct cpu_evtchn_s));
-+
- }
- 
- static inline void clear_evtchn(int port)
 -- 
 1.7.3.2
 
 
-From e04195644eea7c6c14007922257704ec67156cd1 Mon Sep 17 00:00:00 2001
+From bc15fde77fc5d9ec2eec6066a5ab554ea1266a0a Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 16 Nov 2010 14:56:47 -0800
-Subject: [PATCH 34/44] xen/events: use locked set|clear_bit() for cpu_evtchn_mask
+Date: Mon, 22 Nov 2010 17:17:50 -0800
+Subject: [PATCH 21/39] xen: use default_idle
 
-The per-cpu event channel masks can be updated unlocked from multiple
-CPUs, so use the locked variant.
+We just need the idle loop to drop into safe_halt, which default_idle()
+is perfectly capable of doing.  There's no need to duplicate it.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
- drivers/xen/events.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/xen/setup.c |   20 +++++---------------
+ 1 files changed, 5 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-index d770b8c..d6d4f76 100644
---- a/drivers/xen/events.c
-+++ b/drivers/xen/events.c
-@@ -278,8 +278,8 @@ static void bind_evtchn_to_cpu(unsigned int chn, unsigned int cpu)
- 	cpumask_copy(irq_to_desc(irq)->affinity, cpumask_of(cpu));
- #endif
- 
--	__clear_bit(chn, cpu_evtchn_mask(cpu_from_irq(irq)));
--	__set_bit(chn, cpu_evtchn_mask(cpu));
-+	clear_bit(chn, cpu_evtchn_mask(cpu_from_irq(irq)));
-+	set_bit(chn, cpu_evtchn_mask(cpu));
- 
- 	irq_info[irq].cpu = cpu;
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index b85dcee..95fb68a 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -250,20 +250,6 @@ char * __init xen_memory_setup(void)
+ 	return "Xen";
  }
--- 
-1.7.3.2
-
-
-From 9045d47ea362e6a3727ee3f1b69a1b656976772e Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Thu, 18 Nov 2010 17:14:46 -0800
-Subject: [PATCH 36/44] Revert "xen/privcmd: create address space to allow writable mmaps"
-
-This reverts commit 24a89b5be4cf2b7f1b49b56b6cb4a7b71fccf241.
-
-We should no longer need an address space now that we're correctly
-setting VM_PFNMAP on our vmas.
-
-Conflicts:
-
-	drivers/xen/xenfs/super.c
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/xenfs/super.c |   40 ++++------------------------------------
- 1 files changed, 4 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/xen/xenfs/super.c b/drivers/xen/xenfs/super.c
-index 990ee42..1aa3897 100644
---- a/drivers/xen/xenfs/super.c
-+++ b/drivers/xen/xenfs/super.c
-@@ -12,8 +12,6 @@
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/magic.h>
--#include <linux/mm.h>
--#include <linux/backing-dev.h>
  
- #include <xen/xen.h>
- 
-@@ -24,28 +22,12 @@
- MODULE_DESCRIPTION("Xen filesystem");
- MODULE_LICENSE("GPL");
- 
--static int xenfs_set_page_dirty(struct page *page)
+-static void xen_idle(void)
 -{
--	return !TestSetPageDirty(page);
+-	local_irq_disable();
+-
+-	if (need_resched())
+-		local_irq_enable();
+-	else {
+-		current_thread_info()->status &= ~TS_POLLING;
+-		smp_mb__after_clear_bit();
+-		safe_halt();
+-		current_thread_info()->status |= TS_POLLING;
+-	}
 -}
 -
--static const struct address_space_operations xenfs_aops = {
--	.set_page_dirty = xenfs_set_page_dirty,
--};
--
--static struct backing_dev_info xenfs_backing_dev_info = {
--	.ra_pages	= 0,	/* No readahead */
--	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
--};
--
- static struct inode *xenfs_make_inode(struct super_block *sb, int mode)
- {
- 	struct inode *ret = new_inode(sb);
+ /*
+  * Set the bit indicating "nosegneg" library variants should be used.
+  * We only need to bother in pure 32-bit mode; compat 32-bit processes
+@@ -360,7 +346,11 @@ void __init xen_arch_setup(void)
+ 	       MAX_GUEST_CMDLINE > COMMAND_LINE_SIZE ?
+ 	       COMMAND_LINE_SIZE : MAX_GUEST_CMDLINE);
  
- 	if (ret) {
- 		ret->i_mode = mode;
--		ret->i_mapping->a_ops = &xenfs_aops;
--		ret->i_mapping->backing_dev_info = &xenfs_backing_dev_info;
- 		ret->i_uid = ret->i_gid = 0;
- 		ret->i_blocks = 0;
- 		ret->i_atime = ret->i_mtime = ret->i_ctime = CURRENT_TIME;
-@@ -137,25 +119,11 @@ static struct file_system_type xenfs_type = {
+-	pm_idle = xen_idle;
++	/* Set up idle, making sure it calls safe_halt() pvop */
++#ifdef CONFIG_X86_32
++	boot_cpu_data.hlt_works_ok = 1;
++#endif
++	pm_idle = default_idle;
  
- static int __init xenfs_init(void)
+ 	fiddle_vdso();
+ }
+-- 
+1.7.3.2
+
+
+From 31e323cca9d5c8afd372976c35a5d46192f540d1 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 29 Nov 2010 14:16:53 -0800
+Subject: [PATCH 22/39] xen: don't bother to stop other cpus on shutdown/reboot
+
+Xen will shoot all the VCPUs when we do a shutdown hypercall, so there's
+no need to do it manually.
+
+In any case it will fail because all the IPI irqs have been pulled
+down by this point, so the cross-CPU calls will simply hang forever.
+
+Until change 76fac077db6b34e2c6383a7b4f3f4f7b7d06d8ce the function calls
+were not synchronously waited for, so this wasn't apparent.  However after
+that change the calls became synchronous leading to a hang on shutdown
+on multi-VCPU guests.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Stable Kernel <stable@kernel.org>
+Cc: Alok Kataria <akataria@vmware.com>
+---
+ arch/x86/xen/enlighten.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 235c0f4..4a5973a 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -1016,10 +1016,6 @@ static void xen_reboot(int reason)
  {
--	int err;
--	if (!xen_domain()) {
--		printk(KERN_INFO "xenfs: not registering filesystem on non-xen platform\n");
+ 	struct sched_shutdown r = { .reason = reason };
+ 
+-#ifdef CONFIG_SMP
+-	stop_other_cpus();
+-#endif
+-
+ 	if (HYPERVISOR_sched_op(SCHEDOP_shutdown, &r))
+ 		BUG();
+ }
+-- 
+1.7.3.2
+
+
+From 691c9caf66749a92e4dd6c6f047fd20bc9b18f59 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 29 Nov 2010 11:35:04 -0800
+Subject: [PATCH 24/39] vmalloc: eagerly clear ptes on vunmap
+
+When unmapping a region in the vmalloc space, clear the ptes immediately.
+There's no point in deferring this because there's no amortization
+benefit.
+
+The TLBs are left dirty, and they are flushed lazily to amortize the
+cost of the IPIs.
+
+This specific motivation for this patch is a regression since 2.6.36 when
+using NFS under Xen, triggered by the NFS client's use of vm_map_ram()
+introduced in 56e4ebf877b6043c289bda32a5a7385b80c17dee.  XFS also uses
+vm_map_ram() and could cause similar problems.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+---
+ mm/vmalloc.c |   25 ++++++++++++++++++-------
+ 1 files changed, 18 insertions(+), 7 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index a3d66b3..ffefe70 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -566,7 +566,6 @@ static void __purge_vmap_area_lazy(unsigned long *start, unsigned long *end,
+ 			if (va->va_end > *end)
+ 				*end = va->va_end;
+ 			nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
+-			unmap_vmap_area(va);
+ 			list_add_tail(&va->purge_list, &valist);
+ 			va->flags |= VM_LAZY_FREEING;
+ 			va->flags &= ~VM_LAZY_FREE;
+@@ -611,10 +610,11 @@ static void purge_vmap_area_lazy(void)
+ }
+ 
+ /*
+- * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
+- * called for the correct range previously.
++ * Free a vmap area, caller ensuring that the area has been unmapped
++ * and flush_cache_vunmap had been called for the correct range
++ * previously.
+  */
+-static void free_unmap_vmap_area_noflush(struct vmap_area *va)
++static void free_vmap_area_noflush(struct vmap_area *va)
+ {
+ 	va->flags |= VM_LAZY_FREE;
+ 	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
+@@ -623,6 +623,16 @@ static void free_unmap_vmap_area_noflush(struct vmap_area *va)
+ }
+ 
+ /*
++ * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
++ * called for the correct range previously.
++ */
++static void free_unmap_vmap_area_noflush(struct vmap_area *va)
++{
++	unmap_vmap_area(va);
++	free_vmap_area_noflush(va);
++}
++
++/*
+  * Free and unmap a vmap area
+  */
+ static void free_unmap_vmap_area(struct vmap_area *va)
+@@ -798,7 +808,7 @@ static void free_vmap_block(struct vmap_block *vb)
+ 	spin_unlock(&vmap_block_tree_lock);
+ 	BUG_ON(tmp != vb);
+ 
+-	free_unmap_vmap_area_noflush(vb->va);
++	free_vmap_area_noflush(vb->va);
+ 	call_rcu(&vb->rcu_head, rcu_free_vb);
+ }
+ 
+@@ -944,8 +954,10 @@ static void vb_free(const void *addr, unsigned long size)
+ 		BUG_ON(vb->free);
+ 		spin_unlock(&vb->lock);
+ 		free_vmap_block(vb);
+-	} else
++	} else {
+ 		spin_unlock(&vb->lock);
++		vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
++	}
+ }
+ 
+ /**
+@@ -988,7 +1000,6 @@ void vm_unmap_aliases(void)
+ 
+ 				s = vb->va->va_start + (i << PAGE_SHIFT);
+ 				e = vb->va->va_start + (j << PAGE_SHIFT);
+-				vunmap_page_range(s, e);
+ 				flush = 1;
+ 
+ 				if (s < start)
+-- 
+1.7.3.2
+
+
+From c8bfa8e9ae078077a88f048e059b1e30cbf6ba63 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 30 Nov 2010 23:53:28 -0800
+Subject: [PATCH 25/39] vmalloc: always unmap in vb_free()
+
+free_vmap_block() doesn't unmap anything, so just unconditionally unmap
+the region.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ mm/vmalloc.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index ffefe70..a582491 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -946,6 +946,8 @@ static void vb_free(const void *addr, unsigned long size)
+ 	rcu_read_unlock();
+ 	BUG_ON(!vb);
+ 
++	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
++
+ 	spin_lock(&vb->lock);
+ 	BUG_ON(bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order));
+ 
+@@ -954,10 +956,8 @@ static void vb_free(const void *addr, unsigned long size)
+ 		BUG_ON(vb->free);
+ 		spin_unlock(&vb->lock);
+ 		free_vmap_block(vb);
+-	} else {
++	} else
+ 		spin_unlock(&vb->lock);
+-		vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
+-	}
+ }
+ 
+ /**
+-- 
+1.7.3.2
+
+
+From b250d32f05feb231929b2aded5c59d79c72ddcd0 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 29 Nov 2010 13:30:23 -0800
+Subject: [PATCH 26/39] vmalloc: remove vmap_lazy_unmap flag
+
+Now that vmunmap no longer leaves stray ptes lying around, we don't need
+the vmap_lazy_unmap flag any more.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c      |    2 --
+ include/linux/vmalloc.h |    2 --
+ mm/vmalloc.c            |    5 -----
+ 3 files changed, 0 insertions(+), 9 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index c9cf23e..629b587 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -2401,8 +2401,6 @@ void __init xen_init_mmu_ops(void)
+ 	x86_init.paging.pagetable_setup_done = xen_pagetable_setup_done;
+ 	pv_mmu_ops = xen_mmu_ops;
+ 
+-	vmap_lazy_unmap = false;
+-
+ 	memset(dummy_mapping, 0xff, PAGE_SIZE);
+ }
+ 
+diff --git a/include/linux/vmalloc.h b/include/linux/vmalloc.h
+index a03dcf6..44b54f6 100644
+--- a/include/linux/vmalloc.h
++++ b/include/linux/vmalloc.h
+@@ -7,8 +7,6 @@
+ 
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
+ 
+-extern bool vmap_lazy_unmap;
+-
+ /* bits in flags of vmalloc's vm_struct below */
+ #define VM_IOREMAP	0x00000001	/* ioremap() and friends */
+ #define VM_ALLOC	0x00000002	/* vmalloc() */
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index a582491..eb5cc7d 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -31,8 +31,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ 
+-bool vmap_lazy_unmap __read_mostly = true;
+-
+ /*** Page table manipulation functions ***/
+ 
+ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
+@@ -503,9 +501,6 @@ static unsigned long lazy_max_pages(void)
+ {
+ 	unsigned int log;
+ 
+-	if (!vmap_lazy_unmap)
 -		return 0;
--	}
 -
--	err = register_filesystem(&xenfs_type);
--	if (err) {
--		printk(KERN_ERR "xenfs: Unable to register filesystem!\n");
--		goto out;
--	}
--
--	err = bdi_init(&xenfs_backing_dev_info);
--	if (err)
--		unregister_filesystem(&xenfs_type);
--
-- out:
-+	if (xen_domain())
-+		return register_filesystem(&xenfs_type);
+ 	log = fls(num_online_cpus());
  
--	return err;
-+	printk(KERN_INFO "XENFS: not registering filesystem on non-xen platform\n");
+ 	return log * (32UL * 1024 * 1024 / PAGE_SIZE);
+-- 
+1.7.3.2
+
+
+From 66b66fdaae7856319170b10f4690f67cf6129825 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Tue, 30 Nov 2010 10:03:44 -0800
+Subject: [PATCH 29/39] mm: add apply_to_page_range_batch()
+
+apply_to_page_range() calls its callback function once for each pte, which
+is pretty inefficient since it will almost always be operating on a batch
+of adjacent ptes.  apply_to_page_range_batch() calls its callback
+with both a pte_t * and a count, so it can operate on multiple ptes at
+once.
+
+The callback is expected to handle all its ptes, or return an error.  For
+both apply_to_page_range and apply_to_page_range_batch, it is up to
+the caller to work out how much progress was made if either fails with
+an error.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ include/linux/mm.h |    6 +++++
+ mm/memory.c        |   56 +++++++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 48 insertions(+), 14 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 721f451..c42f200 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1421,6 +1421,12 @@ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
+ 			       unsigned long size, pte_fn_t fn, void *data);
+ 
++typedef int (*pte_batch_fn_t)(pte_t *pte, unsigned count, pgtable_t token,
++			      unsigned long addr, void *data);
++extern int apply_to_page_range_batch(struct mm_struct *mm,
++				     unsigned long address, unsigned long size,
++				     pte_batch_fn_t fn, void *data);
++
+ #ifdef CONFIG_PROC_FS
+ void vm_stat_account(struct mm_struct *, unsigned long, struct file *, long);
+ #else
+diff --git a/mm/memory.c b/mm/memory.c
+index 02e48aa..4028984 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1924,7 +1924,7 @@ EXPORT_SYMBOL(remap_pfn_range);
+ 
+ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+ 				     unsigned long addr, unsigned long end,
+-				     pte_fn_t fn, void *data)
++				     pte_batch_fn_t fn, void *data)
+ {
+ 	pte_t *pte;
+ 	int err;
+@@ -1939,26 +1939,20 @@ static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
+ 
+ 	BUG_ON(pmd_huge(*pmd));
+ 
+-	arch_enter_lazy_mmu_mode();
+-
+ 	token = pmd_pgtable(*pmd);
+ 
+-	do {
+-		err = fn(pte++, token, addr, data);
+-		if (err)
+-			break;
+-	} while (addr += PAGE_SIZE, addr != end);
+-
++	arch_enter_lazy_mmu_mode();
++	err = fn(pte, (end - addr) / PAGE_SIZE, token, addr, data);
+ 	arch_leave_lazy_mmu_mode();
+ 
+ 	if (mm != &init_mm)
+-		pte_unmap_unlock(pte-1, ptl);
++		pte_unmap_unlock(pte, ptl);
+ 	return err;
+ }
+ 
+ static int apply_to_pmd_range(struct mm_struct *mm, pud_t *pud,
+ 				     unsigned long addr, unsigned long end,
+-				     pte_fn_t fn, void *data)
++				     pte_batch_fn_t fn, void *data)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+@@ -1980,7 +1974,7 @@ static int apply_to_pmd_range(struct mm_struct *mm, pud_t *pud,
+ 
+ static int apply_to_pud_range(struct mm_struct *mm, pgd_t *pgd,
+ 				     unsigned long addr, unsigned long end,
+-				     pte_fn_t fn, void *data)
++				     pte_batch_fn_t fn, void *data)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -2002,8 +1996,9 @@ static int apply_to_pud_range(struct mm_struct *mm, pgd_t *pgd,
+  * Scan a region of virtual memory, filling in page tables as necessary
+  * and calling a provided function on each leaf page table.
+  */
+-int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
+-			unsigned long size, pte_fn_t fn, void *data)
++int apply_to_page_range_batch(struct mm_struct *mm,
++			      unsigned long addr, unsigned long size,
++			      pte_batch_fn_t fn, void *data)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long next;
+@@ -2021,6 +2016,39 @@ int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(apply_to_page_range_batch);
++
++struct pte_single_fn
++{
++	pte_fn_t fn;
++	void *data;
++};
++
++static int apply_pte_batch(pte_t *pte, unsigned count, pgtable_t token,
++			   unsigned long addr, void *data)
++{
++	struct pte_single_fn *single = data;
++	int err = 0;
++
++	while (count--) {
++		err = single->fn(pte, token, addr, single->data);
++		if (err)
++			break;
++
++		addr += PAGE_SIZE;
++		pte++;
++	}
++
++	return err;
++}
++
++int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
++			unsigned long size, pte_fn_t fn, void *data)
++{
++	struct pte_single_fn single = { .fn = fn, .data = data };
++	return apply_to_page_range_batch(mm, addr, size,
++					 apply_pte_batch, &single);
++}
+ EXPORT_SYMBOL_GPL(apply_to_page_range);
+ 
+ /*
+-- 
+1.7.3.2
+
+
+From 3a5e3a915a3ab35e78b0a4b0f31e405a9640cae5 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 29 Nov 2010 12:22:24 -0800
+Subject: [PATCH 30/39] vmalloc: use plain pte_clear() for unmaps
+
+ptep_get_and_clear() is potentially moderately expensive (at least
+an atomic operation, or potentially a trap-and-fault when virtualized)
+so use a plain pte_clear().
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ mm/vmalloc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index eb5cc7d..f1e45e0 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -39,8 +39,9 @@ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
+ 
+ 	pte = pte_offset_kernel(pmd, addr);
+ 	do {
+-		pte_t ptent = ptep_get_and_clear(&init_mm, addr, pte);
++		pte_t ptent = *pte;
+ 		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
++		pte_clear(&init_mm, addr, pte);
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 8712efa8e830e26f8088ea3c2ca2a45cf775cd88 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Mon, 29 Nov 2010 11:06:19 -0800
+Subject: [PATCH 31/39] vmalloc: use apply_to_page_range for vunmap_page_range()
+
+There's no need to open-code it when there's helpful utility function
+to do the job.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+---
+ mm/vmalloc.c |   53 +++++++++--------------------------------------------
+ 1 files changed, 9 insertions(+), 44 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index f1e45e0..1e74a45 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -33,59 +33,24 @@
+ 
+ /*** Page table manipulation functions ***/
+ 
+-static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
++static int vunmap_pte(pte_t *pte, unsigned count,
++		      pgtable_t tok, unsigned long addr, void *data)
+ {
+-	pte_t *pte;
+-
+-	pte = pte_offset_kernel(pmd, addr);
+-	do {
++	while (count--) {
+ 		pte_t ptent = *pte;
+-		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+-		pte_clear(&init_mm, addr, pte);
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-}
+-
+-static void vunmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+ 
+-	pmd = pmd_offset(pud, addr);
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none_or_clear_bad(pmd))
+-			continue;
+-		vunmap_pte_range(pmd, addr, next);
+-	} while (pmd++, addr = next, addr != end);
+-}
++		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+ 
+-static void vunmap_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++		pte_clear(&init_mm, addr, pte++);
++		addr += PAGE_SIZE;
++	}
+ 
+-	pud = pud_offset(pgd, addr);
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (pud_none_or_clear_bad(pud))
+-			continue;
+-		vunmap_pmd_range(pud, addr, next);
+-	} while (pud++, addr = next, addr != end);
 +	return 0;
  }
  
- static void __exit xenfs_exit(void)
+ static void vunmap_page_range(unsigned long addr, unsigned long end)
+ {
+-	pgd_t *pgd;
+-	unsigned long next;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none_or_clear_bad(pgd))
+-			continue;
+-		vunmap_pud_range(pgd, addr, next);
+-	} while (pgd++, addr = next, addr != end);
++	apply_to_page_range_batch(&init_mm, addr, end - addr, vunmap_pte, NULL);
+ }
+ 
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 -- 
 1.7.3.2
 
 
-From bc7fc5e33e1a093e5f9e196595843bb096471586 Mon Sep 17 00:00:00 2001
+From 373648649635f8d46e3489c6a53b8a3a9204c26a Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Thu, 18 Nov 2010 22:32:17 -0800
-Subject: [PATCH 38/44] xen/evtchn: the evtchn device is non-seekable
+Date: Mon, 29 Nov 2010 11:11:45 -0800
+Subject: [PATCH 32/39] vmalloc: use apply_to_page_range for vmap_page_range_noflush()
+
+There's no need to open-code it when there's a helpful utility
+function.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+---
+ mm/vmalloc.c |   92 ++++++++++++++++++---------------------------------------
+ 1 files changed, 29 insertions(+), 63 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 1e74a45..e8d2025 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -53,63 +53,34 @@ static void vunmap_page_range(unsigned long addr, unsigned long end)
+ 	apply_to_page_range_batch(&init_mm, addr, end - addr, vunmap_pte, NULL);
+ }
+ 
+-static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
++struct vmap_data
+ {
+-	pte_t *pte;
++	struct page **pages;
++	unsigned index;
++	pgprot_t prot;
++};
+ 
+-	/*
+-	 * nr is a running index into the array which helps higher level
+-	 * callers keep track of where we're up to.
+-	 */
++static int vmap_pte(pte_t *pte, unsigned count, pgtable_t tok,
++		    unsigned long addr, void *data)
++{
++	struct vmap_data *vmap = data;
+ 
+-	pte = pte_alloc_kernel(pmd, addr);
+-	if (!pte)
+-		return -ENOMEM;
+-	do {
+-		struct page *page = pages[*nr];
++	while (count--) {
++		struct page *page = vmap->pages[vmap->index];
+ 
+ 		if (WARN_ON(!pte_none(*pte)))
+ 			return -EBUSY;
++
+ 		if (WARN_ON(!page))
+ 			return -ENOMEM;
+-		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+-		(*nr)++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return 0;
+-}
+ 
+-static int vmap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+-
+-	pmd = pmd_alloc(&init_mm, pud, addr);
+-	if (!pmd)
+-		return -ENOMEM;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (vmap_pte_range(pmd, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pmd++, addr = next, addr != end);
+-	return 0;
+-}
++		set_pte_at(&init_mm, addr, pte, mk_pte(page, vmap->prot));
+ 
+-static int vmap_pud_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++		pte++;
++		addr += PAGE_SIZE;
++		vmap->index++;
++	}
+ 
+-	pud = pud_alloc(&init_mm, pgd, addr);
+-	if (!pud)
+-		return -ENOMEM;
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (vmap_pmd_range(pud, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pud++, addr = next, addr != end);
+ 	return 0;
+ }
+ 
+@@ -122,22 +93,17 @@ static int vmap_pud_range(pgd_t *pgd, unsigned long addr,
+ static int vmap_page_range_noflush(unsigned long start, unsigned long end,
+ 				   pgprot_t prot, struct page **pages)
+ {
+-	pgd_t *pgd;
+-	unsigned long next;
+-	unsigned long addr = start;
+-	int err = 0;
+-	int nr = 0;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = vmap_pud_range(pgd, addr, next, prot, pages, &nr);
+-		if (err)
+-			return err;
+-	} while (pgd++, addr = next, addr != end);
+-
+-	return nr;
++	int err;
++	struct vmap_data vmap = {
++		.pages = pages,
++		.index = 0,
++		.prot = prot
++	};
++	
++	err = apply_to_page_range_batch(&init_mm, start, end - start,
++					vmap_pte, &vmap);
++	
++	return err ? err : vmap.index;
+ }
+ 
+ static int vmap_page_range(unsigned long start, unsigned long end,
+-- 
+1.7.3.2
+
+
+From 13b0d5b31725090e3d3658003cc648b97b86c5e5 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:23:31 -0800
+Subject: [PATCH 33/39] xen: drop all the special iomap pte paths.
+
+Xen can work out when we're doing IO mappings for itself, so we don't
+need to do anything special, and the extra tests just clog things up.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
- drivers/xen/evtchn.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/xen/mmu.c |   15 ---------------
+ 1 files changed, 0 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
-index fec6ba3..dd8e5e0 100644
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -431,7 +431,7 @@ static int evtchn_open(struct inode *inode, struct file *filp)
- 
- 	filp->private_data = u;
- 
--	return 0;
-+	return nonseekable_open(inode, filp);;
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index 0e4ecac..304f034 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -607,11 +607,6 @@ static bool xen_page_pinned(void *ptr)
+ 	return PagePinned(page);
  }
  
- static int evtchn_release(struct inode *inode, struct file *filp)
-@@ -467,7 +467,7 @@ static const struct file_operations evtchn_fops = {
- 	.fasync  = evtchn_fasync,
- 	.open    = evtchn_open,
- 	.release = evtchn_release,
--	.llseek = noop_llseek,
-+	.llseek	 = no_llseek,
+-static bool xen_iomap_pte(pte_t pte)
+-{
+-	return pte_flags(pte) & _PAGE_IOMAP;
+-}
+-
+ void xen_set_domain_pte(pte_t *ptep, pte_t pteval, unsigned domid)
+ {
+ 	struct multicall_space mcs;
+@@ -630,11 +625,6 @@ void xen_set_domain_pte(pte_t *ptep, pte_t pteval, unsigned domid)
+ }
+ EXPORT_SYMBOL_GPL(xen_set_domain_pte);
+ 
+-static void xen_set_iomap_pte(pte_t *ptep, pte_t pteval)
+-{
+-	xen_set_domain_pte(ptep, pteval, DOMID_IO);
+-}
+-
+ static void xen_extend_mmu_update(const struct mmu_update *update)
+ {
+ 	struct multicall_space mcs;
+@@ -968,11 +958,6 @@ void xen_set_pte(pte_t *ptep, pte_t pte)
+ #ifdef CONFIG_X86_PAE
+ void xen_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+-	if (xen_iomap_pte(pte)) {
+-		xen_set_iomap_pte(ptep, pte);
+-		return;
+-	}
+-
+ 	set_64bit((u64 *)ptep, native_pte_val(pte));
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 48b66c08a1a0c5299ac3c43fa706289877f697c7 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:13:34 -0800
+Subject: [PATCH 34/39] xen: use mmu_update for xen_set_pte_at()
+
+In principle update_va_mapping is a good match for set_pte_at, since
+it gets the address being mapped, which allows Xen to use its linear
+pagetable mapping.
+
+However that assumes that the pmd for the address is attached to the
+current pagetable, which may not be true for a given user address space
+because the kernel pmd is not shared (at least on 32-bit guests).
+Normally the kernel will automatically sync a missing part of the
+pagetable with the init_mm pagetable transparently via faults, but that
+fails when a missing address is passed to Xen.
+
+And while the linear pagetable mapping is very useful for 32-bit Xen
+(as it avoids an explicit domain mapping), 32-bit Xen is deprecated.
+64-bit Xen has all memory mapped all the time, so it makes no real
+difference.
+
+The upshot is that we should use mmu_update, since it can operate on
+non-current pagetables or detached pagetables.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c |   28 ++++++++++++----------------
+ 1 files changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index 304f034..fed2a44 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -703,7 +703,7 @@ void xen_set_pte_at(struct mm_struct *mm, unsigned long addr,
+ {
+ 	if (xen_iomap_pte(pteval)) {
+ 		xen_set_iomap_pte(ptep, pteval);
+-		goto out;
++		return;
+ 	}
+ 
+ 	ADD_STATS(set_pte_at, 1);
+@@ -711,22 +711,18 @@ void xen_set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 	ADD_STATS(set_pte_at_current, mm == current->mm);
+ 	ADD_STATS(set_pte_at_kernel, mm == &init_mm);
+ 
+-	if (mm == current->mm || mm == &init_mm) {
+-		if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU) {
+-			struct multicall_space mcs;
+-			mcs = xen_mc_entry(0);
++	if(paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU) {
++		struct mmu_update u;
+ 
+-			MULTI_update_va_mapping(mcs.mc, addr, pteval, 0);
+-			ADD_STATS(set_pte_at_batched, 1);
+-			xen_mc_issue(PARAVIRT_LAZY_MMU);
+-			goto out;
+-		} else
+-			if (HYPERVISOR_update_va_mapping(addr, pteval, 0) == 0)
+-				goto out;
+-	}
+-	xen_set_pte(ptep, pteval);
++		xen_mc_batch();
++
++		u.ptr = virt_to_machine(ptep).maddr | MMU_NORMAL_PT_UPDATE;
++		u.val = pte_val_ma(pteval);
++		xen_extend_mmu_update(&u);
+ 
+-out:	return;
++		xen_mc_issue(PARAVIRT_LAZY_MMU);
++	} else
++		native_set_pte(ptep, pteval);
+ }
+ 
+ pte_t xen_ptep_modify_prot_start(struct mm_struct *mm,
+-- 
+1.7.3.2
+
+
+From 0c478e2cc9f79d83d3dd629e459158bcb77d1f75 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:30:41 -0800
+Subject: [PATCH 35/39] xen: condense everything onto xen_set_pte
+
+xen_set_pte_at and xen_clear_pte are essentially identical to
+xen_set_pte, so just make them all common.
+
+When batched set_pte and pte_clear are the same, but the unbatch operation
+must be different: they need to update the two halves of the pte in
+different order.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c |   81 ++++++++++++++++-----------------------------------
+ 1 files changed, 26 insertions(+), 55 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index fed2a44..45fe925 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -108,12 +108,6 @@ static struct {
+ 
+ 	u32 prot_commit;
+ 	u32 prot_commit_batched;
+-
+-	u32 set_pte_at;
+-	u32 set_pte_at_batched;
+-	u32 set_pte_at_pinned;
+-	u32 set_pte_at_current;
+-	u32 set_pte_at_kernel;
+ } mmu_stats;
+ 
+ static u8 zero_stats;
+@@ -698,33 +692,39 @@ void set_pte_mfn(unsigned long vaddr, unsigned long mfn, pgprot_t flags)
+ 	set_pte_vaddr(vaddr, mfn_pte(mfn, flags));
+ }
+ 
+-void xen_set_pte_at(struct mm_struct *mm, unsigned long addr,
+-		    pte_t *ptep, pte_t pteval)
++static bool xen_batched_set_pte(pte_t *ptep, pte_t pteval)
+ {
+-	if (xen_iomap_pte(pteval)) {
+-		xen_set_iomap_pte(ptep, pteval);
+-		return;
+-	}
++	struct mmu_update u;
+ 
+-	ADD_STATS(set_pte_at, 1);
+-//	ADD_STATS(set_pte_at_pinned, xen_page_pinned(ptep));
+-	ADD_STATS(set_pte_at_current, mm == current->mm);
+-	ADD_STATS(set_pte_at_kernel, mm == &init_mm);
++	if (paravirt_get_lazy_mode() != PARAVIRT_LAZY_MMU)
++		return false;
+ 
+-	if(paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU) {
+-		struct mmu_update u;
++	xen_mc_batch();
+ 
+-		xen_mc_batch();
++	u.ptr = virt_to_machine(ptep).maddr | MMU_NORMAL_PT_UPDATE;
++	u.val = pte_val_ma(pteval);
++	xen_extend_mmu_update(&u);
+ 
+-		u.ptr = virt_to_machine(ptep).maddr | MMU_NORMAL_PT_UPDATE;
+-		u.val = pte_val_ma(pteval);
+-		xen_extend_mmu_update(&u);
++	xen_mc_issue(PARAVIRT_LAZY_MMU);
+ 
+-		xen_mc_issue(PARAVIRT_LAZY_MMU);
+-	} else
++	return true;
++}
++
++void xen_set_pte(pte_t *ptep, pte_t pteval)
++{
++	ADD_STATS(pte_update, 1);
++//	ADD_STATS(pte_update_pinned, xen_page_pinned(ptep));
++
++	if (!xen_batched_set_pte(ptep, pteval))
+ 		native_set_pte(ptep, pteval);
+ }
+ 
++void xen_set_pte_at(struct mm_struct *mm, unsigned long addr,
++		    pte_t *ptep, pte_t pteval)
++{
++	xen_set_pte(ptep, pteval);
++}
++
+ pte_t xen_ptep_modify_prot_start(struct mm_struct *mm,
+ 				 unsigned long addr, pte_t *ptep)
+ {
+@@ -931,26 +931,6 @@ void xen_set_pud(pud_t *ptr, pud_t val)
+ 	xen_set_pud_hyper(ptr, val);
+ }
+ 
+-void xen_set_pte(pte_t *ptep, pte_t pte)
+-{
+-	if (xen_iomap_pte(pte)) {
+-		xen_set_iomap_pte(ptep, pte);
+-		return;
+-	}
+-
+-	ADD_STATS(pte_update, 1);
+-//	ADD_STATS(pte_update_pinned, xen_page_pinned(ptep));
+-	ADD_STATS(pte_update_batched, paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU);
+-
+-#ifdef CONFIG_X86_PAE
+-	ptep->pte_high = pte.pte_high;
+-	smp_wmb();
+-	ptep->pte_low = pte.pte_low;
+-#else
+-	*ptep = pte;
+-#endif
+-}
+-
+ #ifdef CONFIG_X86_PAE
+ void xen_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+@@ -959,9 +939,8 @@ void xen_set_pte_atomic(pte_t *ptep, pte_t pte)
+ 
+ void xen_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+-	ptep->pte_low = 0;
+-	smp_wmb();		/* make sure low gets written first */
+-	ptep->pte_high = 0;
++	if (!xen_batched_set_pte(ptep, native_make_pte(0)))
++		native_pte_clear(mm, addr, ptep);
+ }
+ 
+ void xen_pmd_clear(pmd_t *pmdp)
+@@ -2683,14 +2662,6 @@ static int __init xen_mmu_debugfs(void)
+ 	xen_debugfs_create_u32_array("mmu_update_histo", 0444, d_mmu_debug,
+ 				     mmu_stats.mmu_update_histo, 20);
+ 
+-	debugfs_create_u32("set_pte_at", 0444, d_mmu_debug, &mmu_stats.set_pte_at);
+-	debugfs_create_u32("set_pte_at_batched", 0444, d_mmu_debug,
+-			   &mmu_stats.set_pte_at_batched);
+-	debugfs_create_u32("set_pte_at_current", 0444, d_mmu_debug,
+-			   &mmu_stats.set_pte_at_current);
+-	debugfs_create_u32("set_pte_at_kernel", 0444, d_mmu_debug,
+-			   &mmu_stats.set_pte_at_kernel);
+-
+ 	debugfs_create_u32("prot_commit", 0444, d_mmu_debug, &mmu_stats.prot_commit);
+ 	debugfs_create_u32("prot_commit_batched", 0444, d_mmu_debug,
+ 			   &mmu_stats.prot_commit_batched);
+-- 
+1.7.3.2
+
+
+From ecccf707c47cad4d6c4b16323d7e7ad97a2d3ab8 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:44:04 -0800
+Subject: [PATCH 36/39] xen/mmu: use apply_to_page_range_batch in xen_remap_domain_mfn_range
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/mmu.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index 45fe925..8bcb934 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -2559,15 +2559,19 @@ struct remap_data {
+ 	struct mmu_update *mmu_update;
  };
  
- static struct miscdevice evtchn_miscdev = {
--- 
-1.7.3.2
-
-
-From b5d827b641b192ceb6968c21feb544c744e43108 Mon Sep 17 00:00:00 2001
-From: Ian Campbell <ian.campbell@citrix.com>
-Date: Mon, 7 Dec 2009 17:10:27 -0800
-Subject: [PATCH 39/44] xen: make evtchn's name less generic
-
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/Makefile |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index eb8a78d..533a199 100644
---- a/drivers/xen/Makefile
-+++ b/drivers/xen/Makefile
-@@ -8,7 +8,7 @@ obj-$(CONFIG_BLOCK)		+= biomerge.o
- obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
- obj-$(CONFIG_XEN_XENCOMM)	+= xencomm.o
- obj-$(CONFIG_XEN_BALLOON)	+= balloon.o
--obj-$(CONFIG_XEN_DEV_EVTCHN)	+= evtchn.o
-+obj-$(CONFIG_XEN_DEV_EVTCHN)	+= xen-evtchn.o
- obj-$(CONFIG_XEN_GNTDEV)	+= xen-gntdev.o
- obj-$(CONFIG_XENFS)		+= xenfs/
- obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
-@@ -16,3 +16,5 @@
- 
- xen-gntdev-y				:= gntdev.o
-
-+xen-evtchn-y			:= evtchn.o
-+
--- 
-1.7.3.2
-
-
-From 428ff7d9ce1f7e35b0dcf65c4ec0b429cbc2240b Mon Sep 17 00:00:00 2001
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Date: Fri, 19 Nov 2010 11:27:09 -0500
-Subject: [PATCH 40/44] xen/events: Use PIRQ instead of GSI value when unmapping MSI/MSI-X irqs.
-
-When we allocate a vector for MSI/MSI-X we save away the PIRQ, and the
-vector value. When we unmap (de-allocate) the MSI/MSI-X vector(s) we
-need to provide the PIRQ and the vector value. What we did instead
-was to provide the GSI (which was zero) and the vector value, and we
-got these unhappy error messages:
-
-(XEN) irq.c:1575: dom0: pirq 0 not mapped
-[    7.733415] unmap irq failed -22
-
-This patches fixes this and we use the PIRQ value instead of the GSI
-value.
-
-CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- drivers/xen/events.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-index 321a0c8..7eb720b 100644
---- a/drivers/xen/events.c
-+++ b/drivers/xen/events.c
-@@ -752,7 +752,7 @@ int xen_destroy_irq(int irq)
- 		goto out;
- 
- 	if (xen_initial_domain()) {
--		unmap_irq.pirq = info->u.pirq.gsi;
-+		unmap_irq.pirq = info->u.pirq.pirq;
- 		unmap_irq.domid = DOMID_SELF;
- 		rc = HYPERVISOR_physdev_op(PHYSDEVOP_unmap_pirq, &unmap_irq);
- 		if (rc) {
--- 
-1.7.3.2
-
-
-From 9be4d4575906af9698de660e477f949a076c87e1 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 31 Aug 2010 15:01:16 -0700
-Subject: [PATCH 41/44] xen: add extra pages to balloon
-
-Add extra pages in the pseudo-physical address space to the balloon
-so we can extend into them later.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/balloon.c |   15 +++++++++++----
- include/xen/page.h    |    7 +++++++
- 2 files changed, 18 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index 500290b..df26ee9 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -119,7 +119,7 @@ static void scrub_page(struct page *page)
- }
- 
- /* balloon_append: add the given page to the balloon. */
--static void balloon_append(struct page *page)
-+static void __balloon_append(struct page *page)
+-static int remap_area_mfn_pte_fn(pte_t *ptep, pgtable_t token,
++static int remap_area_mfn_pte_fn(pte_t *ptep, unsigned count, pgtable_t token,
+ 				 unsigned long addr, void *data)
  {
- 	/* Lowmem is re-populated first, so highmem pages go at list tail. */
- 	if (PageHighMem(page)) {
-@@ -130,7 +130,11 @@ static void balloon_append(struct page *page)
- 		list_add(&page->lru, &ballooned_pages);
- 		balloon_stats.balloon_low++;
- 	}
-+}
+ 	struct remap_data *rmd = data;
+-	pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
  
-+static void balloon_append(struct page *page)
-+{
-+	__balloon_append(page);
- 	totalram_pages--;
+-	rmd->mmu_update->ptr = arbitrary_virt_to_machine(ptep).maddr;
+-	rmd->mmu_update->val = pte_val_ma(pte);
+-	rmd->mmu_update++;
++	while (count--) {
++		pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
++
++		rmd->mmu_update->ptr = arbitrary_virt_to_machine(ptep).maddr;
++		rmd->mmu_update->val = pte_val_ma(pte);
++		rmd->mmu_update++;
++		ptep++;
++	}
+ 
+ 	return 0;
+ }
+@@ -2595,8 +2599,8 @@ int xen_remap_domain_mfn_range(struct vm_area_struct *vma,
+ 		range = (unsigned long)batch << PAGE_SHIFT;
+ 
+ 		rmd.mmu_update = mmu_update;
+-		err = apply_to_page_range(vma->vm_mm, addr, range,
+-					  remap_area_mfn_pte_fn, &rmd);
++		err = apply_to_page_range_batch(vma->vm_mm, addr, range,
++						remap_area_mfn_pte_fn, &rmd);
+ 		if (err)
+ 			goto out;
+ 
+-- 
+1.7.3.2
+
+
+From aa3ac7d19a3b17e4eeadea90626f707a9d9414e0 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:45:21 -0800
+Subject: [PATCH 37/39] vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ mm/vmalloc.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index e8d2025..2bd4198 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -1991,9 +1991,9 @@ void  __attribute__((weak)) vmalloc_sync_all(void)
  }
  
-@@ -416,10 +420,13 @@ static int __init balloon_init(void)
- 	register_balloon(&balloon_sysdev);
  
- 	/* Initialise the balloon with excess memory space. */
--	for (pfn = xen_start_info->nr_pages; pfn < max_pfn; pfn++) {
-+	for (pfn = PFN_UP(xen_extra_mem_start);
-+	     pfn < PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size);
-+	     pfn++) {
- 		page = pfn_to_page(pfn);
--		if (!PageReserved(page))
--			balloon_append(page);
-+		/* totalram_pages doesn't include the boot-time
-+		   balloon extension, so don't subtract from it. */
-+		__balloon_append(page);
+-static int f(pte_t *pte, pgtable_t table, unsigned long addr, void *data)
++static int f(pte_t *pte, unsigned count, pgtable_t table, unsigned long addr, void *data)
+ {
+-	/* apply_to_page_range() does all the hard work. */
++	/* apply_to_page_range_batch() does all the hard work. */
+ 	return 0;
+ }
+ 
+@@ -2022,8 +2022,8 @@ struct vm_struct *alloc_vm_area(size_t size)
+ 	 * This ensures that page tables are constructed for this region
+ 	 * of kernel virtual address space and mapped into init_mm.
+ 	 */
+-	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
+-				area->size, f, NULL)) {
++	if (apply_to_page_range_batch(&init_mm, (unsigned long)area->addr,
++				      area->size, f, NULL)) {
+ 		free_vm_area(area);
+ 		return NULL;
+ 	}
+-- 
+1.7.3.2
+
+
+From 2c634d12dc6f2e77560440d6ae0dfc91f9050b55 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 1 Dec 2010 15:45:48 -0800
+Subject: [PATCH 38/39] vmalloc: remove vmalloc_sync_all() from alloc_vm_area()
+
+There's no need for it: it will get faulted into the current pagetable
+as needed.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ mm/vmalloc.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 2bd4198..69d9c5e 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2028,10 +2028,6 @@ struct vm_struct *alloc_vm_area(size_t size)
+ 		return NULL;
  	}
  
- 	target_watch.callback = watch_target;
-diff --git a/include/xen/page.h b/include/xen/page.h
-index eaf85fa..0be36b9 100644
---- a/include/xen/page.h
-+++ b/include/xen/page.h
-@@ -1 +1,8 @@
-+#ifndef _XEN_PAGE_H
-+#define _XEN_PAGE_H
-+
- #include <asm/xen/page.h>
-+
-+extern phys_addr_t xen_extra_mem_start, xen_extra_mem_size;
-+
-+#endif	/* _XEN_PAGE_H */
+-	/* Make sure the pagetables are constructed in process kernel
+-	   mappings */
+-	vmalloc_sync_all();
+-
+ 	return area;
+ }
+ EXPORT_SYMBOL_GPL(alloc_vm_area);
 -- 
 1.7.3.2
 
 
-From 2f70e0acd496398671606767122846278126a88b Mon Sep 17 00:00:00 2001
+From 0e652485dc1a55ff4777bd0c0ce85fa290a02bd6 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Thu, 2 Sep 2010 23:11:17 -0700
-Subject: [PATCH 42/44] xen/balloon: the balloon_lock is useless
-
-The balloon_lock is useless, since it protects nothing against nothing.
+Date: Wed, 1 Dec 2010 15:50:12 -0800
+Subject: [PATCH 39/39] xen/grant-table: use apply_to_page_range_batch
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
- drivers/xen/balloon.c |   12 ++----------
- 1 files changed, 2 insertions(+), 10 deletions(-)
+ arch/x86/xen/grant-table.c |   28 ++++++++++++++++++----------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index df26ee9..77b5dc3 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -195,7 +195,7 @@ static unsigned long current_target(void)
+diff --git a/arch/x86/xen/grant-table.c b/arch/x86/xen/grant-table.c
+index 49ba9b5..9cdb35e 100644
+--- a/arch/x86/xen/grant-table.c
++++ b/arch/x86/xen/grant-table.c
+@@ -44,21 +44,29 @@
  
- static int increase_reservation(unsigned long nr_pages)
- {
--	unsigned long  pfn, i, flags;
-+	unsigned long  pfn, i;
- 	struct page   *page;
- 	long           rc;
- 	struct xen_memory_reservation reservation = {
-@@ -207,8 +207,6 @@ static int increase_reservation(unsigned long nr_pages)
- 	if (nr_pages > ARRAY_SIZE(frame_list))
- 		nr_pages = ARRAY_SIZE(frame_list);
- 
--	spin_lock_irqsave(&xen_reservation_lock, flags);
--
- 	page = balloon_first_page();
- 	for (i = 0; i < nr_pages; i++) {
- 		BUG_ON(page == NULL);
-@@ -251,14 +249,12 @@ static int increase_reservation(unsigned long nr_pages)
- 	balloon_stats.current_pages += rc;
- 
-  out:
--	spin_unlock_irqrestore(&xen_reservation_lock, flags);
--
- 	return rc < 0 ? rc : rc != nr_pages;
- }
- 
- static int decrease_reservation(unsigned long nr_pages)
- {
--	unsigned long  pfn, i, flags;
-+	unsigned long  pfn, i;
- 	struct page   *page;
- 	int            need_sleep = 0;
- 	int ret;
-@@ -296,8 +292,6 @@ static int decrease_reservation(unsigned long nr_pages)
- 	kmap_flush_unused();
- 	flush_tlb_all();
- 
--	spin_lock_irqsave(&xen_reservation_lock, flags);
--
- 	/* No more mappings: invalidate P2M and add to balloon. */
- 	for (i = 0; i < nr_pages; i++) {
- 		pfn = mfn_to_pfn(frame_list[i]);
-@@ -312,8 +306,6 @@ static int decrease_reservation(unsigned long nr_pages)
- 
- 	balloon_stats.current_pages -= nr_pages;
- 
--	spin_unlock_irqrestore(&xen_reservation_lock, flags);
--
- 	return need_sleep;
- }
- 
--- 
-1.7.3.2
-
-
-From 66946f676776a6ef333db1cf7453ecf8a66c90df Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 14 Sep 2010 10:32:32 -0700
-Subject: [PATCH 43/44] xen/balloon: make sure we only include remaining extra ram
-
-If the user specifies mem= on the kernel command line, some or all
-of the extra memory E820 region may be clipped away, so make sure
-we don't try to add more extra memory than exists in E820.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- drivers/xen/balloon.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index 77b5dc3..2b17ad5 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -50,6 +50,7 @@
  #include <asm/pgtable.h>
- #include <asm/uaccess.h>
- #include <asm/tlb.h>
-+#include <asm/e820.h>
  
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
-@@ -391,7 +392,7 @@ static struct notifier_block xenstore_notifier;
- 
- static int __init balloon_init(void)
+-static int map_pte_fn(pte_t *pte, struct page *pmd_page,
++static int map_pte_fn(pte_t *pte, unsigned count, struct page *pmd_page,
+ 		      unsigned long addr, void *data)
  {
--	unsigned long pfn;
-+	unsigned long pfn, extra_pfn_end;
- 	struct page *page;
+ 	unsigned long **frames = (unsigned long **)data;
  
- 	if (!xen_pv_domain())
-@@ -412,8 +413,10 @@ static int __init balloon_init(void)
- 	register_balloon(&balloon_sysdev);
+-	set_pte_at(&init_mm, addr, pte, mfn_pte((*frames)[0], PAGE_KERNEL));
+-	(*frames)++;
++	while (count--) {
++		set_pte_at(&init_mm, addr, pte, mfn_pte((*frames)[0], PAGE_KERNEL));
++		(*frames)++;
++		pte++;
++		addr += PAGE_SIZE;
++	}
+ 	return 0;
+ }
  
- 	/* Initialise the balloon with excess memory space. */
-+	extra_pfn_end = min(e820_end_of_ram_pfn(),
-+			    (unsigned long)PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size));
- 	for (pfn = PFN_UP(xen_extra_mem_start);
--	     pfn < PFN_DOWN(xen_extra_mem_start + xen_extra_mem_size);
-+	     pfn < extra_pfn_end;
- 	     pfn++) {
- 		page = pfn_to_page(pfn);
- 		/* totalram_pages doesn't include the boot-time
--- 
-1.7.3.2
-
-
-From d2a817130cdc142f1c80a8e60eca824a321926af Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Fri, 19 Nov 2010 23:27:06 -0800
-Subject: [PATCH 44/44] xen: re-enable boot-time ballooning
-
-Now that the balloon driver doesn't stumble over non-RAM pages, we
-can enable the extra space for ballooning.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/setup.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-index 769c4b0..630fb53 100644
---- a/arch/x86/xen/setup.c
-+++ b/arch/x86/xen/setup.c
-@@ -248,8 +248,7 @@ char * __init xen_memory_setup(void)
- 	else
- 		extra_pages = 0;
+-static int unmap_pte_fn(pte_t *pte, struct page *pmd_page,
++static int unmap_pte_fn(pte_t *pte, unsigned count, struct page *pmd_page,
+ 			unsigned long addr, void *data)
+ {
++	while (count--) {
++		pte_clear(&init_mm, addr, pte);
++		addr += PAGE_SIZE;
++		pte++;
++	}
  
--	if (!xen_initial_domain())
--		xen_add_extra_mem(extra_pages);
-+	xen_add_extra_mem(extra_pages);
+-	set_pte_at(&init_mm, addr, pte, __pte(0));
+ 	return 0;
+ }
  
- 	return "Xen";
+@@ -77,15 +85,15 @@ int arch_gnttab_map_shared(unsigned long *frames, unsigned long nr_gframes,
+ 		*__shared = shared;
+ 	}
+ 
+-	rc = apply_to_page_range(&init_mm, (unsigned long)shared,
+-				 PAGE_SIZE * nr_gframes,
+-				 map_pte_fn, &frames);
++	rc = apply_to_page_range_batch(&init_mm, (unsigned long)shared,
++				       PAGE_SIZE * nr_gframes,
++				       map_pte_fn, &frames);
+ 	return rc;
+ }
+ 
+ void arch_gnttab_unmap_shared(struct grant_entry *shared,
+ 			      unsigned long nr_gframes)
+ {
+-	apply_to_page_range(&init_mm, (unsigned long)shared,
+-			    PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
++	apply_to_page_range_batch(&init_mm, (unsigned long)shared,
++				  PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
  }
 -- 
 1.7.3.2

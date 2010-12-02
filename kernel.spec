@@ -712,7 +712,7 @@ Patch12403: tty-open-hangup-race-fixup.patch
 Patch20000: xen.next-2.6.37.patch
 #Patch20001: xen.upstream.core.patch
 # git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git branches
-Patch20005: xen.pcifront.fixes.patch
+#Patch20005: xen.pcifront.fixes.patch
 # git://xenbits.xen.org/people/sstabellini/linux-pvhvm branches
 #Patch20010: xen.pvhvm.fixes.patch
 
@@ -1314,7 +1314,7 @@ ApplyPatch tty-open-hangup-race-fixup.patch
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
 #ApplyPatch xen.upstream.core.patch
-ApplyPatch xen.pcifront.fixes.patch
+#ApplyPatch xen.pcifront.fixes.patch
 #ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
@@ -1929,6 +1929,10 @@ fi
 #                 ||     ||
 
 %changelog
+* Thu Dec 02 2010 Michael Young <m.a.young@durham.ac.uk>
+- Update the xen/next-2.6.37 patch and rebuild for rc4-git1
+- xen-pcifront-fixes patch is now upstream
+
 * Wed Dec 01 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc4.git1.1
 - Linux 2.6.37-rc4-git1
 - Pull in DRM fixes that are queued for -rc5 [3074adc8]
