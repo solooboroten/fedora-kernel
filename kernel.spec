@@ -1932,6 +1932,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Wed Dec 08 2010 Michael Young <m.a.young@durham.ac.uk>
+- Update the xen/next-2.6.37 patch and rebuild for rc5
+
 * Tue Dec 07 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc5.git0.1
 - Linux 2.6.37-rc5
 

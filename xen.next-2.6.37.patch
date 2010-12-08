@@ -1,7 +1,7 @@
 From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Feb 2009 12:58:42 -0800
-Subject: [PATCH 01/39] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
+Subject: [PATCH 01/38] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
 
 Set _PAGE_IOMAP in ptes mapping a VM_IO vma.  This says that the mapping
 is of a real piece of physical hardware, and not just system memory.
@@ -60,7 +60,7 @@ index 5c4ee42..5083449 100644
 From 5527f9bee43a910b019ad77d7de6620b3412759b Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 2 Oct 2009 09:49:05 -0700
-Subject: [PATCH 02/39] drm: recompute vma->vm_page_prot after changing vm_flags
+Subject: [PATCH 02/38] drm: recompute vma->vm_page_prot after changing vm_flags
 
 vm_get_page_prot() computes vm_page_prot depending on vm_flags, so
 we need to re-call it if we change flags.
@@ -97,7 +97,7 @@ index fe6cb77..2d15c5e 100644
 From 66aae0dade39748bb7e068c4518c6160394ae3aa Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 25 Feb 2010 16:38:29 -0800
-Subject: [PATCH 03/39] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
+Subject: [PATCH 03/38] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
 
 When mapping AGP memory, the offset is a machine address.  In Xen we
 need to make sure mappings of physical machine addresses have _PAGE_IO
@@ -128,7 +128,7 @@ index 076052c..3038ef6 100644
 From 4cd35860df16d7d3bd55ce4d4500bfe59c46a849 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 24 Feb 2010 11:10:45 -0800
-Subject: [PATCH 04/39] agp: use DMA API when compiled for Xen as well
+Subject: [PATCH 04/38] agp: use DMA API when compiled for Xen as well
 
 Xen guests need translation between pseudo-physical and real machine
 physical addresses when accessing graphics devices, so use the DMA API
@@ -164,7 +164,7 @@ index 75e0a34..ce63e5c 100644
 From 4ffb5de0f02bad2b0ebe7a9a6a45bc5855c15369 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 9 Aug 2010 14:35:36 -0700
-Subject: [PATCH 06/39] pvops: make pte_flags() go via pvops
+Subject: [PATCH 06/38] pvops: make pte_flags() go via pvops
 
 As part of PAT support in Xen we need to fiddle with the page flags.
 For consistency, we need to make sure the conversion happens both ways
@@ -219,7 +219,7 @@ index d1f4a76..a81b0ed 100644
 From 0aa82d86c699890ce3661927f176045fc8e47156 Mon Sep 17 00:00:00 2001
 From: Stephen Tweedie <sct@redhat.com>
 Date: Fri, 6 Feb 2009 19:09:47 -0800
-Subject: [PATCH 07/39] xen dom0: Add support for the platform_ops hypercall
+Subject: [PATCH 07/38] xen dom0: Add support for the platform_ops hypercall
 
 Minimal changes to get platform ops (renamed dom0_ops on pv_ops) working
 on pv_ops builds.  Pulls in upstream linux-2.6.18-xen.hg's platform.h
@@ -509,7 +509,7 @@ index 2befa3e..18b5599 100644
 From 37a80bdde5957ffa81c2ecdffc4ccc2e874e34cb Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 27 Mar 2009 17:39:15 -0700
-Subject: [PATCH 08/39] xen: add CPU microcode update driver
+Subject: [PATCH 08/38] xen: add CPU microcode update driver
 
 Xen does all the hard work for us, including choosing the right update
 method for this cpu type and actually doing it for all cpus.  We just
@@ -810,7 +810,7 @@ index 5b54892..384e0a5 100644
 From aed8ff456bd7847683776e5c4d0dd4e4abc5087e Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 10 Nov 2010 12:28:57 -0800
-Subject: [PATCH 10/39] x86: demacro set_iopl_mask()
+Subject: [PATCH 10/38] x86: demacro set_iopl_mask()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -840,7 +840,7 @@ index cae9c3c..32f75be 100644
 From 640524e029f5b5cb93462c7bccdd93141f53ae65 Mon Sep 17 00:00:00 2001
 From: Christophe Saout <chtephan@leto.intern.saout.de>
 Date: Sat, 17 Jan 2009 17:30:17 +0100
-Subject: [PATCH 11/39] x86/paravirt: paravirtualize IO permission bitmap
+Subject: [PATCH 11/38] x86/paravirt: paravirtualize IO permission bitmap
 
 Paravirtualized x86 systems don't have an exposed TSS, as it is only
 directly visible in ring 0.  The IO permission bitmap is part of
@@ -1056,7 +1056,7 @@ index 57d1868..a48e82a 100644
 From 950952701cf9e218c2269d13b8538f3c07cff762 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 18 Jun 2009 15:04:16 -0700
-Subject: [PATCH 12/39] xen: implement IO permission bitmap
+Subject: [PATCH 12/38] xen: implement IO permission bitmap
 
 Add Xen implementation of IO permission bitmap pvop.
 
@@ -1105,7 +1105,7 @@ index 235c0f4..4ad88fd 100644
 From a188301f0e78daed011dde56139630d88299a954 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:49 -0800
-Subject: [PATCH 13/39] xen: define gnttab_set_map_op/unmap_op
+Subject: [PATCH 13/38] xen: define gnttab_set_map_op/unmap_op
 
 Impact: hypercall definitions
 
@@ -1190,7 +1190,7 @@ index 9a73170..1821aa1 100644
 From 56385560d6d8fd4c89c4f328d3ff0ecc9c44c52d Mon Sep 17 00:00:00 2001
 From: Gerd Hoffmann <kraxel@redhat.com>
 Date: Tue, 3 Mar 2009 12:27:55 -0800
-Subject: [PATCH 14/39] xen/gntdev: allow usermode to map granted pages
+Subject: [PATCH 14/38] xen/gntdev: allow usermode to map granted pages
 
 The gntdev driver allows usermode to map granted pages from other
 domains.  This is typically used to implement a Xen backend driver
@@ -1230,7 +1230,7 @@ diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
 index eb8a78d..7ed8418 100644
 --- a/drivers/xen/Makefile
 +++ b/drivers/xen/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+@@ -9,6 +9,7 @@ obj-$(CONFIG_HOTPLUG_CPU)       += cpu_hotplug.o
  obj-$(CONFIG_XEN_XENCOMM)	+= xencomm.o
  obj-$(CONFIG_XEN_BALLOON)	+= balloon.o
  obj-$(CONFIG_XEN_DEV_EVTCHN)	+= xen-evtchn.o
@@ -1238,10 +1238,10 @@ index eb8a78d..7ed8418 100644
  obj-$(CONFIG_XENFS)		+= xenfs/
  obj-$(CONFIG_XEN_SYS_HYPERVISOR)	+= sys-hypervisor.o
  obj-$(CONFIG_XEN_PLATFORM_PCI)	+= platform-pci.o
-@@ -17,3 +18,5 @@ obj-$(CONFIG_HOTPLUG_CPU)	+= cpu_hotplug.o
+@@ -17,3 +18,5 @@ obj-$(CONFIG_HOTPLUG_CPU)     += cpu_hotplug.o
  
  xen-evtchn-y			:= evtchn.o
-
+ 
 +xen-gntdev-y				:= gntdev.o
 +
 diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
@@ -2028,7 +2028,7 @@ index 0000000..8bd1467
 From 8c79aad3bd8a379bd0bd144895b55098aca2ccea Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 11 Nov 2010 14:39:12 -0800
-Subject: [PATCH 15/39] xen/gntdev: add VM_PFNMAP to vma
+Subject: [PATCH 15/38] xen/gntdev: add VM_PFNMAP to vma
 
 These pages are from other domains, so don't have any local PFN.
 VM_PFNMAP is the closest concept Linux has to this.
@@ -2054,376 +2054,10 @@ index 45898d4..cf61c7d 100644
 1.7.3.2
 
 
-From c2d0879112825cddddd6c4f9b2645ff32acd6dc5 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 22 Nov 2010 16:31:35 -0800
-Subject: [PATCH 20/39] xen: clean up "extra" memory handling some more
-
-Make sure that extra_pages is added for all E820_RAM regions beyond
-mem_end - completely excluded regions as well as the remains of partially
-included regions.
-
-Also makes sure the extra region is not unnecessarily high, and simplifies
-the logic to decide which regions should be added.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/setup.c |   21 +++++++++------------
- 1 files changed, 9 insertions(+), 12 deletions(-)
-
-diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-index 38fdffa..b85dcee 100644
---- a/arch/x86/xen/setup.c
-+++ b/arch/x86/xen/setup.c
-@@ -182,24 +182,21 @@ char * __init xen_memory_setup(void)
- 	for (i = 0; i < memmap.nr_entries; i++) {
- 		unsigned long long end = map[i].addr + map[i].size;
- 
--		if (map[i].type == E820_RAM) {
--			if (map[i].addr < mem_end && end > mem_end) {
--				/* Truncate region to max_mem. */
--				u64 delta = end - mem_end;
-+		if (map[i].type == E820_RAM && end > mem_end) {
-+			/* RAM off the end - may be partially included */
-+			u64 delta = min(map[i].size, end - mem_end);
- 
--				map[i].size -= delta;
--				extra_pages += PFN_DOWN(delta);
-+			map[i].size -= delta;
-+			end -= delta;
- 
--				end = mem_end;
--			}
-+			extra_pages += PFN_DOWN(delta);
- 		}
- 
--		if (end > xen_extra_mem_start)
-+		if (map[i].size > 0 && end > xen_extra_mem_start)
- 			xen_extra_mem_start = end;
- 
--		/* If region is non-RAM or below mem_end, add what remains */
--		if ((map[i].type != E820_RAM || map[i].addr < mem_end) &&
--		    map[i].size > 0)
-+		/* Add region if any remains */
-+		if (map[i].size > 0)
- 			e820_add_region(map[i].addr, map[i].size, map[i].type);
- 	}
- 
--- 
-1.7.3.2
-
-
-From bc15fde77fc5d9ec2eec6066a5ab554ea1266a0a Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 22 Nov 2010 17:17:50 -0800
-Subject: [PATCH 21/39] xen: use default_idle
-
-We just need the idle loop to drop into safe_halt, which default_idle()
-is perfectly capable of doing.  There's no need to duplicate it.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/setup.c |   20 +++++---------------
- 1 files changed, 5 insertions(+), 15 deletions(-)
-
-diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-index b85dcee..95fb68a 100644
---- a/arch/x86/xen/setup.c
-+++ b/arch/x86/xen/setup.c
-@@ -250,20 +250,6 @@ char * __init xen_memory_setup(void)
- 	return "Xen";
- }
- 
--static void xen_idle(void)
--{
--	local_irq_disable();
--
--	if (need_resched())
--		local_irq_enable();
--	else {
--		current_thread_info()->status &= ~TS_POLLING;
--		smp_mb__after_clear_bit();
--		safe_halt();
--		current_thread_info()->status |= TS_POLLING;
--	}
--}
--
- /*
-  * Set the bit indicating "nosegneg" library variants should be used.
-  * We only need to bother in pure 32-bit mode; compat 32-bit processes
-@@ -360,7 +346,11 @@ void __init xen_arch_setup(void)
- 	       MAX_GUEST_CMDLINE > COMMAND_LINE_SIZE ?
- 	       COMMAND_LINE_SIZE : MAX_GUEST_CMDLINE);
- 
--	pm_idle = xen_idle;
-+	/* Set up idle, making sure it calls safe_halt() pvop */
-+#ifdef CONFIG_X86_32
-+	boot_cpu_data.hlt_works_ok = 1;
-+#endif
-+	pm_idle = default_idle;
- 
- 	fiddle_vdso();
- }
--- 
-1.7.3.2
-
-
-From 31e323cca9d5c8afd372976c35a5d46192f540d1 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 29 Nov 2010 14:16:53 -0800
-Subject: [PATCH 22/39] xen: don't bother to stop other cpus on shutdown/reboot
-
-Xen will shoot all the VCPUs when we do a shutdown hypercall, so there's
-no need to do it manually.
-
-In any case it will fail because all the IPI irqs have been pulled
-down by this point, so the cross-CPU calls will simply hang forever.
-
-Until change 76fac077db6b34e2c6383a7b4f3f4f7b7d06d8ce the function calls
-were not synchronously waited for, so this wasn't apparent.  However after
-that change the calls became synchronous leading to a hang on shutdown
-on multi-VCPU guests.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Stable Kernel <stable@kernel.org>
-Cc: Alok Kataria <akataria@vmware.com>
----
- arch/x86/xen/enlighten.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-index 235c0f4..4a5973a 100644
---- a/arch/x86/xen/enlighten.c
-+++ b/arch/x86/xen/enlighten.c
-@@ -1016,10 +1016,6 @@ static void xen_reboot(int reason)
- {
- 	struct sched_shutdown r = { .reason = reason };
- 
--#ifdef CONFIG_SMP
--	stop_other_cpus();
--#endif
--
- 	if (HYPERVISOR_sched_op(SCHEDOP_shutdown, &r))
- 		BUG();
- }
--- 
-1.7.3.2
-
-
-From 691c9caf66749a92e4dd6c6f047fd20bc9b18f59 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 29 Nov 2010 11:35:04 -0800
-Subject: [PATCH 24/39] vmalloc: eagerly clear ptes on vunmap
-
-When unmapping a region in the vmalloc space, clear the ptes immediately.
-There's no point in deferring this because there's no amortization
-benefit.
-
-The TLBs are left dirty, and they are flushed lazily to amortize the
-cost of the IPIs.
-
-This specific motivation for this patch is a regression since 2.6.36 when
-using NFS under Xen, triggered by the NFS client's use of vm_map_ram()
-introduced in 56e4ebf877b6043c289bda32a5a7385b80c17dee.  XFS also uses
-vm_map_ram() and could cause similar problems.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
----
- mm/vmalloc.c |   25 ++++++++++++++++++-------
- 1 files changed, 18 insertions(+), 7 deletions(-)
-
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index a3d66b3..ffefe70 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -566,7 +566,6 @@ static void __purge_vmap_area_lazy(unsigned long *start, unsigned long *end,
- 			if (va->va_end > *end)
- 				*end = va->va_end;
- 			nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
--			unmap_vmap_area(va);
- 			list_add_tail(&va->purge_list, &valist);
- 			va->flags |= VM_LAZY_FREEING;
- 			va->flags &= ~VM_LAZY_FREE;
-@@ -611,10 +610,11 @@ static void purge_vmap_area_lazy(void)
- }
- 
- /*
-- * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
-- * called for the correct range previously.
-+ * Free a vmap area, caller ensuring that the area has been unmapped
-+ * and flush_cache_vunmap had been called for the correct range
-+ * previously.
-  */
--static void free_unmap_vmap_area_noflush(struct vmap_area *va)
-+static void free_vmap_area_noflush(struct vmap_area *va)
- {
- 	va->flags |= VM_LAZY_FREE;
- 	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
-@@ -623,6 +623,16 @@ static void free_unmap_vmap_area_noflush(struct vmap_area *va)
- }
- 
- /*
-+ * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
-+ * called for the correct range previously.
-+ */
-+static void free_unmap_vmap_area_noflush(struct vmap_area *va)
-+{
-+	unmap_vmap_area(va);
-+	free_vmap_area_noflush(va);
-+}
-+
-+/*
-  * Free and unmap a vmap area
-  */
- static void free_unmap_vmap_area(struct vmap_area *va)
-@@ -798,7 +808,7 @@ static void free_vmap_block(struct vmap_block *vb)
- 	spin_unlock(&vmap_block_tree_lock);
- 	BUG_ON(tmp != vb);
- 
--	free_unmap_vmap_area_noflush(vb->va);
-+	free_vmap_area_noflush(vb->va);
- 	call_rcu(&vb->rcu_head, rcu_free_vb);
- }
- 
-@@ -944,8 +954,10 @@ static void vb_free(const void *addr, unsigned long size)
- 		BUG_ON(vb->free);
- 		spin_unlock(&vb->lock);
- 		free_vmap_block(vb);
--	} else
-+	} else {
- 		spin_unlock(&vb->lock);
-+		vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
-+	}
- }
- 
- /**
-@@ -988,7 +1000,6 @@ void vm_unmap_aliases(void)
- 
- 				s = vb->va->va_start + (i << PAGE_SHIFT);
- 				e = vb->va->va_start + (j << PAGE_SHIFT);
--				vunmap_page_range(s, e);
- 				flush = 1;
- 
- 				if (s < start)
--- 
-1.7.3.2
-
-
-From c8bfa8e9ae078077a88f048e059b1e30cbf6ba63 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Tue, 30 Nov 2010 23:53:28 -0800
-Subject: [PATCH 25/39] vmalloc: always unmap in vb_free()
-
-free_vmap_block() doesn't unmap anything, so just unconditionally unmap
-the region.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- mm/vmalloc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index ffefe70..a582491 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -946,6 +946,8 @@ static void vb_free(const void *addr, unsigned long size)
- 	rcu_read_unlock();
- 	BUG_ON(!vb);
- 
-+	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
-+
- 	spin_lock(&vb->lock);
- 	BUG_ON(bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order));
- 
-@@ -954,10 +956,8 @@ static void vb_free(const void *addr, unsigned long size)
- 		BUG_ON(vb->free);
- 		spin_unlock(&vb->lock);
- 		free_vmap_block(vb);
--	} else {
-+	} else
- 		spin_unlock(&vb->lock);
--		vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
--	}
- }
- 
- /**
--- 
-1.7.3.2
-
-
-From b250d32f05feb231929b2aded5c59d79c72ddcd0 Mon Sep 17 00:00:00 2001
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Date: Mon, 29 Nov 2010 13:30:23 -0800
-Subject: [PATCH 26/39] vmalloc: remove vmap_lazy_unmap flag
-
-Now that vmunmap no longer leaves stray ptes lying around, we don't need
-the vmap_lazy_unmap flag any more.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
----
- arch/x86/xen/mmu.c      |    2 --
- include/linux/vmalloc.h |    2 --
- mm/vmalloc.c            |    5 -----
- 3 files changed, 0 insertions(+), 9 deletions(-)
-
-diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
-index c9cf23e..629b587 100644
---- a/arch/x86/xen/mmu.c
-+++ b/arch/x86/xen/mmu.c
-@@ -2401,8 +2401,6 @@ void __init xen_init_mmu_ops(void)
- 	x86_init.paging.pagetable_setup_done = xen_pagetable_setup_done;
- 	pv_mmu_ops = xen_mmu_ops;
- 
--	vmap_lazy_unmap = false;
--
- 	memset(dummy_mapping, 0xff, PAGE_SIZE);
- }
- 
-diff --git a/include/linux/vmalloc.h b/include/linux/vmalloc.h
-index a03dcf6..44b54f6 100644
---- a/include/linux/vmalloc.h
-+++ b/include/linux/vmalloc.h
-@@ -7,8 +7,6 @@
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
- 
--extern bool vmap_lazy_unmap;
--
- /* bits in flags of vmalloc's vm_struct below */
- #define VM_IOREMAP	0x00000001	/* ioremap() and friends */
- #define VM_ALLOC	0x00000002	/* vmalloc() */
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index a582491..eb5cc7d 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -31,8 +31,6 @@
- #include <asm/tlbflush.h>
- #include <asm/shmparam.h>
- 
--bool vmap_lazy_unmap __read_mostly = true;
--
- /*** Page table manipulation functions ***/
- 
- static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
-@@ -503,9 +501,6 @@ static unsigned long lazy_max_pages(void)
- {
- 	unsigned int log;
- 
--	if (!vmap_lazy_unmap)
--		return 0;
--
- 	log = fls(num_online_cpus());
- 
- 	return log * (32UL * 1024 * 1024 / PAGE_SIZE);
--- 
-1.7.3.2
-
-
 From 66b66fdaae7856319170b10f4690f67cf6129825 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 30 Nov 2010 10:03:44 -0800
-Subject: [PATCH 29/39] mm: add apply_to_page_range_batch()
+Subject: [PATCH 25/38] mm: add apply_to_page_range_batch()
 
 apply_to_page_range() calls its callback function once for each pte, which
 is pretty inefficient since it will almost always be operating on a batch
@@ -2571,7 +2205,7 @@ index 02e48aa..4028984 100644
 From 3a5e3a915a3ab35e78b0a4b0f31e405a9640cae5 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 12:22:24 -0800
-Subject: [PATCH 30/39] vmalloc: use plain pte_clear() for unmaps
+Subject: [PATCH 26/38] vmalloc: use plain pte_clear() for unmaps
 
 ptep_get_and_clear() is potentially moderately expensive (at least
 an atomic operation, or potentially a trap-and-fault when virtualized)
@@ -2604,7 +2238,7 @@ index eb5cc7d..f1e45e0 100644
 From 8712efa8e830e26f8088ea3c2ca2a45cf775cd88 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 11:06:19 -0800
-Subject: [PATCH 31/39] vmalloc: use apply_to_page_range for vunmap_page_range()
+Subject: [PATCH 27/38] vmalloc: use apply_to_page_range for vunmap_page_range()
 
 There's no need to open-code it when there's helpful utility function
 to do the job.
@@ -2695,7 +2329,7 @@ index f1e45e0..1e74a45 100644
 From 373648649635f8d46e3489c6a53b8a3a9204c26a Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 11:11:45 -0800
-Subject: [PATCH 32/39] vmalloc: use apply_to_page_range for vmap_page_range_noflush()
+Subject: [PATCH 28/38] vmalloc: use apply_to_page_range for vmap_page_range_noflush()
 
 There's no need to open-code it when there's a helpful utility
 function.
@@ -2832,7 +2466,7 @@ index 1e74a45..e8d2025 100644
 From 13b0d5b31725090e3d3658003cc648b97b86c5e5 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:23:31 -0800
-Subject: [PATCH 33/39] xen: drop all the special iomap pte paths.
+Subject: [PATCH 29/38] xen: drop all the special iomap pte paths.
 
 Xen can work out when we're doing IO mappings for itself, so we don't
 need to do anything special, and the extra tests just clog things up.
@@ -2889,7 +2523,7 @@ index 0e4ecac..304f034 100644
 From 48b66c08a1a0c5299ac3c43fa706289877f697c7 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:13:34 -0800
-Subject: [PATCH 34/39] xen: use mmu_update for xen_set_pte_at()
+Subject: [PATCH 30/38] xen: use mmu_update for xen_set_pte_at()
 
 In principle update_va_mapping is a good match for set_pte_at, since
 it gets the address being mapped, which allows Xen to use its linear
@@ -2968,7 +2602,7 @@ index 304f034..fed2a44 100644
 From 0c478e2cc9f79d83d3dd629e459158bcb77d1f75 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:30:41 -0800
-Subject: [PATCH 35/39] xen: condense everything onto xen_set_pte
+Subject: [PATCH 31/38] xen: condense everything onto xen_set_pte
 
 xen_set_pte_at and xen_clear_pte are essentially identical to
 xen_set_pte, so just make them all common.
@@ -3118,7 +2752,7 @@ index fed2a44..45fe925 100644
 From ecccf707c47cad4d6c4b16323d7e7ad97a2d3ab8 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:44:04 -0800
-Subject: [PATCH 36/39] xen/mmu: use apply_to_page_range_batch in xen_remap_domain_mfn_range
+Subject: [PATCH 32/38] xen/mmu: use apply_to_page_range_batch in xen_remap_domain_mfn_range
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -3172,7 +2806,7 @@ index 45fe925..8bcb934 100644
 From aa3ac7d19a3b17e4eeadea90626f707a9d9414e0 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:45:21 -0800
-Subject: [PATCH 37/39] vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
+Subject: [PATCH 33/38] vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -3213,7 +2847,7 @@ index e8d2025..2bd4198 100644
 From 2c634d12dc6f2e77560440d6ae0dfc91f9050b55 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:45:48 -0800
-Subject: [PATCH 38/39] vmalloc: remove vmalloc_sync_all() from alloc_vm_area()
+Subject: [PATCH 34/38] vmalloc: remove vmalloc_sync_all() from alloc_vm_area()
 
 There's no need for it: it will get faulted into the current pagetable
 as needed.
@@ -3245,7 +2879,7 @@ index 2bd4198..69d9c5e 100644
 From 0e652485dc1a55ff4777bd0c0ce85fa290a02bd6 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:50:12 -0800
-Subject: [PATCH 39/39] xen/grant-table: use apply_to_page_range_batch
+Subject: [PATCH 35/38] xen/grant-table: use apply_to_page_range_batch
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -3312,6 +2946,113 @@ index 49ba9b5..9cdb35e 100644
 +	apply_to_page_range_batch(&init_mm, (unsigned long)shared,
 +				  PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
  }
+-- 
+1.7.3.2
+
+
+From fefbfcc5c7f9c24ec98545254d8972f0faad0c44 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Fri, 3 Dec 2010 09:54:03 +0000
+Subject: [PATCH 36/38] xen: disable ACPI NUMA for PV guests
+
+Xen does not currently expose PV-NUMA information to PV
+guests. Therefore disable NUMA for the time being to prevent the
+kernel picking up on an host-level NUMA information which it might
+come across in the firmware.
+
+[ Added comment - Jeremy ]
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/xen/enlighten.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 7250bef..33a7a83 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -1178,6 +1178,15 @@ asmlinkage void __init xen_start_kernel(void)
+ 
+ 	xen_smp_init();
+ 
++#ifdef CONFIG_ACPI_NUMA
++	/*
++	 * The pages we from Xen are not related to machine pages, so
++	 * any NUMA information the kernel tries to get from ACPI will
++	 * be meaningless.  Prevent it from trying.
++	 */
++	acpi_numa = -1;
++#endif
++
+ 	pgd = (pgd_t *)xen_start_info->pt_base;
+ 
+ 	if (!xen_initial_domain())
+-- 
+1.7.3.2
+
+
+From ac527c664a6f52fd780fd324deb0b018d4a4a357 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 3 Nov 2010 16:40:48 -0400
+Subject: [PATCH 37/38] xen/events: only unmask irq if enabled
+
+A dynirq EOI is an unmask, but we should only unmask if the
+irq is logically enabled.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/events.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 0009e48..4dcdbd9 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -1253,10 +1253,11 @@ static void disable_dynirq(unsigned int irq)
+ static void ack_dynirq(unsigned int irq)
+ {
+ 	int evtchn = evtchn_from_irq(irq);
++	struct irq_desc *desc = irq_to_desc(irq);
+ 
+ 	move_masked_irq(irq);
+ 
+-	if (VALID_EVTCHN(evtchn))
++	if (VALID_EVTCHN(evtchn) && !(desc->status & IRQ_DISABLED))
+ 		unmask_evtchn(evtchn);
+ }
+ 
+-- 
+1.7.3.2
+
+
+From 7a3ab024f242ecf26af9b5b0cce1ce2d9985ce19 Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Fri, 5 Nov 2010 22:53:52 -0700
+Subject: [PATCH 38/38] xen: make FOREIGN_FRAME_BIT high bit on 32 and 64
+
+FOREIGN_FRAME_BIT is supposed to be the MSB of an MFN, which is an
+unsigned long.  Since this changes between 32 and 64 bit, the definition
+needs to be flexible.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ arch/x86/include/asm/xen/page.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/include/asm/xen/page.h b/arch/x86/include/asm/xen/page.h
+index 8760cc6..05c5cf5 100644
+--- a/arch/x86/include/asm/xen/page.h
++++ b/arch/x86/include/asm/xen/page.h
+@@ -29,7 +29,7 @@ typedef struct xpaddr {
+ 
+ /**** MACHINE <-> PHYSICAL CONVERSION MACROS ****/
+ #define INVALID_P2M_ENTRY	(~0UL)
+-#define FOREIGN_FRAME_BIT	(1UL<<31)
++#define FOREIGN_FRAME_BIT	(1UL << (sizeof(unsigned long) * 8 - 1))
+ #define FOREIGN_FRAME(m)	((m) | FOREIGN_FRAME_BIT)
+ 
+ /* Maximum amount of memory we can handle in a domain in pages */
 -- 
 1.7.3.2
 
