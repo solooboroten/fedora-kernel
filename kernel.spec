@@ -51,7 +51,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 12
+%global baserelease 13
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -65,7 +65,7 @@ Summary: The Linux kernel
 # Do we have a -stable update to apply?
 %define stable_update 2
 # Is it a -stable RC?
-%define stable_rc 1
+%define stable_rc 0
 # Set rpm version accordingly
 %if 0%{?stable_update}
 %define stablerev .%{stable_update}
@@ -741,6 +741,8 @@ Patch12421: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-pe
 
 Patch12430: sched-cure-more-NO_HZ-load-average-woes.patch
 
+Patch12431: orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
+
 %endif
 
 BuildRoot: %{_tmppath}/kernel-%{KVERREL}-root
@@ -1380,6 +1382,9 @@ ApplyPatch mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-per
 # rhbz#650934
 ApplyPatch sched-cure-more-NO_HZ-load-average-woes.patch
 
+# rhbz#657864 [229bd792]
+ApplyPatch orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
+
 # END OF PATCH APPLICATIONS
 
 %endif
@@ -1994,6 +1999,10 @@ fi
 #                 ||     ||
 
 %changelog
+* Thu Dec 09 2010 Kyle McMartin <kyle@redhat.com> 2.6.36.2-13
+- Linux stable 2.6.36.2
+- Copy orinoco fix from F-14 so it doesn't get missed.
+
 * Wed Dec 08 2010 Kyle McMartin <kyle@redhat.com> 2.6.36.2-12.rc1
 - Linux stable 2.6.36.2-rc1
 - Drop patches merged in stable series:
