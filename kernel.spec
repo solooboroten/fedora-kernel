@@ -743,6 +743,10 @@ Patch12430: sched-cure-more-NO_HZ-load-average-woes.patch
 
 Patch12431: orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
 
+Patch12435: btrfs-fix-error-handling-in-btrfs_get_sb.patch
+Patch12436: btrfs-fix-race-between-btrfs_get_sb-and-umount.patch
+Patch12437: btrfs-setup-blank-root-and-fs_info-for-mount-time.patch
+
 %endif
 
 BuildRoot: %{_tmppath}/kernel-%{KVERREL}-root
@@ -1194,6 +1198,11 @@ ApplyPatch linux-2.6-32bit-mmap-exec-randomization.patch
 # xfs
 
 # btrfs
+
+# rhbz#656465
+ApplyPatch btrfs-fix-error-handling-in-btrfs_get_sb.patch
+ApplyPatch btrfs-fix-race-between-btrfs_get_sb-and-umount.patch
+ApplyPatch btrfs-setup-blank-root-and-fs_info-for-mount-time.patch
 
 
 # eCryptfs
@@ -1999,6 +2008,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
+- Fix various issues mounting btrfs devices with subvolumes (#656465)
+
 * Thu Dec 09 2010 Kyle McMartin <kyle@redhat.com> 2.6.36.2-13
 - Linux stable 2.6.36.2
 - Copy orinoco fix from F-14 so it doesn't get missed.
