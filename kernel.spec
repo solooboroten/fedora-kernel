@@ -616,6 +616,7 @@ Patch300: pnp-log-pnp-resources-as-we-do-for-pci.patch
 Patch380: linux-2.6-defaults-pci_no_msi.patch
 Patch381: linux-2.6-defaults-pci_use_crs.patch
 Patch383: linux-2.6-defaults-aspm.patch
+Patch384: pci-disable-aspm-if-bios-asks-us-to.patch
 
 Patch385: ima-allow-it-to-be-completely-disabled-and-default-off.patch
 
@@ -1237,6 +1238,7 @@ ApplyPatch linux-2.6-defaults-pci_no_msi.patch
 ApplyPatch linux-2.6-defaults-pci_use_crs.patch
 # enable ASPM by default on hardware we expect to work
 ApplyPatch linux-2.6-defaults-aspm.patch
+ApplyPatch pci-disable-aspm-if-bios-asks-us-to.patch
 
 # helps debug resource conflicts [c1f3f281]
 ApplyPatch pnp-log-pnp-resources-as-we-do-for-pci.patch
@@ -2008,6 +2010,10 @@ fi
 #                 ||     ||
 
 %changelog
+* Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
+- pci-disable-aspm-if-bios-asks-us-to.patch: Patch from mjg59 to disable
+  ASPM if the BIOS has disabled it, but enabled it already on some devices.
+
 * Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
 - Fix various issues mounting btrfs devices with subvolumes (#656465)
 
