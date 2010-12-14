@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 5
 # The git snapshot level
-%define gitrev 0
+%define gitrev 2
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -328,6 +328,7 @@ Summary: The Linux kernel
 %define image_install_path boot
 %define make_target image
 %define kernel_image arch/s390/boot/image
+%define with_perf 0
 %endif
 
 %ifarch sparc64
@@ -614,6 +615,8 @@ Patch204: linux-2.6-debug-always-inline-kzalloc.patch
 Patch380: linux-2.6-defaults-pci_no_msi.patch
 Patch381: linux-2.6-defaults-pci_use_crs.patch
 Patch383: linux-2.6-defaults-aspm.patch
+Patch384: pci-disable-aspm-if-bios-asks-us-to.patch
+Patch386: pci-_osc-supported-field-should-contain-supported-features-not-enabled-ones.patch
 
 Patch385: ima-allow-it-to-be-completely-disabled-and-default-off.patch
 
@@ -707,6 +710,11 @@ Patch12401: debug-tty-print-dev-name.patch
 
 Patch12410: mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 Patch12411: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+
+# rhbz#650934
+Patch12420: sched-cure-more-NO_HZ-load-average-woes.patch
+
+Patch12421: orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1200,6 +1208,9 @@ ApplyPatch linux-2.6-defaults-pci_no_msi.patch
 ApplyPatch linux-2.6-defaults-pci_use_crs.patch
 # enable ASPM by default on hardware we expect to work
 ApplyPatch linux-2.6-defaults-aspm.patch
+ApplyPatch pci-disable-aspm-if-bios-asks-us-to.patch
+# rhbz#638912
+ApplyPatch pci-_osc-supported-field-should-contain-supported-features-not-enabled-ones.patch
 
 #ApplyPatch ima-allow-it-to-be-completely-disabled-and-default-off.patch
 
@@ -1312,6 +1323,12 @@ ApplyPatch debug-tty-print-dev-name.patch
 # backport some fixes for kswapd from mmotm, rhbz#649694
 ApplyPatch mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 ApplyPatch mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+
+# rhbz#650934
+ApplyPatch sched-cure-more-NO_HZ-load-average-woes.patch
+
+# rhbz657864
+ApplyPatch orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
@@ -1932,6 +1949,23 @@ fi
 #                 ||     ||
 
 %changelog
+* Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
+- Another patch from mjg59: Set _OSC supported field correctly (#638912)
+
+* Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
+- pci-disable-aspm-if-bios-asks-us-to.patch: Patch from mjg59 to disable
+  ASPM if the BIOS has disabled it, but enabled it already on some devices.
+
+* Thu Dec 09 2010 Kyle McMartin <kyle@redhat.com>
+- Snarf patch from wireless-next to fix mdomsch's orinico wifi.
+  (orinoco: initialise priv->hw before assigning the interrupt)
+  [229bd792] (#657864)
+
+* Wed Dec 08 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc5.git2.1
+- Linux 2.6.37-rc5-git2
+- sched-cure-more-NO_HZ-load-average-woes.patch: fix some of the complaints
+  in 2.6.35+ about load average with dynticks. (rhbz#650934)
+
 * Wed Dec 08 2010 Michael Young <m.a.young@durham.ac.uk>
 - Update the xen/next-2.6.37 patch and rebuild for rc5
 
