@@ -748,6 +748,8 @@ Patch12435: btrfs-fix-error-handling-in-btrfs_get_sb.patch
 Patch12436: btrfs-fix-race-between-btrfs_get_sb-and-umount.patch
 Patch12437: btrfs-setup-blank-root-and-fs_info-for-mount-time.patch
 
+Patch12438: fs-call-security_d_instantiate-in-d_obtain_alias.patch
+
 %endif
 
 BuildRoot: %{_tmppath}/kernel-%{KVERREL}-root
@@ -1194,6 +1196,9 @@ ApplyPatch linux-2.6-32bit-mmap-exec-randomization.patch
 # bugfixes to drivers and filesystems
 #
 
+#rhbz#662344
+ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
+
 # ext4
 
 # xfs
@@ -1204,7 +1209,6 @@ ApplyPatch linux-2.6-32bit-mmap-exec-randomization.patch
 ApplyPatch btrfs-fix-error-handling-in-btrfs_get_sb.patch
 ApplyPatch btrfs-fix-race-between-btrfs_get_sb-and-umount.patch
 ApplyPatch btrfs-setup-blank-root-and-fs_info-for-mount-time.patch
-
 
 # eCryptfs
 
@@ -2010,6 +2014,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Sat Dec 18 2010 Kyle McMartin <kyle@redhat.com>
+- Fix SELinux issues with NFS/btrfs and/or xfsdump. (#662344)
+
 * Fri Dec 10 2010 Kyle McMartin <kyle@redhat.com>
 - pci-disable-aspm-if-bios-asks-us-to.patch: Patch from mjg59 to disable
   ASPM if the BIOS has disabled it, but enabled it already on some devices.
