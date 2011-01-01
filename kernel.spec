@@ -1968,6 +1968,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Tue Jan 01 2011 Michael Young <m.a.young@durham.ac.uk>
+- update pvops to add some xenbus patches
+
 * Thu Dec 23 2010 Kyle McMartin <kyle@redhat.com>
 - Pull in flexcop procfs rename patch since it's still not upstream. (#664852)
 

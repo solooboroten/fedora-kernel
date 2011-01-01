@@ -1,7 +1,188 @@
+From fb27cfbcbd2865b0e731c4aae47df71778da805e Mon Sep 17 00:00:00 2001
+From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Date: Wed, 25 Aug 2010 12:19:53 -0700
+Subject: [PATCH 01/43] xenfs/xenbus: report partial reads/writes correctly
+
+copy_(to|from)_user return the number of uncopied bytes, so a successful
+return is 0, and any non-zero result indicates some degree of failure.
+
+Reported-by: "Jun Zhu (Intern)" <Jun.Zhu@citrix.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/xenbus.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/xenfs/xenbus.c b/drivers/xen/xenfs/xenbus.c
+index 9d5b519..d2a9058 100644
+--- a/drivers/xen/xenfs/xenbus.c
++++ b/drivers/xen/xenfs/xenbus.c
+@@ -142,7 +142,7 @@ static ssize_t xenbus_file_read(struct file *filp,
+ 		i += sz - ret;
+ 		rb->cons += sz - ret;
+ 
+-		if (ret != sz) {
++		if (ret != 0) {
+ 			if (i == 0)
+ 				i = -EFAULT;
+ 			goto out;
+@@ -453,7 +453,7 @@ static ssize_t xenbus_file_write(struct file *filp,
+ 
+ 	ret = copy_from_user(u->u.buffer + u->len, ubuf, len);
+ 
+-	if (ret == len) {
++	if (ret != 0) {
+ 		rc = -EFAULT;
+ 		goto out;
+ 	}
+-- 
+1.7.3.4
+
+
+From 6d6df2e412297b8047c407b3abcd045a67c96744 Mon Sep 17 00:00:00 2001
+From: Diego Ongaro <diego.ongaro@citrix.com>
+Date: Wed, 1 Sep 2010 09:18:54 -0700
+Subject: [PATCH 02/43] xenbus: allow any xenbus command over /proc/xen/xenbus
+
+When xenstored is in another domain, we need to be able to send any
+command over xenbus.  This doesn't pose a security problem because
+its up to xenstored to determine whether a given client is allowed
+to use a particular command anyway.
+
+From linux-2.5.18-xen.hg 68d582b0ad05.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/xenbus.c |   18 ++----------------
+ 1 files changed, 2 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/xen/xenfs/xenbus.c b/drivers/xen/xenfs/xenbus.c
+index d2a9058..46cf404 100644
+--- a/drivers/xen/xenfs/xenbus.c
++++ b/drivers/xen/xenfs/xenbus.c
+@@ -486,21 +486,6 @@ static ssize_t xenbus_file_write(struct file *filp,
+ 	msg_type = u->u.msg.type;
+ 
+ 	switch (msg_type) {
+-	case XS_TRANSACTION_START:
+-	case XS_TRANSACTION_END:
+-	case XS_DIRECTORY:
+-	case XS_READ:
+-	case XS_GET_PERMS:
+-	case XS_RELEASE:
+-	case XS_GET_DOMAIN_PATH:
+-	case XS_WRITE:
+-	case XS_MKDIR:
+-	case XS_RM:
+-	case XS_SET_PERMS:
+-		/* Send out a transaction */
+-		ret = xenbus_write_transaction(msg_type, u);
+-		break;
+-
+ 	case XS_WATCH:
+ 	case XS_UNWATCH:
+ 		/* (Un)Ask for some path to be watched for changes */
+@@ -508,7 +493,8 @@ static ssize_t xenbus_file_write(struct file *filp,
+ 		break;
+ 
+ 	default:
+-		ret = -EINVAL;
++		/* Send out a transaction */
++		ret = xenbus_write_transaction(msg_type, u);
+ 		break;
+ 	}
+ 	if (ret != 0)
+-- 
+1.7.3.4
+
+
+From 76ce7618f9a24f7b13958c67f7d5ccfcdab71475 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Tue, 7 Sep 2010 11:42:18 -0400
+Subject: [PATCH 03/43] xenbus: add missing wakeup in concurrent read/write
+
+If an application has a dedicated read thread watching xenbus and
+another thread writes an XS_WATCH message that generates a synthetic
+"OK" reply, this reply will be enqueued in the buffer without waking up
+the reader. This can cause a deadlock in the application if it then
+waits for the read thread to receive the queued message.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+
+commit e752969f502a511e83f841aa01d6cd332e6d85a0
+Author: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date:   Tue Sep 7 11:21:52 2010 -0400
+
+    xenbus: fix deadlock in concurrent read/write
+
+    If an application has a dedicated read thread watching xenbus and another
+    thread writes an XS_WATCH message that generates a synthetic "OK" reply,
+    this reply will be enqueued in the buffer without waking up the reader.
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/xenbus.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/xenfs/xenbus.c b/drivers/xen/xenfs/xenbus.c
+index 46cf404..c4c7db8 100644
+--- a/drivers/xen/xenfs/xenbus.c
++++ b/drivers/xen/xenfs/xenbus.c
+@@ -405,6 +405,7 @@ static int xenbus_write_watch(unsigned msg_type, struct xenbus_file_priv *u)
+ 
+ 		mutex_lock(&u->reply_mutex);
+ 		rc = queue_reply(&u->read_buffers, &reply, sizeof(reply));
++		wake_up(&u->read_waitq);
+ 		mutex_unlock(&u->reply_mutex);
+ 	}
+ 
+-- 
+1.7.3.4
+
+
+From 7808121b9a1e44ef12fecd49fa6c268f27a150fc Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Wed, 8 Sep 2010 18:10:42 -0400
+Subject: [PATCH 04/43] xenbus: avoid zero returns from read()
+
+It is possible to get a zero return from read() in instances where the
+queue is not empty but has no elements with data to deliver to the user.
+Since a zero return from read is an error indicator, resume waiting or
+return -EAGAIN (for a nonblocking fd) in this case.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/xenbus.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/xenfs/xenbus.c b/drivers/xen/xenfs/xenbus.c
+index c4c7db8..55791dd 100644
+--- a/drivers/xen/xenfs/xenbus.c
++++ b/drivers/xen/xenfs/xenbus.c
+@@ -120,6 +120,7 @@ static ssize_t xenbus_file_read(struct file *filp,
+ 	int ret;
+ 
+ 	mutex_lock(&u->reply_mutex);
++again:
+ 	while (list_empty(&u->read_buffers)) {
+ 		mutex_unlock(&u->reply_mutex);
+ 		if (filp->f_flags & O_NONBLOCK)
+@@ -158,6 +159,8 @@ static ssize_t xenbus_file_read(struct file *filp,
+ 					struct read_buffer, list);
+ 		}
+ 	}
++	if (i == 0)
++		goto again;
+ 
+ out:
+ 	mutex_unlock(&u->reply_mutex);
+-- 
+1.7.3.4
+
+
 From 8bd6ddfd569309d8e915ffb6f68ad7bf03e53922 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Feb 2009 12:58:42 -0800
-Subject: [PATCH 01/38] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
+Subject: [PATCH 05/43] x86: define arch_vm_get_page_prot to set _PAGE_IOMAP on VM_IO vmas
 
 Set _PAGE_IOMAP in ptes mapping a VM_IO vma.  This says that the mapping
 is of a real piece of physical hardware, and not just system memory.
@@ -54,13 +235,13 @@ index 5c4ee42..5083449 100644
  {
  	return (pte_t *)__get_free_page(PGALLOC_GFP);
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 5527f9bee43a910b019ad77d7de6620b3412759b Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 2 Oct 2009 09:49:05 -0700
-Subject: [PATCH 02/38] drm: recompute vma->vm_page_prot after changing vm_flags
+Subject: [PATCH 06/43] drm: recompute vma->vm_page_prot after changing vm_flags
 
 vm_get_page_prot() computes vm_page_prot depending on vm_flags, so
 we need to re-call it if we change flags.
@@ -91,13 +272,13 @@ index fe6cb77..2d15c5e 100644
  }
  EXPORT_SYMBOL(ttm_fbdev_mmap);
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 66aae0dade39748bb7e068c4518c6160394ae3aa Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 25 Feb 2010 16:38:29 -0800
-Subject: [PATCH 03/38] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
+Subject: [PATCH 07/43] agp: Use PAGE_KERNEL_IO_NOCACHE for AGP mappings
 
 When mapping AGP memory, the offset is a machine address.  In Xen we
 need to make sure mappings of physical machine addresses have _PAGE_IO
@@ -122,13 +303,13 @@ index 076052c..3038ef6 100644
  
  /* fs/proc/kcore.c */
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 4cd35860df16d7d3bd55ce4d4500bfe59c46a849 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 24 Feb 2010 11:10:45 -0800
-Subject: [PATCH 04/38] agp: use DMA API when compiled for Xen as well
+Subject: [PATCH 08/43] agp: use DMA API when compiled for Xen as well
 
 Xen guests need translation between pseudo-physical and real machine
 physical addresses when accessing graphics devices, so use the DMA API
@@ -158,13 +339,13 @@ index 75e0a34..ce63e5c 100644
  #else
  #define USE_PCI_DMA_API 0
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 4ffb5de0f02bad2b0ebe7a9a6a45bc5855c15369 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 9 Aug 2010 14:35:36 -0700
-Subject: [PATCH 06/38] pvops: make pte_flags() go via pvops
+Subject: [PATCH 10/43] pvops: make pte_flags() go via pvops
 
 As part of PAT support in Xen we need to fiddle with the page flags.
 For consistency, we need to make sure the conversion happens both ways
@@ -213,13 +394,13 @@ index d1f4a76..a81b0ed 100644
  #define __pgprot(x)	((pgprot_t) { (x) } )
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 0aa82d86c699890ce3661927f176045fc8e47156 Mon Sep 17 00:00:00 2001
 From: Stephen Tweedie <sct@redhat.com>
 Date: Fri, 6 Feb 2009 19:09:47 -0800
-Subject: [PATCH 07/38] xen dom0: Add support for the platform_ops hypercall
+Subject: [PATCH 11/43] xen dom0: Add support for the platform_ops hypercall
 
 Minimal changes to get platform ops (renamed dom0_ops on pv_ops) working
 on pv_ops builds.  Pulls in upstream linux-2.6.18-xen.hg's platform.h
@@ -503,13 +684,13 @@ index 2befa3e..18b5599 100644
  
  /* In assembly code we cannot use C numeric constant suffixes. */
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 37a80bdde5957ffa81c2ecdffc4ccc2e874e34cb Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 27 Mar 2009 17:39:15 -0700
-Subject: [PATCH 08/38] xen: add CPU microcode update driver
+Subject: [PATCH 12/43] xen: add CPU microcode update driver
 
 Xen does all the hard work for us, including choosing the right update
 method for this cpu type and actually doing it for all cpus.  We just
@@ -804,13 +985,13 @@ index 5b54892..384e0a5 100644
 +       depends on XEN_DOM0 && MICROCODE
 \ No newline at end of file
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From aed8ff456bd7847683776e5c4d0dd4e4abc5087e Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 10 Nov 2010 12:28:57 -0800
-Subject: [PATCH 10/38] x86: demacro set_iopl_mask()
+Subject: [PATCH 14/43] x86: demacro set_iopl_mask()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -834,13 +1015,13 @@ index cae9c3c..32f75be 100644
  
  /*
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 640524e029f5b5cb93462c7bccdd93141f53ae65 Mon Sep 17 00:00:00 2001
 From: Christophe Saout <chtephan@leto.intern.saout.de>
 Date: Sat, 17 Jan 2009 17:30:17 +0100
-Subject: [PATCH 11/38] x86/paravirt: paravirtualize IO permission bitmap
+Subject: [PATCH 15/43] x86/paravirt: paravirtualize IO permission bitmap
 
 Paravirtualized x86 systems don't have an exposed TSS, as it is only
 directly visible in ring 0.  The IO permission bitmap is part of
@@ -1050,13 +1231,13 @@ index 57d1868..a48e82a 100644
  }
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 950952701cf9e218c2269d13b8538f3c07cff762 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 18 Jun 2009 15:04:16 -0700
-Subject: [PATCH 12/38] xen: implement IO permission bitmap
+Subject: [PATCH 16/43] xen: implement IO permission bitmap
 
 Add Xen implementation of IO permission bitmap pvop.
 
@@ -1099,13 +1280,13 @@ index 235c0f4..4ad88fd 100644
  
  	/* Xen takes care of %gs when switching to usermode for us */
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From a188301f0e78daed011dde56139630d88299a954 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:49 -0800
-Subject: [PATCH 13/38] xen: define gnttab_set_map_op/unmap_op
+Subject: [PATCH 17/43] xen: define gnttab_set_map_op/unmap_op
 
 Impact: hypercall definitions
 
@@ -1184,13 +1365,13 @@ index 9a73170..1821aa1 100644
  			   unsigned long max_nr_gframes,
  			   struct grant_entry **__shared);
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 56385560d6d8fd4c89c4f328d3ff0ecc9c44c52d Mon Sep 17 00:00:00 2001
 From: Gerd Hoffmann <kraxel@redhat.com>
 Date: Tue, 3 Mar 2009 12:27:55 -0800
-Subject: [PATCH 14/38] xen/gntdev: allow usermode to map granted pages
+Subject: [PATCH 18/43] xen/gntdev: allow usermode to map granted pages
 
 The gntdev driver allows usermode to map granted pages from other
 domains.  This is typically used to implement a Xen backend driver
@@ -2022,13 +2203,13 @@ index 0000000..8bd1467
 +
 +#endif /* __LINUX_PUBLIC_GNTDEV_H__ */
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 8c79aad3bd8a379bd0bd144895b55098aca2ccea Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 11 Nov 2010 14:39:12 -0800
-Subject: [PATCH 15/38] xen/gntdev: add VM_PFNMAP to vma
+Subject: [PATCH 19/43] xen/gntdev: add VM_PFNMAP to vma
 
 These pages are from other domains, so don't have any local PFN.
 VM_PFNMAP is the closest concept Linux has to this.
@@ -2051,13 +2232,13 @@ index 45898d4..cf61c7d 100644
  	vma->vm_private_data = map;
  	map->vma = vma;
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 66b66fdaae7856319170b10f4690f67cf6129825 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 30 Nov 2010 10:03:44 -0800
-Subject: [PATCH 25/38] mm: add apply_to_page_range_batch()
+Subject: [PATCH 29/43] mm: add apply_to_page_range_batch()
 
 apply_to_page_range() calls its callback function once for each pte, which
 is pretty inefficient since it will almost always be operating on a batch
@@ -2199,13 +2380,13 @@ index 02e48aa..4028984 100644
  
  /*
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 3a5e3a915a3ab35e78b0a4b0f31e405a9640cae5 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 12:22:24 -0800
-Subject: [PATCH 26/38] vmalloc: use plain pte_clear() for unmaps
+Subject: [PATCH 30/43] vmalloc: use plain pte_clear() for unmaps
 
 ptep_get_and_clear() is potentially moderately expensive (at least
 an atomic operation, or potentially a trap-and-fault when virtualized)
@@ -2232,13 +2413,13 @@ index eb5cc7d..f1e45e0 100644
  }
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 8712efa8e830e26f8088ea3c2ca2a45cf775cd88 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 11:06:19 -0800
-Subject: [PATCH 27/38] vmalloc: use apply_to_page_range for vunmap_page_range()
+Subject: [PATCH 31/43] vmalloc: use apply_to_page_range for vunmap_page_range()
 
 There's no need to open-code it when there's helpful utility function
 to do the job.
@@ -2323,13 +2504,13 @@ index f1e45e0..1e74a45 100644
  
  static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 373648649635f8d46e3489c6a53b8a3a9204c26a Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Nov 2010 11:11:45 -0800
-Subject: [PATCH 28/38] vmalloc: use apply_to_page_range for vmap_page_range_noflush()
+Subject: [PATCH 32/43] vmalloc: use apply_to_page_range for vmap_page_range_noflush()
 
 There's no need to open-code it when there's a helpful utility
 function.
@@ -2460,13 +2641,13 @@ index 1e74a45..e8d2025 100644
  
  static int vmap_page_range(unsigned long start, unsigned long end,
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 13b0d5b31725090e3d3658003cc648b97b86c5e5 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:23:31 -0800
-Subject: [PATCH 29/38] xen: drop all the special iomap pte paths.
+Subject: [PATCH 33/43] xen: drop all the special iomap pte paths.
 
 Xen can work out when we're doing IO mappings for itself, so we don't
 need to do anything special, and the extra tests just clog things up.
@@ -2517,13 +2698,13 @@ index 0e4ecac..304f034 100644
  }
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 48b66c08a1a0c5299ac3c43fa706289877f697c7 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:13:34 -0800
-Subject: [PATCH 30/38] xen: use mmu_update for xen_set_pte_at()
+Subject: [PATCH 34/43] xen: use mmu_update for xen_set_pte_at()
 
 In principle update_va_mapping is a good match for set_pte_at, since
 it gets the address being mapped, which allows Xen to use its linear
@@ -2596,13 +2777,13 @@ index 304f034..fed2a44 100644
  
  pte_t xen_ptep_modify_prot_start(struct mm_struct *mm,
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 0c478e2cc9f79d83d3dd629e459158bcb77d1f75 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:30:41 -0800
-Subject: [PATCH 31/38] xen: condense everything onto xen_set_pte
+Subject: [PATCH 35/43] xen: condense everything onto xen_set_pte
 
 xen_set_pte_at and xen_clear_pte are essentially identical to
 xen_set_pte, so just make them all common.
@@ -2746,13 +2927,13 @@ index fed2a44..45fe925 100644
  	debugfs_create_u32("prot_commit_batched", 0444, d_mmu_debug,
  			   &mmu_stats.prot_commit_batched);
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From ecccf707c47cad4d6c4b16323d7e7ad97a2d3ab8 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:44:04 -0800
-Subject: [PATCH 32/38] xen/mmu: use apply_to_page_range_batch in xen_remap_domain_mfn_range
+Subject: [PATCH 36/43] xen/mmu: use apply_to_page_range_batch in xen_remap_domain_mfn_range
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -2800,13 +2981,13 @@ index 45fe925..8bcb934 100644
  			goto out;
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From aa3ac7d19a3b17e4eeadea90626f707a9d9414e0 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:45:21 -0800
-Subject: [PATCH 33/38] vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
+Subject: [PATCH 37/43] vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -2841,13 +3022,13 @@ index e8d2025..2bd4198 100644
  		return NULL;
  	}
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 2c634d12dc6f2e77560440d6ae0dfc91f9050b55 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:45:48 -0800
-Subject: [PATCH 34/38] vmalloc: remove vmalloc_sync_all() from alloc_vm_area()
+Subject: [PATCH 38/43] vmalloc: remove vmalloc_sync_all() from alloc_vm_area()
 
 There's no need for it: it will get faulted into the current pagetable
 as needed.
@@ -2873,13 +3054,13 @@ index 2bd4198..69d9c5e 100644
  }
  EXPORT_SYMBOL_GPL(alloc_vm_area);
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 0e652485dc1a55ff4777bd0c0ce85fa290a02bd6 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 1 Dec 2010 15:50:12 -0800
-Subject: [PATCH 35/38] xen/grant-table: use apply_to_page_range_batch
+Subject: [PATCH 39/43] xen/grant-table: use apply_to_page_range_batch
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -2947,13 +3128,13 @@ index 49ba9b5..9cdb35e 100644
 +				  PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
  }
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From fefbfcc5c7f9c24ec98545254d8972f0faad0c44 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 3 Dec 2010 09:54:03 +0000
-Subject: [PATCH 36/38] xen: disable ACPI NUMA for PV guests
+Subject: [PATCH 40/43] xen: disable ACPI NUMA for PV guests
 
 Xen does not currently expose PV-NUMA information to PV
 guests. Therefore disable NUMA for the time being to prevent the
@@ -2989,13 +3170,13 @@ index 7250bef..33a7a83 100644
  
  	if (!xen_initial_domain())
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From ac527c664a6f52fd780fd324deb0b018d4a4a357 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 3 Nov 2010 16:40:48 -0400
-Subject: [PATCH 37/38] xen/events: only unmask irq if enabled
+Subject: [PATCH 41/43] xen/events: only unmask irq if enabled
 
 A dynirq EOI is an unmask, but we should only unmask if the
 irq is logically enabled.
@@ -3023,13 +3204,13 @@ index 0009e48..4dcdbd9 100644
  }
  
 -- 
-1.7.3.2
+1.7.3.4
 
 
 From 7a3ab024f242ecf26af9b5b0cce1ce2d9985ce19 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 5 Nov 2010 22:53:52 -0700
-Subject: [PATCH 38/38] xen: make FOREIGN_FRAME_BIT high bit on 32 and 64
+Subject: [PATCH 42/43] xen: make FOREIGN_FRAME_BIT high bit on 32 and 64
 
 FOREIGN_FRAME_BIT is supposed to be the MSB of an MFN, which is an
 unsigned long.  Since this changes between 32 and 64 bit, the definition
@@ -3054,5 +3235,46 @@ index 8760cc6..05c5cf5 100644
  
  /* Maximum amount of memory we can handle in a domain in pages */
 -- 
-1.7.3.2
+1.7.3.4
+
+
+From 6a5b3beff916a19e7672f8c0330b4f82ed367be2 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Mon, 20 Dec 2010 14:56:09 -0800
+Subject: [PATCH 43/43] xenbus: Fix memory leak on release
+
+Pending responses were leaked on close.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+---
+ drivers/xen/xenfs/xenbus.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/xenfs/xenbus.c b/drivers/xen/xenfs/xenbus.c
+index 55791dd..8f6c7d4 100644
+--- a/drivers/xen/xenfs/xenbus.c
++++ b/drivers/xen/xenfs/xenbus.c
+@@ -543,6 +543,7 @@ static int xenbus_file_release(struct inode *inode, struct file *filp)
+ 	struct xenbus_file_priv *u = filp->private_data;
+ 	struct xenbus_transaction_holder *trans, *tmp;
+ 	struct watch_adapter *watch, *tmp_watch;
++	struct read_buffer *rb, *tmp_rb;
+ 
+ 	/*
+ 	 * No need for locking here because there are no other users,
+@@ -561,6 +562,10 @@ static int xenbus_file_release(struct inode *inode, struct file *filp)
+ 		free_watch_adapter(watch);
+ 	}
+ 
++	list_for_each_entry_safe(rb, tmp_rb, &u->read_buffers, list) {
++		list_del(&rb->list);
++		kfree(rb);
++	}
+ 	kfree(u);
+ 
+ 	return 0;
+-- 
+1.7.3.4
 
