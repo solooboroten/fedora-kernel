@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 1
+%global baserelease 2
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 5
+%define rcrev 7
 # The git snapshot level
-%define gitrev 2
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -129,7 +129,7 @@ Summary: The Linux kernel
 %define doc_build_fail true
 %endif
 
-%define rawhide_skip_docs 1
+%define rawhide_skip_docs 0
 %if 0%{?rawhide_skip_docs}
 %define with_doc 0
 %define doc_build_fail true
@@ -150,7 +150,7 @@ Summary: The Linux kernel
 # Set debugbuildsenabled to 1 for production (build separate debug kernels)
 #  and 0 for rawhide (all kernels are debug kernels).
 # See also 'make debug' and 'make release'.
-%define debugbuildsenabled 0
+%define debugbuildsenabled 1
 
 # Want to build a vanilla kernel build without any non-upstream patches?
 %define with_vanilla %{?_with_vanilla: 1} %{?!_with_vanilla: 0}
@@ -683,6 +683,8 @@ Patch2912: linux-2.6-v4l-dvb-ir-core-update.patch
 #Patch2916: lirc-staging-2.6.36-fixes.patch
 Patch2917: hdpvr-ir-enable.patch
 
+Patch2918: flexcop-fix-xlate_proc_name-warning.patch
+
 # fs fixes
 
 # NFSv4
@@ -699,6 +701,13 @@ Patch12018: neuter_intel_microcode_load.patch
 
 Patch12030: tpm-fix-stall-on-boot.patch
 
+Patch12100: applesmc_update.patch
+Patch12101: apple_backlight.patch
+Patch12102: efifb_update.patch
+Patch12103: linux-next-macbook-air-input.patch
+Patch12200: acpi_reboot.patch
+Patch12210: efi_default_physical.patch
+
 # Runtime power management
 Patch12203: linux-2.6-usb-pci-autosuspend.patch
 Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
@@ -711,10 +720,9 @@ Patch12401: debug-tty-print-dev-name.patch
 Patch12410: mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 Patch12411: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 
-# rhbz#650934
-Patch12420: sched-cure-more-NO_HZ-load-average-woes.patch
+Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
-Patch12421: orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
+Patch12422: net-AF_PACKET-vmalloc.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1299,6 +1307,9 @@ ApplyOptionalPatch linux-2.6-v4l-dvb-experimental.patch
 # enable IR receiver on Hauppauge HD PVR (v4l-dvb merge pending)
 ApplyPatch hdpvr-ir-enable.patch
 
+# rhbz#664852
+ApplyPatch flexcop-fix-xlate_proc_name-warning.patch
+
 # Patches headed upstream
 ApplyPatch disable-i8042-check-on-apple-mac.patch
 
@@ -1308,6 +1319,14 @@ ApplyPatch neuter_intel_microcode_load.patch
 
 # try to fix stalls during boot (#530393)
 ApplyPatch tpm-fix-stall-on-boot.patch
+
+# various fixes for Apple and EFI
+ApplyPatch applesmc_update.patch
+ApplyPatch apple_backlight.patch
+ApplyPatch efifb_update.patch
+ApplyPatch linux-next-macbook-air-input.patch
+ApplyPatch acpi_reboot.patch
+ApplyPatch efi_default_physical.patch
 
 # Runtime PM
 ApplyPatch linux-2.6-usb-pci-autosuspend.patch
@@ -1324,11 +1343,11 @@ ApplyPatch debug-tty-print-dev-name.patch
 ApplyPatch mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 ApplyPatch mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 
-# rhbz#650934
-ApplyPatch sched-cure-more-NO_HZ-load-average-woes.patch
+# rhbz#662344,600690
+ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
-# rhbz657864
-ApplyPatch orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
+# rhbz#637619
+ApplyPatch net-AF_PACKET-vmalloc.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
@@ -1949,6 +1968,43 @@ fi
 #                 ||     ||
 
 %changelog
+* Thu Dec 23 2010 Kyle McMartin <kyle@redhat.com>
+- Pull in flexcop procfs rename patch since it's still not upstream. (#664852)
+
+* Tue Dec 21 2010 Kyle McMartin <kyle@redhat.com> 2.6.37.0.rc7.git0.2
+- Linux 2.6.37-rc7
+- CONFIG_USB_OTG=n (seems unnecessary?)
+- Enable release builds until .37 releases in rawhide.
+
+* Sun Dec 19 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc6.git5.1
+- Linux 2.6.37-rc6-git5
+- sched-cure-more-NO_HZ-load-average-woes.patch: upstream.
+
+* Sat Dec 18 2010 Kyle McMartin <kyle@redhat.com>
+- Patch from nhorman against f13:
+  Enhance AF_PACKET to allow non-contiguous buffer alloc (#637619)
+
+* Sat Dec 18 2010 Kyle McMartin <kyle@redhat.com>
+- Fix SELinux issues with NFS/btrfs and/or xfsdump. (#662344)
+
+* Fri Dec 17 2010 Matthew Garrett <mjg@redhat.com> 2.6.37-0.rc6.git0.3
+- efi_default_physical.patch: Revert hunk that breaks boot
+- linux-next-macbook-air-input.patch: Add input support for new Macbook Airs
+
+* Thu Dec 16 2010 Matthew Garrett <mjg@redhat.com> 2.6.37-0.rc6.git0.2
+- applesmc_update.patch: Make the driver more generic. Should help Apples.
+- apple_backlight.patch: Make sure that this loads on all hardware.
+- efifb_update.patch: Fixes for the 11 inch Macbook Air
+- acpi_reboot.patch: Should make reboot work better on most hardware
+- efi_default_physical.patch: Some machines dislike EFI virtual mode
+
+* Wed Dec 15 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc6.git0.1
+- Linux 2.6.37-rc6
+- Re-activate acpi patch which rejected on the previous commit.
+
+* Wed Dec 15 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.rc5.git5.1
+- 2.6.37-rc5-git5
+
 * Tue Dec 14 2010 Michael Young <m.a.young@durham.ac.uk>
 - test an irq patch in xen.pcifront.fixes.patch
 
