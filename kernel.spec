@@ -129,7 +129,7 @@ Summary: The Linux kernel
 %define doc_build_fail true
 %endif
 
-%define rawhide_skip_docs 0
+%define rawhide_skip_docs 1
 %if 0%{?rawhide_skip_docs}
 %define with_doc 0
 %define doc_build_fail true
@@ -1970,6 +1970,7 @@ fi
 %changelog
 * Wed Jan 05 2011 Michael Young <m.a.young@durham.ac.uk>
 - update xen.pcifront.fixes.patch with IRQ fixes from stable/bug-fixes branch
+- skip docs - it seems to cause build failures at random points the moment.
 
 * Tue Jan 04 2011 Kyle McMartin <kyle@redhat.com> 2.6.37-1
 - Track release of 2.6.37
