@@ -1968,6 +1968,9 @@ fi
 #                 ||     ||
 
 %changelog
+* Wed Jan 05 2011 Michael Young <m.a.young@durham.ac.uk>
+- update xen.pcifront.fixes.patch with IRQ fixes from stable/bug-fixes branch
+
 * Tue Jan 04 2011 Kyle McMartin <kyle@redhat.com> 2.6.37-1
 - Track release of 2.6.37
 

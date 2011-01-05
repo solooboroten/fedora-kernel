@@ -1,42 +1,214 @@
-commit be72548ffe8618c3141c050400306b93f40a107a
-Author: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Date:   Tue Dec 14 11:43:40 2010 -0500
+From d1b758ebc2a82d738092cb42e742470f9d0ea53e Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Thu, 9 Dec 2010 14:53:29 -0500
+Subject: [PATCH 1/4] xen/irq: Cleanup the find_unbound_irq
 
-    Revert "xen: Find an unbound irq number in reverse order (high to low)."
-    
-    This reverts commit 482839e7b96098f678d0404ec4dd321419ab3ea7.
-    
-    Conflicts:
-    
-    	drivers/xen/events.c
+The "find_unbound_irq" is a bit unusual - it allocates
+virtual IRQ (event channels) in reverse order. This means
+starting at the "top" of the available IRQs (nr_irqs) down
+to the GSI/MSI IRQs (nr_irqs_gsi). Lets document this and
+also make the variables easier to understand.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-index 0380664..8889e7f 100644
+index 31af0ac..4d4a23d 100644
 --- a/drivers/xen/events.c
 +++ b/drivers/xen/events.c
-@@ -401,11 +401,9 @@ static int find_unbound_irq(void)
+@@ -405,15 +405,21 @@ static int find_unbound_irq(void)
+ {
+ 	struct irq_data *data;
  	int irq, res;
- 	int start = get_nr_hw_irqs();
+-	int start = get_nr_hw_irqs();
++	int bottom = get_nr_hw_irqs();
++	int top = nr_irqs-1;
  
 -	if (start == nr_irqs)
--		goto no_irqs;
++	if (bottom == nr_irqs)
+ 		goto no_irqs;
  
- 	/* nr_irqs is a magic value. Must not use it.*/
+-	/* nr_irqs is a magic value. Must not use it.*/
 -	for (irq = nr_irqs-1; irq > start; irq--) {
-+	for (irq = start; irq < nr_irqs; irq++) {
++	/* This loop starts from the top of IRQ space and goes down.
++	 * We need this b/c if we have a PCI device in a Xen PV guest
++	 * we do not have an IO-APIC (though the backend might have them)
++	 * mapped in. To not have a collision of physical IRQs with the Xen
++	 * event channels start at the top of the IRQ space for virtual IRQs.
++	 */
++	for (irq = top; irq > bottom; irq--) {
  		data = irq_get_irq_data(irq);
- 		/* only 0->15 have init'd desc; handle irq > 16 */
+-		/* only 0->15 have init'd desc; handle irq > 16 */
++		/* only 15->0 have init'd desc; handle irq > 16 */
  		if (!data)
-@@ -414,11 +412,8 @@ static int find_unbound_irq(void)
  			break;
- 		if (data->chip != &xen_dynamic_chip)
- 			continue;
--		if (irq_info[irq].type == IRQT_UNBOUND)
--			return irq;
+ 		if (data->chip == &no_irq_chip)
+@@ -424,7 +430,7 @@ static int find_unbound_irq(void)
+ 			return irq;
  	}
--
+ 
 -	if (irq == start)
-+	if (irq == nr_irqs)
++	if (irq == bottom)
  		goto no_irqs;
  
  	res = irq_alloc_desc_at(irq, -1);
+-- 
+1.7.3.4
+
+
+From 67b0ea2bdcd781c17bb2d7949b42059c13c8bfb1 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Thu, 9 Dec 2010 15:01:11 -0500
+Subject: [PATCH 2/4] xen/irq: Don't fall over when nr_irqs_gsi > nr_irqs.
+
+This scenario where the nr_irq_gsi is greater than nr_irqs
+is rather strange but lets still try to survive. Make sure
+to print a warning so the user wouldn't be surprised in case
+things don't work.
+
+Solves a bootup-crash when booting Xen and Linux under QEMU.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 4d4a23d..98b7220 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -411,6 +411,7 @@ static int find_unbound_irq(void)
+ 	if (bottom == nr_irqs)
+ 		goto no_irqs;
+ 
++retry:
+ 	/* This loop starts from the top of IRQ space and goes down.
+ 	 * We need this b/c if we have a PCI device in a Xen PV guest
+ 	 * we do not have an IO-APIC (though the backend might have them)
+@@ -434,6 +435,14 @@ static int find_unbound_irq(void)
+ 		goto no_irqs;
+ 
+ 	res = irq_alloc_desc_at(irq, -1);
++	if (res == -EEXIST) {
++		top--;
++		if (bottom > top)
++			printk(KERN_ERR "Eating in GSI/MSI space (%d)!" \
++				" Your PCI device might not work!\n", top);
++		if (top > NR_IRQS_LEGACY)
++			goto retry;
++	}
+ 
+ 	if (WARN_ON(res != irq))
+ 		return -1;
+-- 
+1.7.3.4
+
+
+From 2e9876d91d05d8d76c260b9e525d88ce6216dedd Mon Sep 17 00:00:00 2001
+From: Kenji Wakamiya <wkenji@jp.fujitsu.com>
+Date: Tue, 14 Dec 2010 14:31:36 +0900
+Subject: [PATCH 3/4] xen/manage: fix "xm save -c" issue
+
+When using 'xm save -c' (which checkpoints the guest) on PV
+guests, the dpms_resume_end() should be surpressed. It is OK
+to make this call when doing 'xm save'.
+
+Signed-off-by: Kenji Wakamiya <wkenji@jp.fujitsu.com>
+Signed-off-by: Kazuhiro Suzuki <kaz@jp.fujitsu.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/manage.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/manage.c b/drivers/xen/manage.c
+index db8c4c4..e32b9c0 100644
+--- a/drivers/xen/manage.c
++++ b/drivers/xen/manage.c
+@@ -145,11 +145,10 @@ out_resume:
+ 	if (!cancelled) {
+ 		xen_arch_resume();
+ 		xs_resume();
++		dpm_resume_end(PMSG_RESUME);
+ 	} else
+ 		xs_suspend_cancel();
+ 
+-	dpm_resume_end(PMSG_RESUME);
+-
+ 	/* Make sure timer events get retriggered on all CPUs */
+ 	clock_was_set();
+ 
+-- 
+1.7.3.4
+
+
+From f4ae15846ee57116dcddfd71094e211e5cdefecf Mon Sep 17 00:00:00 2001
+From: Sheng Yang <sheng@linux.intel.com>
+Date: Tue, 21 Dec 2010 14:18:48 +0800
+Subject: [PATCH 4/4] apic: Move hypervisor detection of x2apic to hypervisor.h
+
+Then we can reuse it for Xen later.
+
+Acked-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Acked-by: Avi Kivity <avi@redhat.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Sheng Yang <sheng@linux.intel.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/include/asm/hypervisor.h |    9 +++++++++
+ arch/x86/kernel/apic/apic.c       |    5 +++--
+ 2 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/include/asm/hypervisor.h b/arch/x86/include/asm/hypervisor.h
+index ff2546c..0c6f7af 100644
+--- a/arch/x86/include/asm/hypervisor.h
++++ b/arch/x86/include/asm/hypervisor.h
+@@ -20,6 +20,8 @@
+ #ifndef _ASM_X86_HYPERVISOR_H
+ #define _ASM_X86_HYPERVISOR_H
+ 
++#include <asm/kvm_para.h>
++
+ extern void init_hypervisor(struct cpuinfo_x86 *c);
+ extern void init_hypervisor_platform(void);
+ 
+@@ -47,4 +49,11 @@ extern const struct hypervisor_x86 x86_hyper_vmware;
+ extern const struct hypervisor_x86 x86_hyper_ms_hyperv;
+ extern const struct hypervisor_x86 x86_hyper_xen_hvm;
+ 
++static inline bool hypervisor_x2apic_available(void)
++{
++	if (kvm_para_available())
++		return true;
++	return false;
++}
++
+ #endif
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 3f838d5..8408f2d 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -50,8 +50,8 @@
+ #include <asm/mtrr.h>
+ #include <asm/smp.h>
+ #include <asm/mce.h>
+-#include <asm/kvm_para.h>
+ #include <asm/tsc.h>
++#include <asm/hypervisor.h>
+ 
+ unsigned int num_processors;
+ 
+@@ -1476,7 +1476,8 @@ void __init enable_IR_x2apic(void)
+ 		/* IR is required if there is APIC ID > 255 even when running
+ 		 * under KVM
+ 		 */
+-		if (max_physical_apicid > 255 || !kvm_para_available())
++		if (max_physical_apicid > 255 ||
++		    !hypervisor_x2apic_available())
+ 			goto nox2apic;
+ 		/*
+ 		 * without IR all CPUs can be addressed by IOAPIC/MSI
+-- 
+1.7.3.4
+
