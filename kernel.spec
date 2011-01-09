@@ -1976,6 +1976,12 @@ fi
 #                 ||     ||
 
 %changelog
+* Sun Jan 09 2011 Michael Young <m.a.young@durham.ac.uk>
+- reorganize xen.pcifront.fixes.patch to be a combination of
+  stable/bug-fixes stable/generic and stable/irq.rework for fixes
+  in the previous stable/bug-fixes plus other fixes
+  also devel/ttm.pci-api.v3 for some KMS fixes
+
 * Fri Jan 07 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.37-2
 - drm_i915-check-eDP-encoder-correctly-when-setting-modes.patch reported to
   fix HP/Sony eDP issues by adamw and airlied.
