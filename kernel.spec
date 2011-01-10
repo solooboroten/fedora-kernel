@@ -51,7 +51,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 13
+%global baserelease 14
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -63,7 +63,7 @@ Summary: The Linux kernel
 %if 0%{?released_kernel}
 
 # Do we have a -stable update to apply?
-%define stable_update 2
+%define stable_update 3
 # Is it a -stable RC?
 %define stable_rc 0
 # Set rpm version accordingly
@@ -730,8 +730,6 @@ Patch12308: fix-i8k-inline-asm.patch
 Patch12405: inet_diag-make-sure-we-run-the-same-bytecode-we-audited.patch
 Patch12408: netlink-make-nlmsg_find_attr-take-a-const-ptr.patch
 
-Patch12406: posix-cpu-timers-workaround-to-suppress-problems-with-mt-exec.patch
-
 Patch12410: tty-make-tiocgicount-a-handler.patch
 Patch12411: tty-icount-changeover-for-other-main-devices.patch
 
@@ -739,10 +737,6 @@ Patch12413: tpm-autodetect-itpm-devices.patch
 
 Patch12420: mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 Patch12421: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-
-Patch12430: sched-cure-more-NO_HZ-load-average-woes.patch
-
-Patch12431: orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
 
 Patch12435: btrfs-fix-error-handling-in-btrfs_get_sb.patch
 Patch12436: btrfs-fix-race-between-btrfs_get_sb-and-umount.patch
@@ -1383,9 +1377,6 @@ ApplyPatch fix-i8k-inline-asm.patch
 ApplyPatch inet_diag-make-sure-we-run-the-same-bytecode-we-audited.patch
 ApplyPatch netlink-make-nlmsg_find_attr-take-a-const-ptr.patch
 
-# rhbz#656264
-ApplyPatch posix-cpu-timers-workaround-to-suppress-problems-with-mt-exec.patch
-
 # CVE-2010-4077, CVE-2010-4075 (rhbz#648660, #648663)
 ApplyPatch tty-make-tiocgicount-a-handler.patch
 ApplyPatch tty-icount-changeover-for-other-main-devices.patch
@@ -1395,12 +1386,6 @@ ApplyPatch tpm-autodetect-itpm-devices.patch
 # backport some fixes for kswapd from mmotm, rhbz#649694
 ApplyPatch mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 ApplyPatch mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-
-# rhbz#650934
-ApplyPatch sched-cure-more-NO_HZ-load-average-woes.patch
-
-# rhbz#657864 [229bd792]
-ApplyPatch orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
 
 # rhbz#637619
 ApplyPatch net-AF_PACKET-vmalloc.patch
@@ -2019,6 +2004,13 @@ fi
 #                 ||     ||
 
 %changelog
+* Mon Jan 10 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.36.3-14
+- Linux 2.6.36.3
+- Drop merged patches:
+  posix-cpu-timers-workaround-to-suppress-problems-with-mt-exec.patch
+  sched-cure-more-NO_HZ-load-average-woes.patch
+  orinoco-initialise-priv_hw-before-assigning-the-interrupt.patch
+
 * Sat Dec 18 2010 Kyle McMartin <kyle@redhat.com>
 - Patch from nhorman against f13:
   Enhance AF_PACKET to allow non-contiguous buffer alloc (#637619)
