@@ -6,7 +6,7 @@ Summary: The Linux kernel
 # For a stable, released kernel, released_kernel should be 1. For rawhide
 # and/or a kernel built from an rc or git snapshot, released_kernel should
 # be 0.
-%global released_kernel 1
+%global released_kernel 0
 
 # Save original buildid for later if it's defined
 %if 0%{?buildid:1}
@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 2
+%global baserelease 1
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -83,7 +83,7 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 0
+%define rcrev 2
 # The git snapshot level
 %define gitrev 0
 # Set rpm version accordingly
@@ -104,6 +104,8 @@ Summary: The Linux kernel
 %define with_up        %{?_without_up:        0} %{?!_without_up:        1}
 # kernel-smp (only valid for ppc 32-bit)
 %define with_smp       %{?_without_smp:       0} %{?!_without_smp:       1}
+# kernel-PAE (only valid for i686)
+%define with_pae       %{?_without_pae:       0} %{?!_without_pae:       1}
 # kernel-debug
 %define with_debug     %{?_without_debug:     0} %{?!_without_debug:     1}
 # kernel-doc
@@ -141,6 +143,8 @@ Summary: The Linux kernel
 %define with_baseonly  %{?_with_baseonly:     1} %{?!_with_baseonly:     0}
 # Only build the smp kernel (--with smponly):
 %define with_smponly   %{?_with_smponly:      1} %{?!_with_smponly:      0}
+# Only build the pae kernel (--with paeonly):
+%define with_paeonly   %{?_with_paeonly:      1} %{?!_with_paeonly:      0}
 # Only build the debug kernel (--with dbgonly):
 %define with_dbgonly   %{?_with_dbgonly:      1} %{?!_with_dbgonly:      0}
 
@@ -222,22 +226,31 @@ Summary: The Linux kernel
 %define debuginfodir /usr/lib/debug
 
 # kernel-PAE is only built on i686.
-%ifarch i686
-%define with_pae 1
-%define with_up 0
-%else
+%ifnarch i686
 %define with_pae 0
+%endif
+%ifarch i686
+%define with_up 0
 %endif
 
 # if requested, only build base kernel
 %if %{with_baseonly}
 %define with_smp 0
+%define with_pae 0
 %define with_debug 0
 %endif
 
 # if requested, only build smp kernel
 %if %{with_smponly}
 %define with_up 0
+%define with_pae 0
+%define with_debug 0
+%endif
+
+# if requested, only build pae kernel
+%if %{with_paeonly}
+%define with_up 0
+%define with_smp 0
 %define with_debug 0
 %endif
 
@@ -245,6 +258,7 @@ Summary: The Linux kernel
 %if %{with_dbgonly}
 %if %{debugbuildsenabled}
 %define with_up 0
+%define with_pae 0
 %endif
 %define with_smp 0
 %define with_pae 0
@@ -548,6 +562,10 @@ Source90: config-sparc64-generic
 
 Source100: config-arm
 
+# This file is intentionally left empty in the stock kernel. Its a nicety
+# added for those wanting to do custom rebuilds with altered config opts.
+Source1000: config-local
+
 # Here should be only the patches up to the upstream canonical Linus tree.
 
 # For a stable release kernel
@@ -606,13 +624,11 @@ Patch31: linux-2.6-utrace.patch
 Patch32: linux-2.6-utrace-ptrace.patch
 
 Patch150: linux-2.6.29-sparc-IOC_TYPECHECK.patch
-Patch151: 0001-use-__devexit-not-__exit-in-n2_unregister_algs-fixes.patch
 
 Patch160: linux-2.6-32bit-mmap-exec-randomization.patch
 Patch161: linux-2.6-i386-nx-emulation.patch
 
 Patch200: linux-2.6-debug-sizeof-structs.patch
-Patch201: linux-2.6-debug-nmi-timeout.patch
 Patch202: linux-2.6-debug-taint-vm.patch
 Patch203: linux-2.6-debug-vm-would-have-oomkilled.patch
 Patch204: linux-2.6-debug-always-inline-kzalloc.patch
@@ -620,7 +636,6 @@ Patch204: linux-2.6-debug-always-inline-kzalloc.patch
 Patch380: linux-2.6-defaults-pci_no_msi.patch
 Patch381: linux-2.6-defaults-pci_use_crs.patch
 Patch383: linux-2.6-defaults-aspm.patch
-Patch384: pci-disable-aspm-if-bios-asks-us-to.patch
 Patch386: pci-_osc-supported-field-should-contain-supported-features-not-enabled-ones.patch
 
 Patch385: ima-allow-it-to-be-completely-disabled-and-default-off.patch
@@ -629,7 +644,6 @@ Patch390: linux-2.6-defaults-acpi-video.patch
 Patch391: linux-2.6-acpi-video-dos.patch
 Patch393: acpi-ec-add-delay-before-write.patch
 Patch394: linux-2.6-acpi-debug-infinite-loop.patch
-Patch395: acpi-update-battery-information-on-notification-0x81.patch
 
 Patch450: linux-2.6-input-kill-stupid-messages.patch
 Patch452: linux-2.6.30-no-pcspkr-modalias.patch
@@ -665,7 +679,6 @@ Patch1824: drm-intel-next.patch
 # make sure the lvds comes back on lid open
 Patch1825: drm-intel-make-lvds-work.patch
 Patch1826: drm-intel-edp-fixes.patch
-Patch1827: drm_i915-check-eDP-encoder-correctly-when-setting-modes.patch
 
 Patch1900: linux-2.6-intel-iommu-igfx.patch
 
@@ -687,7 +700,7 @@ Patch2910: linux-2.6-v4l-dvb-add-lgdt3304-support.patch
 Patch2912: linux-2.6-v4l-dvb-ir-core-update.patch
 
 #Patch2916: lirc-staging-2.6.36-fixes.patch
-Patch2917: hdpvr-ir-enable.patch
+#Patch2917: hdpvr-ir-enable.patch
 
 Patch2918: flexcop-fix-xlate_proc_name-warning.patch
 
@@ -707,14 +720,13 @@ Patch12018: neuter_intel_microcode_load.patch
 
 Patch12030: tpm-fix-stall-on-boot.patch
 
-Patch12100: applesmc_update.patch
 Patch12101: apple_backlight.patch
 Patch12102: efifb_update.patch
-Patch12103: linux-next-macbook-air-input.patch
 Patch12200: acpi_reboot.patch
 Patch12210: efi_default_physical.patch
 
 # Runtime power management
+Patch12202: linux-2.6-ehci-check-port-status.patch
 Patch12203: linux-2.6-usb-pci-autosuspend.patch
 Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
 Patch12205: runtime_pm_fixups.patch
@@ -723,12 +735,7 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12401: debug-tty-print-dev-name.patch
 
-Patch12410: mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-Patch12411: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
-
-Patch12422: net-AF_PACKET-vmalloc.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1138,6 +1145,14 @@ make -f %{SOURCE20} VERSION=%{version} configs
   done
 %endif
 
+# Merge in any user-provided local config option changes
+for i in %{all_arch_configs}
+do
+  mv $i $i.tmp
+  ./merge.pl %{SOURCE1000} $i.tmp > $i
+  rm $i.tmp
+done
+
 ApplyOptionalPatch git-linus.diff
 
 ApplyPatch linux-2.6-makefile-after_link.patch
@@ -1174,7 +1189,6 @@ ApplyPatch linux-2.6-utrace-ptrace.patch
 # SPARC64
 #
 ApplyPatch linux-2.6.29-sparc-IOC_TYPECHECK.patch
-ApplyPatch 0001-use-__devexit-not-__exit-in-n2_unregister_algs-fixes.patch
 
 #
 # Exec shield
@@ -1206,11 +1220,9 @@ ApplyPatch linux-2.6-defaults-acpi-video.patch
 ApplyPatch linux-2.6-acpi-video-dos.patch
 ApplyPatch acpi-ec-add-delay-before-write.patch
 ApplyPatch linux-2.6-acpi-debug-infinite-loop.patch
-ApplyPatch acpi-update-battery-information-on-notification-0x81.patch
 
 # Various low-impact patches to aid debugging.
 ApplyPatch linux-2.6-debug-sizeof-structs.patch
-ApplyPatch linux-2.6-debug-nmi-timeout.patch
 ApplyPatch linux-2.6-debug-taint-vm.patch
 ApplyPatch linux-2.6-debug-vm-would-have-oomkilled.patch
 ApplyPatch linux-2.6-debug-always-inline-kzalloc.patch
@@ -1223,9 +1235,8 @@ ApplyPatch linux-2.6-defaults-pci_no_msi.patch
 ApplyPatch linux-2.6-defaults-pci_use_crs.patch
 # enable ASPM by default on hardware we expect to work
 ApplyPatch linux-2.6-defaults-aspm.patch
-ApplyPatch pci-disable-aspm-if-bios-asks-us-to.patch
 # rhbz#638912
-ApplyPatch pci-_osc-supported-field-should-contain-supported-features-not-enabled-ones.patch
+#ApplyPatch pci-_osc-supported-field-should-contain-supported-features-not-enabled-ones.patch
 
 #ApplyPatch ima-allow-it-to-be-completely-disabled-and-default-off.patch
 
@@ -1291,7 +1302,6 @@ ApplyPatch drm-intel-big-hammer.patch
 ApplyPatch drm-intel-make-lvds-work.patch
 ApplyPatch linux-2.6-intel-iommu-igfx.patch
 ApplyPatch drm-intel-edp-fixes.patch
-ApplyPatch drm_i915-check-eDP-encoder-correctly-when-setting-modes.patch
 
 # linux1394 git patches
 #ApplyPatch linux-2.6-firewire-git-update.patch
@@ -1313,7 +1323,7 @@ ApplyOptionalPatch linux-2.6-v4l-dvb-experimental.patch
 # http://www.lirc.org/
 #ApplyOptionalPatch lirc-staging-2.6.36-fixes.patch
 # enable IR receiver on Hauppauge HD PVR (v4l-dvb merge pending)
-ApplyPatch hdpvr-ir-enable.patch
+#ApplyPatch hdpvr-ir-enable.patch
 
 # rhbz#664852
 ApplyPatch flexcop-fix-xlate_proc_name-warning.patch
@@ -1329,17 +1339,16 @@ ApplyPatch neuter_intel_microcode_load.patch
 ApplyPatch tpm-fix-stall-on-boot.patch
 
 # various fixes for Apple and EFI
-ApplyPatch applesmc_update.patch
 ApplyPatch apple_backlight.patch
 ApplyPatch efifb_update.patch
-ApplyPatch linux-next-macbook-air-input.patch
 ApplyPatch acpi_reboot.patch
 ApplyPatch efi_default_physical.patch
 
 # Runtime PM
+ApplyPatch linux-2.6-ehci-check-port-status.patch
 ApplyPatch linux-2.6-usb-pci-autosuspend.patch
-ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
-ApplyPatch runtime_pm_fixups.patch
+#ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
+#ApplyPatch runtime_pm_fixups.patch
 
 # rhbz#605888
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
@@ -1347,15 +1356,8 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 # rhbz#630464
 ApplyPatch debug-tty-print-dev-name.patch
 
-# backport some fixes for kswapd from mmotm, rhbz#649694
-ApplyPatch mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-ApplyPatch mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
-
-# rhbz#637619
-ApplyPatch net-AF_PACKET-vmalloc.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.37.patch
@@ -1627,7 +1629,7 @@ BuildKernel() {
     rm -f modinfo modnames
 
     # remove files that will be auto generated by depmod at rpm -i time
-    for i in alias alias.bin ccwmap dep dep.bin ieee1394map inputmap isapnpmap ofmap pcimap seriomap symbols symbols.bin usbmap
+    for i in alias alias.bin builtin.bin ccwmap dep dep.bin ieee1394map inputmap isapnpmap ofmap pcimap seriomap symbols symbols.bin usbmap
     do
       rm -f $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.$i
     done
@@ -1974,8 +1976,82 @@ fi
 #             (__)\       )\/\
 #                 ||----w |
 #                 ||     ||
-
 %changelog
+* Sat Jan 22 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git0.1
+- Linux 2.6.38-rc2
+- linux-2.6-serial-460800.patch, drivers/serial => drivers/tty/serial
+
+* Thu Jan 20 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc1.git1.1
+- Linux 2.6.38-rc1-git1, should fix boot failure in -rc1.
+
+* Wed Jan 19 2011 Roland McGrath <roland@redhat.com>
+- utrace update
+
+* Wed Jan 19 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc1.git0.1
+- Linux 2.6.38-rc1
+
+* Tue Jan 18 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git18.1
+- Linux 2.6.37-git18
+
+* Mon Jan 17 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git16.1
+- Linux 2.6.37-git16
+- config changes:
+ - CONFIG_SQUASHFS_XZ=y [generic]
+ - CONFIG_SPARSE_IRQ=y [arm]
+
+* Sat Jan 15 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git13.1
+- Linux 2.6.37-git13
+- Drop xen_export-arbitrary_virt_to_machine.patch, upstream.
+
+* Fri Jan 14 2011 Kyle McMartin <kmcmartin@redhat.com>
+- xen_export-arbitrary_virt_to_machine.patch: pull patch from upstream
+  to fix build error.
+
+* Fri Jan 14 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git12.1
+- Linux 2.6.37-git12
+- 0001-use-__devexit-not-__exit-in-n2_unregister_algs-fixes.patch: drop
+  upstream patch.
+- acpi-update-battery-information-on-notification-0x81.patch: drop upstream
+  patch.
+- mm-*.patch: drop upstream patches.
+- important config changes:
+  ACPI_IPMI=m
+  CRYPTO_AES_NI_INTEL=m [i386]
+  TRANSPARENT_HUGEPAGE=y
+
+* Wed Jan 12 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git9.1
+- Linux 2.6.37-git9
+- Re-enable DEBUG_SET_MODULE_RONX since commit 94462ad3 fixed it.
+- Enable some more new random HID and sensor junk as modules.
+
+* Tue Jan 11 2011 Matthew Garrett <mjg@redhat.com>
+- linux-2.6-ehci-check-port-status.patch - fix USB resume on some AMD systems
+
+* Mon Jan 10 2011 Jarod Wilson <jarod@redhat.com>
+- Add support for local rebuild config option overrides
+- Add missing --with/--without pae build flag support
+
+* Mon Jan 10 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git4.2
+- Disable DEBUG_SET_MODULE_RONX for now, it causes boot-up to fail since
+  dynamic ftrace is trying to rewrite instructions on module load.
+
+* Mon Jan 10 2011 Kyle McMartin <kmcmartin@redhat.com>
+- Drop obsolete linux-2.6-debug-nmi-timeout.patch
+
+* Mon Jan 10 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc0.git4.1
+- Branch for 2.6.38
+- Rebase trivial patches.
+- Switch debug configs back on.
+- config changes:
+  DEBUG_SET_MODULE_RONX=y
+  B43_PHY_N=y
+  RT2800USB_RT33XX=y |
+  RT2800PCI_RT33XX=y | experimental
+  WL12XX=m
+  RTL8192CE=m
+  CAN_SLCAN=m
+  SCHED_AUTOGROUP=n
+
 * Sun Jan 09 2011 Michael Young <m.a.young@durham.ac.uk>
 - reorganize xen.pcifront.fixes.patch to be a combination of
   stable/bug-fixes stable/generic and stable/irq.rework for fixes
@@ -1990,10 +2066,10 @@ fi
 - update xen.pcifront.fixes.patch with IRQ fixes from stable/bug-fixes branch
 - skip docs - it seems to cause build failures at random points the moment.
 
-* Wed Jan 05 2011 Dennis Gilmore <dennis@ausil.us> 
+* Wed Jan 05 2011 Dennis Gilmore <dennis@ausil.us>
 - build sparc headers on sparcv9
 
-* Tue Jan 04 2011 Dennis Gilmore <dennis@ausil.us> 
+* Tue Jan 04 2011 Dennis Gilmore <dennis@ausil.us>
 - add patch for sparc build failure
 
 * Tue Jan 04 2011 Kyle McMartin <kyle@redhat.com> 2.6.37-1
