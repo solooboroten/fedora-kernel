@@ -1977,6 +1977,12 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Mon Jan 24 2011 Michael Young <m.a.young@durham.ac.uk>
+- update to 2.6.38-rc
+- Strip out upstream or conflicting patches from xen.next-2.6.37.patch
+  and xen.pcifront.fixes.patch
+- Add a test patch to fix a crash on boot to xen.pcifront.fixes.patch
+
 * Sat Jan 22 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git0.1
 - Linux 2.6.38-rc2
 - linux-2.6-serial-460800.patch, drivers/serial => drivers/tty/serial
