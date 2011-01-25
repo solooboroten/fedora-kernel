@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 1
+%global baserelease 3
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 2
 # The git snapshot level
-%define gitrev 0
+%define gitrev 1
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -710,6 +710,8 @@ Patch2918: flexcop-fix-xlate_proc_name-warning.patch
 
 # patches headed upstream
 
+Patch12001: perf-gcc460-build-fixes.patch
+
 Patch12010: add-appleir-usb-driver.patch
 
 Patch12016: disable-i8042-check-on-apple-mac.patch
@@ -717,8 +719,6 @@ Patch12016: disable-i8042-check-on-apple-mac.patch
 Patch12017: prevent-runtime-conntrack-changes.patch
 
 Patch12018: neuter_intel_microcode_load.patch
-
-Patch12030: tpm-fix-stall-on-boot.patch
 
 Patch12101: apple_backlight.patch
 Patch12102: efifb_update.patch
@@ -732,8 +732,6 @@ Patch12204: linux-2.6-enable-more-pci-autosuspend.patch
 Patch12205: runtime_pm_fixups.patch
 
 Patch12303: dmar-disable-when-ricoh-multifunction.patch
-
-Patch12401: debug-tty-print-dev-name.patch
 
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
@@ -1329,14 +1327,13 @@ ApplyOptionalPatch linux-2.6-v4l-dvb-experimental.patch
 ApplyPatch flexcop-fix-xlate_proc_name-warning.patch
 
 # Patches headed upstream
+ApplyPatch perf-gcc460-build-fixes.patch
+
 ApplyPatch disable-i8042-check-on-apple-mac.patch
 
 ApplyPatch add-appleir-usb-driver.patch
 
 ApplyPatch neuter_intel_microcode_load.patch
-
-# try to fix stalls during boot (#530393)
-ApplyPatch tpm-fix-stall-on-boot.patch
 
 # various fixes for Apple and EFI
 ApplyPatch apple_backlight.patch
@@ -1346,15 +1343,13 @@ ApplyPatch efi_default_physical.patch
 
 # Runtime PM
 ApplyPatch linux-2.6-ehci-check-port-status.patch
-ApplyPatch linux-2.6-usb-pci-autosuspend.patch
-#ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
+#ApplyPatch linux-2.6-usb-pci-autosuspend.patch
+### Broken by implicit notify support & ACPICA rebase
+###ApplyPatch linux-2.6-enable-more-pci-autosuspend.patch
 #ApplyPatch runtime_pm_fixups.patch
 
 # rhbz#605888
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
-
-# rhbz#630464
-ApplyPatch debug-tty-print-dev-name.patch
 
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
@@ -1977,6 +1972,23 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Mon Jan 24 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git1.3
+- Disable usb/pci/acpi autosuspend goo until it can be checked.
+
+* Mon Jan 24 2011 Kyle McMartin <kmcmartin@redhat.com>
+- debug-tty-print-dev-name.patch: drop, haven't seen any warnings recently.
+- runtime_pm_fixups.patch: rebase and re-enable, make acpi_power_transition
+   in pci_bind actually do the right thing instead of (likely) always
+   trying to transition to D0.
+
+* Mon Jan 24 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git1.1
+- Linux 2.6.38-rc2-git1
+- [e5cce6c1] tpm: fix panic caused by "tpm: Autodetect itpm devices"
+  may fix some boot issues people were having.
+- tpm-fix-stall-on-boot.patch: upstream.
+- perf-gcc460-build-fixes.patch: fix build issues with warn-unused-but-set
+  in gcc 4.6.0
+
 * Mon Jan 24 2011 Michael Young <m.a.young@durham.ac.uk>
 - update to 2.6.38-rc
 - Strip out upstream or conflicting patches from xen.next-2.6.37.patch
