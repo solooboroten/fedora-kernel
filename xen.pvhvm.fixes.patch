@@ -1,0 +1,197 @@
+From bb89b5a4444a7514f3cf6cadb4f613832d7a9887 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Fri, 14 Jan 2011 17:55:44 -0500
+Subject: [PATCH 1/4] m2p: No need to catch exceptions when we know that there is no RAM
+
+.. beyound what we think is the end of memory. However there might
+be more System RAM - but assigned to a guest. Hence jump to the
+M2P override check and consult.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/include/asm/xen/page.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/include/asm/xen/page.h b/arch/x86/include/asm/xen/page.h
+index f25bdf2..74a8559 100644
+--- a/arch/x86/include/asm/xen/page.h
++++ b/arch/x86/include/asm/xen/page.h
+@@ -77,6 +77,10 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
+ 	if (xen_feature(XENFEAT_auto_translated_physmap))
+ 		return mfn;
+ 
++	if (unlikely((mfn >> machine_to_phys_order) != 0)) {
++		pfn = ~0;
++		goto try_override;
++	}
+ 	pfn = 0;
+ 	/*
+ 	 * The array access can fail (e.g., device space beyond end of RAM).
+@@ -84,7 +88,7 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
+ 	 * but we must handle the fault without crashing!
+ 	 */
+ 	__get_user(pfn, &machine_to_phys_mapping[mfn]);
+-
++try_override:
+ 	/*
+ 	 * If this appears to be a foreign mfn (because the pfn
+ 	 * doesn't map back to the mfn), then check the local override
+-- 
+1.7.3.4
+
+
+From a7cdabcd381dffb5db72a31c78b65a2bcdec2a04 Mon Sep 17 00:00:00 2001
+From: Stefan Bader <stefan.bader@canonical.com>
+Date: Thu, 20 Jan 2011 15:19:46 +0000
+Subject: [PATCH 2/4] xen: p2m: correctly initialize partial p2m leave
+
+After changing the p2m mapping to a tree by
+
+  commit 58e05027b530ff081ecea68e38de8d59db8f87e0
+    xen: convert p2m to a 3 level tree
+
+and trying to boot a DomU with 615MB of memory, the following crash was
+observed in the dump:
+
+kernel direct mapping tables up to 26f00000 @ 1ec4000-1fff000
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<c0107397>] xen_set_pte+0x27/0x60
+*pdpt = 0000000000000000 *pde = 0000000000000000
+
+Adding further debug statements showed that when trying to set up
+pfn=0x26700 the returned mapping was invalid.
+
+pfn=0x266ff calling set_pte(0xc1fe77f8, 0x6b3003)
+pfn=0x26700 calling set_pte(0xc1fe7800, 0x3)
+
+Although the last_pfn obtained from the startup info is 0x26700, which
+should in turn not be hit, the additional 8MB which are added as extra
+memory normally seem to be ok. This lead to looking into the initial
+p2m tree construction, which uses the smaller value and assuming that
+there is other code handling the extra memory.
+
+When the p2m tree is set up, the leaves are directly pointed to the
+array which the domain builder set up. But if the mapping is not on a
+boundary that fits into one p2m page, this will result in the last leaf
+being only partially valid. And as the invalid entries are not
+initialized in that case, things go badly wrong.
+
+I am trying to fix that by checking whether the current leaf is a
+complete map and if not, allocate a completely new page and copy only
+the valid pointers there. This may not be the most efficient or elegant
+solution, but at least it seems to allow me booting DomUs with memory
+assignments all over the range.
+
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+---
+ arch/x86/xen/p2m.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/xen/p2m.c b/arch/x86/xen/p2m.c
+index 8f2251d..c9307ec 100644
+--- a/arch/x86/xen/p2m.c
++++ b/arch/x86/xen/p2m.c
+@@ -237,7 +237,25 @@ void __init xen_build_dynamic_phys_to_machine(void)
+ 			p2m_top[topidx] = mid;
+ 		}
+ 
+-		p2m_top[topidx][mididx] = &mfn_list[pfn];
++		/*
++		 * As long as the mfn_list has enough entries to completely
++		 * fill a p2m page, pointing into the array is ok. But if
++		 * not the entries beyond the last pfn will be undefined.
++		 * And guessing that the 'what-ever-there-is' does not take it
++		 * too kindly when changing it to invalid markers, a new page
++		 * is allocated, initialized and filled with the valid part.
++		 */
++		if (unlikely(pfn + P2M_PER_PAGE > max_pfn)) {
++			unsigned long p2midx;
++			unsigned long **p2m = extend_brk(PAGE_SIZE, PAGE_SIZE);
++			p2m_init(p2m);
++
++			for (p2midx = 0; pfn + p2midx < max_pfn; p2midx++) {
++				p2m[p2midx] = mfn_list[pfn + p2midx];
++			}
++			p2m_top[topidx][mididx] = p2m;
++		} else
++			p2m_top[topidx][mididx] = &mfn_list[pfn];
+ 	}
+ 
+ 	m2p_override_init();
+-- 
+1.7.3.4
+
+
+From b84683ad1e704c2a296d08ff0cbe29db936f94a7 Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Date: Tue, 25 Jan 2011 12:03:42 +0000
+Subject: [PATCH 3/4] xen: make sure the e820 memory regions end at page boundary
+
+Signed-off-by: M A Young <m.a.young@durham.ac.uk>
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+---
+ arch/x86/xen/setup.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index b5a7f92..a3d28a1 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -179,7 +179,10 @@ char * __init xen_memory_setup(void)
+ 	e820.nr_map = 0;
+ 	xen_extra_mem_start = mem_end;
+ 	for (i = 0; i < memmap.nr_entries; i++) {
+-		unsigned long long end = map[i].addr + map[i].size;
++		unsigned long long end;
++		if (map[i].type == E820_RAM)
++			map[i].size -= (map[i].size + map[i].addr) % PAGE_SIZE;
++		end = map[i].addr + map[i].size;
+ 
+ 		if (map[i].type == E820_RAM && end > mem_end) {
+ 			/* RAM off the end - may be partially included */
+-- 
+1.7.3.4
+
+
+From daed469760dabbf6ae81c9869a263535fb587e63 Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Date: Tue, 25 Jan 2011 12:05:11 +0000
+Subject: [PATCH 4/4] When destroying mappings between _brk_end and _end, do not go over _end
+
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+---
+ arch/x86/mm/init.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index 947f42a..ebc0221 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -291,10 +291,23 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
+ 		 * located on different 2M pages. cleanup_highmap(), however,
+ 		 * can only consider _end when it runs, so destroy any
+ 		 * mappings beyond _brk_end here.
++		 * Be careful not to go over _end.
+ 		 */
+ 		pud = pud_offset(pgd_offset_k(_brk_end), _brk_end);
+ 		pmd = pmd_offset(pud, _brk_end - 1);
+-		while (++pmd <= pmd_offset(pud, (unsigned long)_end - 1))
++		while (++pmd < pmd_offset(pud, (unsigned long)_end - 1))
++			pmd_clear(pmd);
++		if (((unsigned long)_end) & ~PMD_MASK) {
++			pte_t *pte;
++			unsigned long addr;
++			for (addr = ((unsigned long)_end) & PMD_MASK;
++					addr < ((unsigned long)_end);
++					addr += PAGE_SIZE) {
++				pte = pte_offset_map(pmd, addr);
++				pte_clear(&init_mm, addr, pte);
++				pte_unmap(pte);
++			}
++		} else
+ 			pmd_clear(pmd);
+ 	}
+ #endif
+-- 
+1.7.3.4
+

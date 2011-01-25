@@ -737,12 +737,12 @@ Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
-Patch20000: xen.next-2.6.37.patch
+Patch20000: xen.next-2.6.38.patch
 #Patch20001: xen.upstream.core.patch
 # git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git branches
-Patch20005: xen.pcifront.fixes.patch
+#Patch20005: xen.pcifront.fixes.patch
 # git://xenbits.xen.org/people/sstabellini/linux-pvhvm branches
-#Patch20010: xen.pvhvm.fixes.patch
+Patch20010: xen.pvhvm.fixes.patch
 
 %endif
 
@@ -1357,9 +1357,9 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
 # Xen patches
-ApplyPatch xen.next-2.6.37.patch
+ApplyPatch xen.next-2.6.38.patch
 #ApplyPatch xen.upstream.core.patch
-ApplyPatch xen.pcifront.fixes.patch
+#ApplyPatch xen.pcifront.fixes.patch
 #ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
@@ -1974,6 +1974,13 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Tue Jan 25 2011 Michael Young <m.a.young@durham.ac.uk>
+- Switch from xen/next-2.6.37 to xen/next-2.6.38
+  which adds XEN_NETDEV_BACKEND and XEN_PCIDEV_BACKEND
+- comment out xen.pcifront.fixes.patch (patches are in next-2.6.38)
+- put 2.6.38-rc1-memory-fixes branch in xen.pvhvm.fixes.patch
+  for some memory fixes including a later version of the crash on boot patch
+
 * Tue Jan 25 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git3.1
 - Linux 2.6.38-rc2-git3
 - perf-gcc460-build-fixes.patch: fix context from [9486aa38]

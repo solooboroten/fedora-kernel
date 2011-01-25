@@ -1,2 +1,5 @@
 # This file is intentionally left empty in the stock kernel. Its a nicety
 # added for those wanting to do custom rebuilds with altered config opts.
+CONFIG_XEN_NETDEV_BACKEND=m
+CONFIG_XEN_PCIDEV_BACKEND=m
+CONFIG_XEN_PCIDEV_BE_DEBUG=n
