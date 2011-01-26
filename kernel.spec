@@ -1978,6 +1978,7 @@ fi
 %changelog
 * Tue Jan 25 2011 Michael Young <m.a.young@durham.ac.uk>
 - Actually include xen.pvhvm.fixes.patch
+- Remove an upstream patch from xen.pvhvm.fixes.patch
 
 * Tue Jan 25 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git3.2
 - [x86] Disable TRANSPARENT_HUGEPAGE for now, there be dragons there.
