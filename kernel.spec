@@ -1362,7 +1362,7 @@ ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 ApplyPatch xen.next-2.6.38.patch
 #ApplyPatch xen.upstream.core.patch
 #ApplyPatch xen.pcifront.fixes.patch
-#ApplyPatch xen.pvhvm.fixes.patch
+ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
 
@@ -1976,6 +1976,9 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Tue Jan 25 2011 Michael Young <m.a.young@durham.ac.uk>
+- Actually include xen.pvhvm.fixes.patch
+
 * Tue Jan 25 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git3.2
 - [x86] Disable TRANSPARENT_HUGEPAGE for now, there be dragons there.
 
