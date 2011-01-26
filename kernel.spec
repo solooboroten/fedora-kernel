@@ -229,9 +229,6 @@ Summary: The Linux kernel
 %ifnarch i686
 %define with_pae 0
 %endif
-%ifarch i686
-%define with_up 0
-%endif
 
 # if requested, only build base kernel
 %if %{with_baseonly}
@@ -424,6 +421,11 @@ Summary: The Linux kernel
 %define with_pae_debug 0
 %if %{with_pae}
 %define with_pae_debug %{with_debug}
+%endif
+
+%ifarch i686
+%define with_up 0
+%define with_debug 0
 %endif
 
 #
@@ -1980,6 +1982,7 @@ fi
 - comment out xen.pcifront.fixes.patch (patches are in next-2.6.38)
 - put 2.6.38-rc1-memory-fixes branch in xen.pvhvm.fixes.patch
   for some memory fixes including a later version of the crash on boot patch
+- don't build non-PAE debug kernel for i686
 
 * Tue Jan 25 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git3.1
 - Linux 2.6.38-rc2-git3
