@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-%define buildid .pnfs_all_2010_11_03
+%define buildid .pnfs_38_rc2_0100107
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -727,15 +727,7 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12305: xhci_hcd-suspend-resume.patch
 
-Patch30000: pnfs-all-2.6.36-rc3-2010-08-30.patch
-Patch30001: linux-2.6-pnfs-compile.patch
-Patch30002: linux-2.6.35-inline.patch
-
-Patch30000: pnfs-all-latest.v2.6.36-rc6-f15.patch
-Patch30001: linux-2.6-pnfs-compile.patch
-Patch30002: linux-2.6.35-inline.patch
-
-Patch30000: pnfs-all-2.6.36-2010-11-03.patch
+Patch30000: pnfs-all-2.6.38-rc2-2011-01-27.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
@@ -1364,19 +1356,7 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
 ApplyPatch xhci_hcd-suspend-resume.patch
 
-ApplyPatch pnfs-all-2.6.36-2010-11-03.patch 
-ApplyPatch linux-2.6-pnfs-compile.patch
-ApplyPatch linux-2.6.35-inline.patch
-
-ApplyPatch pnfs-all-latest.v2.6.36-rc6-f15.patch
-ApplyPatch linux-2.6-pnfs-compile.patch
-ApplyPatch linux-2.6.35-inline.patch
-
-ApplyPatch pnfs-all-2.6.36-2010-11-03.patch 
-ApplyPatch linux-2.6-pnfs-compile.patch
-ApplyPatch linux-2.6.35-inline.patch
-
-ApplyPatch pnfs-all-2.6.36-rc3-2010-08-30.patch
+ApplyPatch pnfs-all-2.6.38-rc2-2011-01-27.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
@@ -2166,6 +2146,9 @@ fi
 * Fri Jan 28 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git7.1
 - Linux 2.6.38-rc2-git7
 
+* Fri Jan 28 2011  Steve Dickson <steved@redhat.com> 2.6.38-0.rc2.git5.1
+- Updated to the latest pNFS tag: pnfs-all-2.6.38-rc2-2011-01-27
+
 * Wed Jan 26 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git5.1
 - Linux 2.6.38-rc2-git5
 - [x86] Re-enable TRANSPARENT_HUGEPAGE, should be fixed by cacf061c.
@@ -2433,6 +2416,9 @@ fi
 * Mon Nov 08 2010 Kyle McMartin <kyle@redhat.com>
 - Cherry-pick utrace-ptrace fixes from mayoung. Thanks!
 
+* Mon Nov 08 2010 Steve Dickson <steved@redhat.com> 
+- Updated to the latest pNFS tag: pnfs-all-2.6.36-2010-11-03
+
 * Tue Nov 02 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc1.git0
 - Linux 2.6.37-rc1
 
@@ -2442,9 +2428,6 @@ fi
 * Fri Oct 22 2010 Kyle McMartin <kyle@redhat.com> 2.6.37-0.1.rc0.git2
 - Switch to tracking git snapshots of what will become 2.6.37.
 - Fix context rejects in utrace and a few other patches.
-
-* Mon Nov  8 2010 Steve Dickson <steved@redhat.com> 
-- Updated to the latest pNFS tag: pnfs-all-2.6.36-2010-11-03
 
 * Wed Oct 20 2010 Chuck Ebbert <cebbert@redhat.com> 2.6.36-1
 - Linux 2.6.36
