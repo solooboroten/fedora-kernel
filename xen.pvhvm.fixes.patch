@@ -1,4 +1,4 @@
-From bb89b5a4444a7514f3cf6cadb4f613832d7a9887 Mon Sep 17 00:00:00 2001
+From 20fddbd4510f3a3888cccc64f89862168a2b7528 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Fri, 14 Jan 2011 17:55:44 -0500
 Subject: [PATCH 1/4] m2p: No need to catch exceptions when we know that there is no RAM
@@ -37,55 +37,24 @@ index f25bdf2..74a8559 100644
  	 * If this appears to be a foreign mfn (because the pfn
  	 * doesn't map back to the mfn), then check the local override
 -- 
-1.7.3.4
+1.7.3.5
 
 
-From b84683ad1e704c2a296d08ff0cbe29db936f94a7 Mon Sep 17 00:00:00 2001
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Date: Tue, 25 Jan 2011 12:03:42 +0000
-Subject: [PATCH 3/4] xen: make sure the e820 memory regions end at page boundary
-
-Signed-off-by: M A Young <m.a.young@durham.ac.uk>
-Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
----
- arch/x86/xen/setup.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
-index b5a7f92..a3d28a1 100644
---- a/arch/x86/xen/setup.c
-+++ b/arch/x86/xen/setup.c
-@@ -179,7 +179,10 @@ char * __init xen_memory_setup(void)
- 	e820.nr_map = 0;
- 	xen_extra_mem_start = mem_end;
- 	for (i = 0; i < memmap.nr_entries; i++) {
--		unsigned long long end = map[i].addr + map[i].size;
-+		unsigned long long end;
-+		if (map[i].type == E820_RAM)
-+			map[i].size -= (map[i].size + map[i].addr) % PAGE_SIZE;
-+		end = map[i].addr + map[i].size;
- 
- 		if (map[i].type == E820_RAM && end > mem_end) {
- 			/* RAM off the end - may be partially included */
--- 
-1.7.3.4
-
-
-From daed469760dabbf6ae81c9869a263535fb587e63 Mon Sep 17 00:00:00 2001
+From a89d6bd5cfa1ba3b27d7ba2dc664975a0560fb15 Mon Sep 17 00:00:00 2001
 From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 Date: Tue, 25 Jan 2011 12:05:11 +0000
-Subject: [PATCH 4/4] When destroying mappings between _brk_end and _end, do not go over _end
+Subject: [PATCH 3/4] When destroying mappings between _brk_end and _end, do not go over _end
 
 Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 ---
- arch/x86/mm/init.c |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletions(-)
+ arch/x86/mm/init.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index 947f42a..ebc0221 100644
+index 947f42a..c7263c9 100644
 --- a/arch/x86/mm/init.c
 +++ b/arch/x86/mm/init.c
-@@ -291,10 +291,23 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
+@@ -291,10 +291,11 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
  		 * located on different 2M pages. cleanup_highmap(), however,
  		 * can only consider _end when it runs, so destroy any
  		 * mappings beyond _brk_end here.
@@ -94,22 +63,11 @@ index 947f42a..ebc0221 100644
  		pud = pud_offset(pgd_offset_k(_brk_end), _brk_end);
  		pmd = pmd_offset(pud, _brk_end - 1);
 -		while (++pmd <= pmd_offset(pud, (unsigned long)_end - 1))
-+		while (++pmd < pmd_offset(pud, (unsigned long)_end - 1))
-+			pmd_clear(pmd);
-+		if (((unsigned long)_end) & ~PMD_MASK) {
-+			pte_t *pte;
-+			unsigned long addr;
-+			for (addr = ((unsigned long)_end) & PMD_MASK;
-+					addr < ((unsigned long)_end);
-+					addr += PAGE_SIZE) {
-+				pte = pte_offset_map(pmd, addr);
-+				pte_clear(&init_mm, addr, pte);
-+				pte_unmap(pte);
-+			}
-+		} else
++		while (++pmd < pmd_offset(pud, (unsigned long)_end))
  			pmd_clear(pmd);
  	}
  #endif
 -- 
-1.7.3.4
+1.7.3.5
+
 

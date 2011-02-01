@@ -1994,6 +1994,9 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Tue Feb 02 2011 Michael Young <m.a.young@durham.ac.uk>
+- Update xen.next-2.6.38 and xen.pvhvm.fixes patches
+
 * Mon Feb 01 2011 Chuck Ebbert <cebbert@redhat.com>
 - Linux 2.6.38-rc3
 - Try to fix some obvious bugs in hfsplus mount failure handling (#673857)
