@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 2
+%global baserelease 1
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 2
+%define rcrev 3
 # The git snapshot level
-%define gitrev 3
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -737,6 +737,14 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
+Patch12430: can-softing-depend-on-iomem.patch
+
+# rhbz#673857
+Patch12432: hfsplus-01-dont-leak-buffer.patch
+Patch12433: hfsplus-02-fill-super-skip-cleanup.patch
+Patch12434: hfsplus-03-zero-vhdr-on-free.patch
+Patch12435: hfsplus-04-check-for-vhdr.patch
+
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
 Patch20000: xen.next-2.6.38.patch
@@ -1358,6 +1366,16 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
+# Fix build failure on s390
+# accepted upstream
+ApplyPatch can-softing-depend-on-iomem.patch
+
+# rhbz#673857
+ApplyPatch hfsplus-01-dont-leak-buffer.patch
+ApplyPatch hfsplus-02-fill-super-skip-cleanup.patch
+ApplyPatch hfsplus-03-zero-vhdr-on-free.patch
+ApplyPatch hfsplus-04-check-for-vhdr.patch
+
 # Xen patches
 ApplyPatch xen.next-2.6.38.patch
 #ApplyPatch xen.upstream.core.patch
@@ -1399,7 +1417,7 @@ do
 %if %{listnewconfig_fail}
   if [ -s .newoptions ]; then
     cat .newoptions
-    exit 0
+    exit 1
   fi
 %endif
   rm -f .newoptions
@@ -1976,6 +1994,30 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Mon Feb 01 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc3
+- Try to fix some obvious bugs in hfsplus mount failure handling (#673857)
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git9.1
+- Linux 2.6.38-rc2-git9
+
+* Mon Jan 31 2011 Kyle McMartin <kmcmartin@redhat.com>
+- disable CONFIG_SERIAL_8250_DETECT_IRQ (from mschmidt@redhat.com)
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc2-git8
+- Add Trond's NFS bugfixes branch from git.linux-nfs.org
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git7.2
+- Fix build failure on s390.
+
+* Fri Jan 28 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git7.1
+- Linux 2.6.38-rc2-git7
+
+* Wed Jan 26 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc2.git5.1
+- Linux 2.6.38-rc2-git5
+- [x86] Re-enable TRANSPARENT_HUGEPAGE, should be fixed by cacf061c.
+
 * Tue Jan 25 2011 Michael Young <m.a.young@durham.ac.uk>
 - Actually include xen.pvhvm.fixes.patch
 - Remove an upstream patch from xen.pvhvm.fixes.patch
