@@ -82,9 +82,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 2
+%define rcrev 3
 # The git snapshot level
-%define gitrev 5
+%define gitrev 2
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -731,6 +731,18 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
+Patch12430: can-softing-depend-on-iomem.patch
+
+# rhbz#673857
+Patch12432: hfsplus-01-dont-leak-buffer.patch
+Patch12434: hfsplus-03-zero-vhdr-on-free.patch
+Patch12436: hfsplus-05-fix-failed-mount.patch
+
+# rhbz#607499
+Patch12437: atl1c-add-missing-pci-id.patch
+
+Patch12438: ath5k-fix-fast-channel-change.patch
+
 Patch30000: pnfs-all-2.6.38-rc2-2011-01-27.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
@@ -1347,6 +1359,21 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
+# Fix build failure on s390
+# accepted upstream
+ApplyPatch can-softing-depend-on-iomem.patch
+
+# rhbz#673857
+ApplyPatch hfsplus-01-dont-leak-buffer.patch
+ApplyPatch hfsplus-03-zero-vhdr-on-free.patch
+ApplyPatch hfsplus-05-fix-failed-mount.patch
+
+# rhbz#607499
+ApplyPatch atl1c-add-missing-pci-id.patch
+
+# rhbz#672778
+ApplyPatch ath5k-fix-fast-channel-change.patch
+
 ApplyPatch pnfs-all-2.6.38-rc2-2011-01-27.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
@@ -1386,7 +1413,7 @@ do
 %if %{listnewconfig_fail}
   if [ -s .newoptions ]; then
     cat .newoptions
-    exit 0
+    exit 1
   fi
 %endif
   rm -f .newoptions
@@ -1963,6 +1990,36 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Thu Feb 03 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc3.git2.1
+- Linux 2.6.38-rc3-git2 snapshot
+- [sgruszka] ath5k: fix fast channel change (#672778)
+
+* Wed Feb 02 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc3.git1.1
+- Linux 2.6.38-rc3-git1 snapshot.
+
+* Wed Feb 02 2011 Chuck Ebbert <cebbert@redhat.com>
+- Fix autoload of atl1c driver for latest hardware (#607499)
+
+* Tue Feb 01 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc3.git0.1
+- Linux 2.6.38-rc3
+- Try to fix some obvious bugs in hfsplus mount failure handling (#673857)
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git9.1
+- Linux 2.6.38-rc2-git9
+
+* Mon Jan 31 2011 Kyle McMartin <kmcmartin@redhat.com>
+- disable CONFIG_SERIAL_8250_DETECT_IRQ (from mschmidt@redhat.com)
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc2-git8
+- Add Trond's NFS bugfixes branch from git.linux-nfs.org
+
+* Mon Jan 31 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git7.2
+- Fix build failure on s390.
+
+* Fri Jan 28 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc2.git7.1
+- Linux 2.6.38-rc2-git7
+
 * Fri Jan 28 2011  Steve Dickson <steved@redhat.com> 2.6.38-0.rc2.git5.1
 - Updated to the latest pNFS tag: pnfs-all-2.6.38-rc2-2011-01-27
 
