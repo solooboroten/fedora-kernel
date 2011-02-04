@@ -23,7 +23,7 @@ Summary: The Linux kernel
 #
 # (Uncomment the '#' and both spaces below to set the buildid.)
 #
-%define buildid .pnfs_38_rc2_0100107
+%define buildid .pnfs_wave3_20110203
 ###################################################################
 
 # The buildid can also be specified on the rpmbuild command line
@@ -743,7 +743,7 @@ Patch12437: atl1c-add-missing-pci-id.patch
 
 Patch12438: ath5k-fix-fast-channel-change.patch
 
-Patch30000: pnfs-all-2.6.38-rc2-2011-01-27.patch
+Patch30000: pnfs-all-2.6.38-rc3-2011-02-03.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
@@ -1374,7 +1374,7 @@ ApplyPatch atl1c-add-missing-pci-id.patch
 # rhbz#672778
 ApplyPatch ath5k-fix-fast-channel-change.patch
 
-ApplyPatch pnfs-all-2.6.38-rc2-2011-01-27.patch
+ApplyPatch pnfs-all-2.6.38-rc3-2011-02-03.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
 ApplyPatch linux-2.6.35-inline.patch
 
@@ -1990,6 +1990,9 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Thu Feb  3 2011 Steve Dickson <steved@redhat.com> 2.6.38-0.rc3.git2.1
+- Updated to the latest pNFS tag: pnfs-all-2.6.38-rc3-2011-02-03
+
 * Thu Feb 03 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc3.git2.1
 - Linux 2.6.38-rc3-git2 snapshot
 - [sgruszka] ath5k: fix fast channel change (#672778)

@@ -1,6 +1,6 @@
 diff -up linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt.orig linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt
---- linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt.orig	2011-01-28 09:43:53.292780695 -0500
-+++ linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt	2011-01-28 09:43:53.292780695 -0500
+--- linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt.orig	2011-02-03 17:42:47.785615768 -0500
++++ linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt	2011-02-03 17:42:47.785615768 -0500
 @@ -0,0 +1,211 @@
 +(c) 2007 Network Appliance Inc.
 +
@@ -214,8 +214,8 @@ diff -up linux-2.6.37.noarch/Documentation/filesystems/spnfs.txt.orig linux-2.6.
 +
 +
 diff -up linux-2.6.37.noarch/drivers/md/dm-ioctl.c.orig linux-2.6.37.noarch/drivers/md/dm-ioctl.c
---- linux-2.6.37.noarch/drivers/md/dm-ioctl.c.orig	2011-01-28 09:37:28.883106954 -0500
-+++ linux-2.6.37.noarch/drivers/md/dm-ioctl.c	2011-01-28 09:43:53.293780446 -0500
+--- linux-2.6.37.noarch/drivers/md/dm-ioctl.c.orig	2011-02-03 17:38:13.011303973 -0500
++++ linux-2.6.37.noarch/drivers/md/dm-ioctl.c	2011-02-03 17:42:47.786615833 -0500
 @@ -713,6 +713,12 @@ static int dev_create(struct dm_ioctl *p
  	return 0;
  }
@@ -270,7 +270,7 @@ diff -up linux-2.6.37.noarch/drivers/md/dm-ioctl.c.orig linux-2.6.37.noarch/driv
  	struct hash_cell *hc;
 diff -up linux-2.6.37.noarch/drivers/scsi/hosts.c.orig linux-2.6.37.noarch/drivers/scsi/hosts.c
 --- linux-2.6.37.noarch/drivers/scsi/hosts.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/drivers/scsi/hosts.c	2011-01-28 09:43:53.294780201 -0500
++++ linux-2.6.37.noarch/drivers/scsi/hosts.c	2011-02-03 17:42:47.788615969 -0500
 @@ -50,10 +50,11 @@ static void scsi_host_cls_release(struct
  	put_device(&class_to_shost(dev)->shost_gendev);
  }
@@ -286,7 +286,7 @@ diff -up linux-2.6.37.noarch/drivers/scsi/hosts.c.orig linux-2.6.37.noarch/drive
   *	scsi_host_set_state - Take the given host through the host state model.
 diff -up linux-2.6.37.noarch/fs/exofs/exofs.h.orig linux-2.6.37.noarch/fs/exofs/exofs.h
 --- linux-2.6.37.noarch/fs/exofs/exofs.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/exofs/exofs.h	2011-01-28 09:43:53.296779718 -0500
++++ linux-2.6.37.noarch/fs/exofs/exofs.h	2011-02-03 17:42:47.790616115 -0500
 @@ -36,13 +36,9 @@
  #include <linux/fs.h>
  #include <linux/time.h>
@@ -343,8 +343,8 @@ diff -up linux-2.6.37.noarch/fs/exofs/exofs.h.orig linux-2.6.37.noarch/fs/exofs/
 +
  #endif
 diff -up linux-2.6.37.noarch/fs/exofs/export.c.orig linux-2.6.37.noarch/fs/exofs/export.c
---- linux-2.6.37.noarch/fs/exofs/export.c.orig	2011-01-28 09:43:53.297779480 -0500
-+++ linux-2.6.37.noarch/fs/exofs/export.c	2011-01-28 09:43:53.297779480 -0500
+--- linux-2.6.37.noarch/fs/exofs/export.c.orig	2011-02-03 17:42:47.791616190 -0500
++++ linux-2.6.37.noarch/fs/exofs/export.c	2011-02-03 17:42:47.791616190 -0500
 @@ -0,0 +1,396 @@
 +/*
 + * export.c - Implementation of the pnfs_export_operations
@@ -743,8 +743,8 @@ diff -up linux-2.6.37.noarch/fs/exofs/export.c.orig linux-2.6.37.noarch/fs/exofs
 +	sb->s_pnfs_op = &exofs_pnfs_ops;
 +}
 diff -up linux-2.6.37.noarch/fs/exofs/inode.c.orig linux-2.6.37.noarch/fs/exofs/inode.c
---- linux-2.6.37.noarch/fs/exofs/inode.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/exofs/inode.c	2011-01-28 09:43:53.298779243 -0500
+--- linux-2.6.37.noarch/fs/exofs/inode.c.orig	2011-02-03 17:38:18.920420822 -0500
++++ linux-2.6.37.noarch/fs/exofs/inode.c	2011-02-03 17:42:47.792616267 -0500
 @@ -820,8 +820,9 @@ static inline int exofs_inode_is_fast_sy
  const struct osd_attr g_attr_logical_length = ATTR_DEF(
  	OSD_APAGE_OBJECT_INFORMATION, OSD_ATTR_OI_LOGICAL_LENGTH, 8);
@@ -776,7 +776,7 @@ diff -up linux-2.6.37.noarch/fs/exofs/inode.c.orig linux-2.6.37.noarch/fs/exofs/
   * Fill in an inode read from the OSD and set it up for use
 diff -up linux-2.6.37.noarch/fs/exofs/Kbuild.orig linux-2.6.37.noarch/fs/exofs/Kbuild
 --- linux-2.6.37.noarch/fs/exofs/Kbuild.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/exofs/Kbuild	2011-01-28 09:43:53.295779958 -0500
++++ linux-2.6.37.noarch/fs/exofs/Kbuild	2011-02-03 17:42:47.789616042 -0500
 @@ -13,4 +13,5 @@
  #
  
@@ -785,7 +785,7 @@ diff -up linux-2.6.37.noarch/fs/exofs/Kbuild.orig linux-2.6.37.noarch/fs/exofs/K
  obj-$(CONFIG_EXOFS_FS) += exofs.o
 diff -up linux-2.6.37.noarch/fs/exofs/Kconfig.orig linux-2.6.37.noarch/fs/exofs/Kconfig
 --- linux-2.6.37.noarch/fs/exofs/Kconfig.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/exofs/Kconfig	2011-01-28 09:43:53.295779958 -0500
++++ linux-2.6.37.noarch/fs/exofs/Kconfig	2011-02-03 17:42:47.789616042 -0500
 @@ -1,6 +1,7 @@
  config EXOFS_FS
  	tristate "exofs: OSD based file system support"
@@ -795,8 +795,8 @@ diff -up linux-2.6.37.noarch/fs/exofs/Kconfig.orig linux-2.6.37.noarch/fs/exofs/
  	  EXOFS is a file system that uses an OSD storage device,
  	  as its backing storage.
 diff -up linux-2.6.37.noarch/fs/exofs/super.c.orig linux-2.6.37.noarch/fs/exofs/super.c
---- linux-2.6.37.noarch/fs/exofs/super.c.orig	2011-01-28 09:37:32.381985535 -0500
-+++ linux-2.6.37.noarch/fs/exofs/super.c	2011-01-28 09:43:53.300778781 -0500
+--- linux-2.6.37.noarch/fs/exofs/super.c.orig	2011-02-03 17:38:17.157385959 -0500
++++ linux-2.6.37.noarch/fs/exofs/super.c	2011-02-03 17:42:47.794616428 -0500
 @@ -627,6 +627,7 @@ static int exofs_fill_super(struct super
  	sb->s_fs_info = sbi;
  	sb->s_op = &exofs_sops;
@@ -806,8 +806,8 @@ diff -up linux-2.6.37.noarch/fs/exofs/super.c.orig linux-2.6.37.noarch/fs/exofs/
  	if (IS_ERR(root)) {
  		EXOFS_ERR("ERROR: exofs_iget failed\n");
 diff -up linux-2.6.37.noarch/fs/exportfs/expfs.c.orig linux-2.6.37.noarch/fs/exportfs/expfs.c
---- linux-2.6.37.noarch/fs/exportfs/expfs.c.orig	2011-01-28 09:37:32.382985501 -0500
-+++ linux-2.6.37.noarch/fs/exportfs/expfs.c	2011-01-28 09:43:53.301778557 -0500
+--- linux-2.6.37.noarch/fs/exportfs/expfs.c.orig	2011-02-03 17:38:17.158385979 -0500
++++ linux-2.6.37.noarch/fs/exportfs/expfs.c	2011-02-03 17:42:47.795616512 -0500
 @@ -16,6 +16,13 @@
  #include <linux/namei.h>
  #include <linux/sched.h>
@@ -824,7 +824,7 @@ diff -up linux-2.6.37.noarch/fs/exportfs/expfs.c.orig linux-2.6.37.noarch/fs/exp
  
 diff -up linux-2.6.37.noarch/fs/exportfs/Makefile.orig linux-2.6.37.noarch/fs/exportfs/Makefile
 --- linux-2.6.37.noarch/fs/exportfs/Makefile.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/exportfs/Makefile	2011-01-28 09:43:53.300778781 -0500
++++ linux-2.6.37.noarch/fs/exportfs/Makefile	2011-02-03 17:42:47.794616428 -0500
 @@ -3,4 +3,7 @@
  
  obj-$(CONFIG_EXPORTFS) += exportfs.o
@@ -835,8 +835,8 @@ diff -up linux-2.6.37.noarch/fs/exportfs/Makefile.orig linux-2.6.37.noarch/fs/ex
 +exportfs-$(CONFIG_EXPORTFS_OSD_LAYOUT)	+= pnfs_osd_xdr_srv.o
 +exportfs-$(CONFIG_EXPORTFS_BLOCK_LAYOUT) += nfs4blocklayoutxdr.o
 diff -up linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c.orig linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c
---- linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c.orig	2011-01-28 09:43:53.301778557 -0500
-+++ linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c	2011-01-28 09:43:53.301778557 -0500
+--- linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c.orig	2011-02-03 17:42:47.796616596 -0500
++++ linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c	2011-02-03 17:42:47.796616596 -0500
 @@ -0,0 +1,158 @@
 +/*
 + *  linux/fs/nfsd/nfs4blocklayoutxdr.c
@@ -997,8 +997,8 @@ diff -up linux-2.6.37.noarch/fs/exportfs/nfs4blocklayoutxdr.c.orig linux-2.6.37.
 +}
 +EXPORT_SYMBOL_GPL(blocklayout_encode_layout);
 diff -up linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c.orig linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c
---- linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c.orig	2011-01-28 09:43:53.302778335 -0500
-+++ linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c	2011-01-28 09:43:53.302778335 -0500
+--- linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c.orig	2011-02-03 17:42:47.796616596 -0500
++++ linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c	2011-02-03 17:42:47.796616596 -0500
 @@ -0,0 +1,218 @@
 +/*
 + *  Copyright (c) 2006 The Regents of the University of Michigan.
@@ -1219,8 +1219,8 @@ diff -up linux-2.6.37.noarch/fs/exportfs/nfs4filelayoutxdr.c.orig linux-2.6.37.n
 +}
 +EXPORT_SYMBOL(filelayout_encode_layout);
 diff -up linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c.orig linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c
---- linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c.orig	2011-01-28 09:43:53.303778113 -0500
-+++ linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c	2011-01-28 09:43:53.303778113 -0500
+--- linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c.orig	2011-02-03 17:42:47.797616683 -0500
++++ linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c	2011-02-03 17:42:47.797616683 -0500
 @@ -0,0 +1,289 @@
 +/*
 + *  pnfs_osd_xdr_enc.c
@@ -1512,8 +1512,8 @@ diff -up linux-2.6.37.noarch/fs/exportfs/pnfs_osd_xdr_srv.c.orig linux-2.6.37.no
 +}
 +EXPORT_SYMBOL(pnfs_osd_xdr_decode_ioerr);
 diff -up linux-2.6.37.noarch/fs/gfs2/ops_fstype.c.orig linux-2.6.37.noarch/fs/gfs2/ops_fstype.c
---- linux-2.6.37.noarch/fs/gfs2/ops_fstype.c.orig	2011-01-28 09:37:32.445983313 -0500
-+++ linux-2.6.37.noarch/fs/gfs2/ops_fstype.c	2011-01-28 09:43:53.303778113 -0500
+--- linux-2.6.37.noarch/fs/gfs2/ops_fstype.c.orig	2011-02-03 17:38:17.221387225 -0500
++++ linux-2.6.37.noarch/fs/gfs2/ops_fstype.c	2011-02-03 17:42:47.798616771 -0500
 @@ -18,6 +18,7 @@
  #include <linux/mount.h>
  #include <linux/gfs2_ondisk.h>
@@ -1533,8 +1533,8 @@ diff -up linux-2.6.37.noarch/fs/gfs2/ops_fstype.c.orig linux-2.6.37.noarch/fs/gf
  	sb->s_qcop = &gfs2_quotactl_ops;
  	sb_dqopt(sb)->flags |= DQUOT_QUOTA_SYS_FILE;
 diff -up linux-2.6.37.noarch/fs/Kconfig.orig linux-2.6.37.noarch/fs/Kconfig
---- linux-2.6.37.noarch/fs/Kconfig.orig	2011-01-28 09:37:32.257989837 -0500
-+++ linux-2.6.37.noarch/fs/Kconfig	2011-01-28 09:43:53.295779958 -0500
+--- linux-2.6.37.noarch/fs/Kconfig.orig	2011-02-03 17:38:17.024383329 -0500
++++ linux-2.6.37.noarch/fs/Kconfig	2011-02-03 17:42:47.789616042 -0500
 @@ -49,6 +49,28 @@ config FS_POSIX_ACL
  config EXPORTFS
  	tristate
@@ -1565,8 +1565,8 @@ diff -up linux-2.6.37.noarch/fs/Kconfig.orig linux-2.6.37.noarch/fs/Kconfig
  	bool "Enable POSIX file locking API" if EXPERT
  	default y
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c.orig linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c
---- linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c.orig	2011-01-28 09:43:53.306777474 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c	2011-01-28 09:43:53.306777474 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c.orig	2011-02-03 17:42:47.800616952 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c	2011-02-03 17:42:47.800616952 -0500
 @@ -0,0 +1,66 @@
 +#include <linux/module.h>
 +#include <linux/uaccess.h>
@@ -1635,8 +1635,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/block-device-discovery-pipe.c.or
 +	return;
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c.orig linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c
---- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c.orig	2011-01-28 09:43:53.307777263 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c	2011-01-28 09:43:53.307777263 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c.orig	2011-02-03 17:42:47.801617045 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c	2011-02-03 17:42:47.801617045 -0500
 @@ -0,0 +1,1146 @@
 +/*
 + *  linux/fs/nfs/blocklayout/blocklayout.c
@@ -2259,7 +2259,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c.orig linux-2.6.37.
 +bl_setup_layoutcommit(struct pnfs_layout_hdr *lo,
 +		      struct nfs4_layoutcommit_args *arg)
 +{
-+	struct nfs_server *nfss = NFS_SERVER(lo->inode);
++	struct nfs_server *nfss = NFS_SERVER(lo->plh_inode);
 +	struct bl_layoutupdate_data *layoutupdate_data;
 +
 +	dprintk("%s enter\n", __func__);
@@ -2785,8 +2785,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.c.orig linux-2.6.37.
 +module_init(nfs4blocklayout_init);
 +module_exit(nfs4blocklayout_exit);
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c.orig linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c
---- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c.orig	2011-01-28 09:43:53.309776857 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c	2011-01-28 09:43:53.309776857 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c.orig	2011-02-03 17:42:47.803617234 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c	2011-02-03 17:42:47.803617234 -0500
 @@ -0,0 +1,334 @@
 +/*
 + *  linux/fs/nfs/blocklayout/blocklayoutdev.c
@@ -3123,8 +3123,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdev.c.orig linux-2.6.
 +	goto out;
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c.orig linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c
---- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c.orig	2011-01-28 09:43:53.309776857 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c	2011-01-28 09:43:53.309776857 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c.orig	2011-02-03 17:42:47.803617234 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c	2011-02-03 17:42:47.803617234 -0500
 @@ -0,0 +1,120 @@
 +/*
 + *  linux/fs/nfs/blocklayout/blocklayoutdm.c
@@ -3247,8 +3247,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayoutdm.c.orig linux-2.6.3
 +	}
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h
---- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig	2011-01-28 09:43:53.308777059 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h	2011-01-28 09:43:53.308777059 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig	2011-02-03 17:42:47.802617138 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h	2011-02-03 17:42:47.802617138 -0500
 @@ -0,0 +1,302 @@
 +/*
 + *  linux/fs/nfs/blocklayout/blocklayout.h
@@ -3443,7 +3443,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig linux-2.6.37.
 +	struct list_head ranges;
 +};
 +
-+#define BLK_ID(lo) ((struct block_mount_id *)(NFS_SERVER(lo->inode)->pnfs_ld_data))
++#define BLK_ID(lo) ((struct block_mount_id *)(NFS_SERVER(lo->plh_inode)->pnfs_ld_data))
 +
 +static inline struct pnfs_block_layout *
 +BLK_LO2EXT(struct pnfs_layout_hdr *lo)
@@ -3454,7 +3454,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig linux-2.6.37.
 +static inline struct pnfs_block_layout *
 +BLK_LSEG2EXT(struct pnfs_layout_segment *lseg)
 +{
-+	return BLK_LO2EXT(lseg->layout);
++	return BLK_LO2EXT(lseg->pls_layout);
 +}
 +
 +uint32_t *blk_overflow(uint32_t *p, uint32_t *end, size_t nbytes);
@@ -3553,8 +3553,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/blocklayout.h.orig linux-2.6.37.
 +
 +#endif /* FS_NFS_NFS4BLOCKLAYOUT_H */
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c.orig linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c
---- linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c.orig	2011-01-28 09:43:53.310776657 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c	2011-01-28 09:43:53.311776459 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c.orig	2011-02-03 17:42:47.804617331 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c	2011-02-03 17:42:47.805617429 -0500
 @@ -0,0 +1,948 @@
 +/*
 + *  linux/fs/nfs/blocklayout/blocklayout.h
@@ -4505,8 +4505,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/extents.c.orig linux-2.6.37.noar
 +	}
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile.orig linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile
---- linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile.orig	2011-01-28 09:43:53.305777685 -0500
-+++ linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile	2011-01-28 09:43:53.305777685 -0500
+--- linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile.orig	2011-02-03 17:42:47.800616952 -0500
++++ linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile	2011-02-03 17:42:47.800616952 -0500
 @@ -0,0 +1,6 @@
 +#
 +# Makefile for the pNFS block layout driver kernel module
@@ -4515,8 +4515,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/blocklayout/Makefile.orig linux-2.6.37.noarc
 +blocklayoutdriver-objs := blocklayout.o blocklayoutdev.o blocklayoutdm.o \
 +			extents.o block-device-discovery-pipe.o
 diff -up linux-2.6.37.noarch/fs/nfs/callback.h.orig linux-2.6.37.noarch/fs/nfs/callback.h
---- linux-2.6.37.noarch/fs/nfs/callback.h.orig	2011-01-28 09:37:32.520980712 -0500
-+++ linux-2.6.37.noarch/fs/nfs/callback.h	2011-01-28 09:43:53.311776459 -0500
+--- linux-2.6.37.noarch/fs/nfs/callback.h.orig	2011-02-03 17:38:17.309388965 -0500
++++ linux-2.6.37.noarch/fs/nfs/callback.h	2011-02-03 17:42:47.805617429 -0500
 @@ -164,9 +164,39 @@ struct cb_layoutrecallargs {
  extern unsigned nfs4_callback_layoutrecall(
  	struct cb_layoutrecallargs *args,
@@ -4555,12 +4555,12 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback.h.orig linux-2.6.37.noarch/fs/nfs/c
 +}
 +
  #endif /* CONFIG_NFS_V4_1 */
- 
+ extern int check_gss_callback_principal(struct nfs_client *, struct svc_rqst *);
  extern __be32 nfs4_callback_getattr(struct cb_getattrargs *args,
 diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/nfs/callback_proc.c
---- linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig	2011-01-28 09:37:32.521980677 -0500
-+++ linux-2.6.37.noarch/fs/nfs/callback_proc.c	2011-01-28 09:43:53.312776264 -0500
-@@ -108,106 +108,277 @@ int nfs4_validate_delegation_stateid(str
+--- linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig	2011-02-03 17:38:17.310388985 -0500
++++ linux-2.6.37.noarch/fs/nfs/callback_proc.c	2011-02-03 17:42:47.806617528 -0500
+@@ -108,106 +108,278 @@ int nfs4_validate_delegation_stateid(str
  
  #if defined(CONFIG_NFS_V4_1)
  
@@ -4770,9 +4770,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +		LIST_HEAD(free_me_list);
 +
 +		spin_lock(&clp->cl_lock);
-+		list_for_each_entry(lo, &clp->cl_layouts, layouts) {
++		list_for_each_entry(lo, &clp->cl_layouts, plh_layouts) {
 +			if (nfs_compare_fh(&args->cbl_fh,
-+					   &NFS_I(lo->inode)->fh))
++					   &NFS_I(lo->plh_inode)->fh))
 +				continue;
 +			if (test_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags))
 +				rv = NFS4ERR_DELAY;
@@ -4785,14 +4785,14 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +				 * potential LAYOUTRETURN is finished.
 +				 */
 +				get_layout_hdr(lo);
-+				cb_info->pcl_ino = lo->inode;
++				cb_info->pcl_ino = lo->plh_inode;
 +				rv = NFS4_OK;
 +			}
 +			break;
 +		}
 +		spin_unlock(&clp->cl_lock);
 +
-+		spin_lock(&lo->inode->i_lock);
++		spin_lock(&lo->plh_inode->i_lock);
 +		if (rv == NFS4_OK) {
 +			lo->plh_block_lgets++;
 +			nfs4_asynch_forget_layouts(lo, &args->cbl_range,
@@ -4801,7 +4801,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +						   &free_me_list);
 +		}
 +		pnfs_set_layout_stateid(lo, &args->cbl_stateid, true);
-+		spin_unlock(&lo->inode->i_lock);
++		spin_unlock(&lo->plh_inode->i_lock);
 +		pnfs_free_lseg_list(&free_me_list);
 +	} else {
 +		struct pnfs_layout_hdr *tmp;
@@ -4819,9 +4819,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +			spin_unlock(&clp->cl_lock);
 +			return NFS4ERR_DELAY;
 +		}
-+		list_for_each_entry(lo, &clp->cl_layouts, layouts) {
++		list_for_each_entry(lo, &clp->cl_layouts, plh_layouts) {
 +			if ((args->cbl_recall_type == RETURN_FSID) &&
-+			    memcmp(&NFS_SERVER(lo->inode)->fsid,
++			    memcmp(&NFS_SERVER(lo->plh_inode)->fsid,
 +				   &args->cbl_fsid, sizeof(struct nfs_fsid)))
 +				continue;
 +			get_layout_hdr(lo);
@@ -4832,14 +4832,15 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +		spin_unlock(&clp->cl_lock);
 +		list_for_each_entry_safe(lo, tmp,
 +					 &recall_list, plh_bulk_recall) {
-+			spin_lock(&lo->inode->i_lock);
++			spin_lock(&lo->plh_inode->i_lock);
 +			set_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags);
 +			nfs4_asynch_forget_layouts(lo, &range,
 +						   cb_info->pcl_notify_bit,
 +						   &cb_info->pcl_count,
 +						   &free_me_list);
 +			list_del_init(&lo->plh_bulk_recall);
-+			spin_unlock(&lo->inode->i_lock);
++			spin_unlock(&lo->plh_inode->i_lock);
++			pnfs_free_lseg_list(&free_me_list);
 +			put_layout_hdr(lo);
 +			rv = NFS4_OK;
 +		}
@@ -4902,11 +4903,11 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
 +				struct pnfs_layout_hdr *lo;
 +
 +				lo = NFS_I(new->pcl_ino)->layout;
-+				spin_lock(&lo->inode->i_lock);
++				spin_lock(&lo->plh_inode->i_lock);
 +				lo->plh_block_lgets--;
 +				if (!pnfs_layoutgets_blocked(lo, NULL))
-+					rpc_wake_up(&NFS_I(lo->inode)->lo_rpcwaitq_stateid);
-+				spin_unlock(&lo->inode->i_lock);
++					rpc_wake_up(&NFS_I(lo->plh_inode)->lo_rpcwaitq_stateid);
++				spin_unlock(&lo->plh_inode->i_lock);
 +				put_layout_hdr(lo);
 +			}
 +			res = NFS4ERR_NOMATCHING_LAYOUT;
@@ -4916,7 +4917,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
  out:
  	dprintk("%s returning %i\n", __func__, res);
  	return res;
-@@ -241,6 +412,36 @@ static void pnfs_recall_all_layouts(stru
+@@ -241,6 +413,36 @@ static void pnfs_recall_all_layouts(stru
  	do_callback_layoutrecall(clp, &args);
  }
  
@@ -4954,8 +4955,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_proc.c.orig linux-2.6.37.noarch/fs/
  {
  	if (delegation == NULL)
 diff -up linux-2.6.37.noarch/fs/nfs/callback_xdr.c.orig linux-2.6.37.noarch/fs/nfs/callback_xdr.c
---- linux-2.6.37.noarch/fs/nfs/callback_xdr.c.orig	2011-01-28 09:37:32.522980641 -0500
-+++ linux-2.6.37.noarch/fs/nfs/callback_xdr.c	2011-01-28 09:43:53.313776069 -0500
+--- linux-2.6.37.noarch/fs/nfs/callback_xdr.c.orig	2011-02-03 17:38:17.311389005 -0500
++++ linux-2.6.37.noarch/fs/nfs/callback_xdr.c	2011-02-03 17:42:47.807617629 -0500
 @@ -25,6 +25,7 @@
  
  #if defined(CONFIG_NFS_V4_1)
@@ -5070,7 +5071,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_xdr.c.orig linux-2.6.37.noarch/fs/n
  	case OP_CB_NOTIFY:
  	case OP_CB_PUSH_DELEG:
  	case OP_CB_RECALLABLE_OBJ_AVAIL:
-@@ -850,6 +938,12 @@ static struct callback_op callback_ops[]
+@@ -849,6 +937,12 @@ static struct callback_op callback_ops[]
  			(callback_decode_arg_t)decode_layoutrecall_args,
  		.res_maxsize = CB_OP_LAYOUTRECALL_RES_MAXSZ,
  	},
@@ -5084,8 +5085,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/callback_xdr.c.orig linux-2.6.37.noarch/fs/n
  		.process_op = (callback_process_op_t)nfs4_callback_sequence,
  		.decode_args = (callback_decode_arg_t)decode_cb_sequence_args,
 diff -up linux-2.6.37.noarch/fs/nfs/client.c.orig linux-2.6.37.noarch/fs/nfs/client.c
---- linux-2.6.37.noarch/fs/nfs/client.c.orig	2011-01-28 09:37:32.523980606 -0500
-+++ linux-2.6.37.noarch/fs/nfs/client.c	2011-01-28 09:43:53.314775880 -0500
+--- linux-2.6.37.noarch/fs/nfs/client.c.orig	2011-02-03 17:38:17.312389025 -0500
++++ linux-2.6.37.noarch/fs/nfs/client.c	2011-02-03 17:42:47.808617731 -0500
 @@ -185,6 +185,9 @@ static struct nfs_client *nfs_alloc_clie
  		clp->cl_machine_cred = cred;
  #if defined(CONFIG_NFS_V4_1)
@@ -5182,7 +5183,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/client.c.orig linux-2.6.37.noarch/fs/nfs/cli
  	return server;
  }
  
-@@ -1360,7 +1356,7 @@ error:
+@@ -1355,7 +1351,7 @@ error:
  /*
   * Set up an NFS4 client
   */
@@ -5191,7 +5192,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/client.c.orig linux-2.6.37.noarch/fs/nfs/cli
  		const char *hostname,
  		const struct sockaddr *addr,
  		const size_t addrlen,
-@@ -1403,6 +1399,7 @@ error:
+@@ -1398,6 +1394,7 @@ error:
  	dprintk("<-- nfs4_set_client() = xerror %d\n", error);
  	return error;
  }
@@ -5200,8 +5201,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/client.c.orig linux-2.6.37.noarch/fs/nfs/cli
  
  /*
 diff -up linux-2.6.37.noarch/fs/nfsd/bl_com.c.orig linux-2.6.37.noarch/fs/nfsd/bl_com.c
---- linux-2.6.37.noarch/fs/nfsd/bl_com.c.orig	2011-01-28 09:43:53.347770803 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/bl_com.c	2011-01-28 09:43:53.347770803 -0500
+--- linux-2.6.37.noarch/fs/nfsd/bl_com.c.orig	2011-02-03 17:42:47.841621224 -0500
++++ linux-2.6.37.noarch/fs/nfsd/bl_com.c	2011-02-03 17:42:47.842621345 -0500
 @@ -0,0 +1,292 @@
 +#if defined(CONFIG_SPNFS_BLOCK)
 +
@@ -5496,8 +5497,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/bl_com.c.orig linux-2.6.37.noarch/fs/nfsd/b
 +}
 +#endif /* CONFIG_SPNFS_BLOCK */
 diff -up linux-2.6.37.noarch/fs/nfsd/bl_ops.c.orig linux-2.6.37.noarch/fs/nfsd/bl_ops.c
---- linux-2.6.37.noarch/fs/nfsd/bl_ops.c.orig	2011-01-28 09:43:53.349770555 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/bl_ops.c	2011-01-28 09:43:53.349770555 -0500
+--- linux-2.6.37.noarch/fs/nfsd/bl_ops.c.orig	2011-02-03 17:42:47.843621474 -0500
++++ linux-2.6.37.noarch/fs/nfsd/bl_ops.c	2011-02-03 17:42:47.843621474 -0500
 @@ -0,0 +1,1672 @@
 +/*
 + *  bl_ops.c
@@ -7172,8 +7173,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/bl_ops.c.orig linux-2.6.37.noarch/fs/nfsd/b
 +
 +#endif /* CONFIG_SPNFS_BLOCK */
 diff -up linux-2.6.37.noarch/fs/nfsd/export.c.orig linux-2.6.37.noarch/fs/nfsd/export.c
---- linux-2.6.37.noarch/fs/nfsd/export.c.orig	2011-01-28 09:37:32.554979531 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/export.c	2011-01-28 09:43:53.350770434 -0500
+--- linux-2.6.37.noarch/fs/nfsd/export.c.orig	2011-02-03 17:38:17.353389835 -0500
++++ linux-2.6.37.noarch/fs/nfsd/export.c	2011-02-03 17:42:47.845621729 -0500
 @@ -16,11 +16,19 @@
  #include <linux/module.h>
  #include <linux/exportfs.h>
@@ -7365,8 +7366,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/export.c.orig linux-2.6.37.noarch/fs/nfsd/e
  	cache_unregister(&svc_export_cache);
  	svcauth_unix_purge();
 diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/direct.c
---- linux-2.6.37.noarch/fs/nfs/direct.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/direct.c	2011-01-28 09:43:53.315775694 -0500
+--- linux-2.6.37.noarch/fs/nfs/direct.c.orig	2011-02-03 17:38:17.316389104 -0500
++++ linux-2.6.37.noarch/fs/nfs/direct.c	2011-02-03 17:42:47.809617848 -0500
 @@ -271,6 +271,38 @@ static const struct rpc_call_ops nfs_rea
  	.rpc_release = nfs_direct_read_release,
  };
@@ -7443,7 +7444,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  
  		started += bytes;
  		user_addr += bytes;
-@@ -457,12 +471,15 @@ static void nfs_direct_free_writedata(st
+@@ -460,12 +474,15 @@ static void nfs_direct_free_writedata(st
  }
  
  #if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
@@ -7460,7 +7461,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  	struct rpc_message msg = {
  		.rpc_cred = dreq->ctx->cred,
  	};
-@@ -496,25 +513,7 @@ static void nfs_direct_write_reschedule(
+@@ -499,25 +516,7 @@ static void nfs_direct_write_reschedule(
  		 * Reuse data->task; data->args should not have changed
  		 * since the original request was sent.
  		 */
@@ -7487,7 +7488,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  	}
  
  	if (put_dreq(dreq))
-@@ -557,10 +556,31 @@ static const struct rpc_call_ops nfs_com
+@@ -560,10 +559,31 @@ static const struct rpc_call_ops nfs_com
  	.rpc_release = nfs_direct_commit_release,
  };
  
@@ -7520,7 +7521,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  	struct rpc_message msg = {
  		.rpc_argp = &data->args,
  		.rpc_resp = &data->res,
-@@ -589,16 +609,7 @@ static void nfs_direct_commit_schedule(s
+@@ -592,16 +612,7 @@ static void nfs_direct_commit_schedule(s
  	data->res.verf = &data->verf;
  	nfs_fattr_init(&data->fattr);
  
@@ -7538,7 +7539,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  }
  
  static void nfs_direct_write_complete(struct nfs_direct_req *dreq, struct inode *inode)
-@@ -700,6 +711,36 @@ static const struct rpc_call_ops nfs_wri
+@@ -703,6 +714,36 @@ static const struct rpc_call_ops nfs_wri
  	.rpc_release = nfs_direct_write_release,
  };
  
@@ -7575,7 +7576,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  /*
   * For each wsize'd chunk of the user's buffer, dispatch an NFS WRITE
   * operation.  If nfs_writedata_alloc() or get_user_pages() fails,
-@@ -715,7 +756,6 @@ static ssize_t nfs_direct_write_schedule
+@@ -718,7 +759,6 @@ static ssize_t nfs_direct_write_schedule
  	struct inode *inode = ctx->path.dentry->d_inode;
  	unsigned long user_addr = (unsigned long)iov->iov_base;
  	size_t count = iov->iov_len;
@@ -7583,7 +7584,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  	struct rpc_message msg = {
  		.rpc_cred = ctx->cred,
  	};
-@@ -782,24 +822,8 @@ static ssize_t nfs_direct_write_schedule
+@@ -785,24 +825,8 @@ static ssize_t nfs_direct_write_schedule
  		data->res.verf = &data->verf;
  		nfs_fattr_init(&data->fattr);
  
@@ -7612,7 +7613,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/direct.c.orig linux-2.6.37.noarch/fs/nfs/dir
  		user_addr += bytes;
 diff -up linux-2.6.37.noarch/fs/nfsd/Kconfig.orig linux-2.6.37.noarch/fs/nfsd/Kconfig
 --- linux-2.6.37.noarch/fs/nfsd/Kconfig.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/Kconfig	2011-01-28 09:43:53.346770928 -0500
++++ linux-2.6.37.noarch/fs/nfsd/Kconfig	2011-02-03 17:42:47.840621103 -0500
 @@ -91,3 +91,52 @@ config NFSD_V4
  	  available from http://linux-nfs.org/.
  
@@ -7668,7 +7669,7 @@ diff -up linux-2.6.37.noarch/fs/nfsd/Kconfig.orig linux-2.6.37.noarch/fs/nfsd/Kc
 +	  If unsure, say N.
 diff -up linux-2.6.37.noarch/fs/nfsd/Makefile.orig linux-2.6.37.noarch/fs/nfsd/Makefile
 --- linux-2.6.37.noarch/fs/nfsd/Makefile.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/Makefile	2011-01-28 09:43:53.347770803 -0500
++++ linux-2.6.37.noarch/fs/nfsd/Makefile	2011-02-03 17:42:47.841621224 -0500
 @@ -11,3 +11,7 @@ nfsd-$(CONFIG_NFSD_V3)	+= nfs3proc.o nfs
  nfsd-$(CONFIG_NFSD_V3_ACL) += nfs3acl.o
  nfsd-$(CONFIG_NFSD_V4)	+= nfs4proc.o nfs4xdr.o nfs4state.o nfs4idmap.o \
@@ -7678,8 +7679,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/Makefile.orig linux-2.6.37.noarch/fs/nfsd/M
 +nfsd-$(CONFIG_SPNFS)	+= spnfs_com.o spnfs_ops.o
 +nfsd-$(CONFIG_SPNFS_BLOCK) += bl_com.o bl_ops.o
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4callback.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4callback.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4callback.c.orig	2011-01-28 09:37:32.557979427 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4callback.c	2011-01-28 09:43:53.352770195 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4callback.c.orig	2011-02-03 17:38:17.357389914 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4callback.c	2011-02-03 17:42:47.846621863 -0500
 @@ -48,6 +48,8 @@ enum {
  	NFSPROC4_CLNT_CB_NULL = 0,
  	NFSPROC4_CLNT_CB_RECALL,
@@ -8231,8 +8232,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4callback.c.orig linux-2.6.37.noarch/fs/
 +}
 +#endif /* CONFIG_PNFSD */
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c.orig	2011-01-28 09:43:53.353770077 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c	2011-01-28 09:43:53.353770077 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c.orig	2011-02-03 17:42:47.848622139 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c	2011-02-03 17:42:47.848622139 -0500
 @@ -0,0 +1,1688 @@
 +/******************************************************************************
 + *
@@ -9923,8 +9924,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsd.c.orig linux-2.6.37.noarch/fs/nfs
 +	return status;
 +}
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c.orig	2011-01-28 09:43:53.354769959 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c	2011-01-28 09:43:53.354769959 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c.orig	2011-02-03 17:42:47.849622278 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c	2011-02-03 17:42:47.849622278 -0500
 @@ -0,0 +1,461 @@
 +/******************************************************************************
 + *
@@ -10388,8 +10389,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsdlm.c.orig linux-2.6.37.noarch/fs/n
 +};
 +EXPORT_SYMBOL(pnfs_dlm_export_ops);
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c.orig	2011-01-28 09:43:53.355769845 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c	2011-01-28 09:43:53.355769845 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c.orig	2011-02-03 17:42:47.850622415 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c	2011-02-03 17:42:47.850622415 -0500
 @@ -0,0 +1,620 @@
 +/*
 +*  linux/fs/nfsd/nfs4pnfsds.c
@@ -11012,8 +11013,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4pnfsds.c.orig linux-2.6.37.noarch/fs/nf
 +
 +#endif /* CONFIG_PNFSD */
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4proc.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4proc.c.orig	2011-01-28 09:37:32.559979357 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4proc.c	2011-01-28 09:43:53.357769620 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4proc.c.orig	2011-02-03 17:38:17.358389934 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4proc.c	2011-02-03 17:42:47.851622552 -0500
 @@ -34,10 +34,14 @@
   */
  #include <linux/file.h>
@@ -11488,8 +11489,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfsd
  
  static const char *nfsd4_op_name(unsigned opnum)
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4state.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4state.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4state.c.orig	2011-01-28 09:37:32.562979253 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4state.c	2011-01-28 09:43:53.359769399 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4state.c.orig	2011-02-03 17:38:17.361389994 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4state.c	2011-02-03 17:42:47.853622823 -0500
 @@ -42,6 +42,8 @@
  #include "xdr4.h"
  #include "vfs.h"
@@ -11974,8 +11975,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs
  
  void
 diff -up linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c
---- linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c.orig	2011-01-28 09:37:32.564979184 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c	2011-01-28 09:43:53.361769183 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c.orig	2011-02-03 17:38:17.363390033 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c	2011-02-03 17:42:47.856623233 -0500
 @@ -45,11 +45,16 @@
  #include <linux/statfs.h>
  #include <linux/utsname.h>
@@ -12589,8 +12590,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfsd/
  	[OP_SEQUENCE]		= (nfsd4_enc)nfsd4_encode_sequence,
  	[OP_SET_SSV]		= (nfsd4_enc)nfsd4_encode_noop,
 diff -up linux-2.6.37.noarch/fs/nfsd/nfsctl.c.orig linux-2.6.37.noarch/fs/nfsd/nfsctl.c
---- linux-2.6.37.noarch/fs/nfsd/nfsctl.c.orig	2011-01-28 09:37:32.565979149 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfsctl.c	2011-01-28 09:43:53.363768972 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfsctl.c.orig	2011-02-03 17:38:17.365390073 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfsctl.c	2011-02-03 17:42:47.857623371 -0500
 @@ -12,11 +12,16 @@
  #include <linux/nfsd/syscall.h>
  #include <linux/lockd/lockd.h>
@@ -12768,8 +12769,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfsctl.c.orig linux-2.6.37.noarch/fs/nfsd/n
  	remove_proc_entry("fs/nfs/exports", NULL);
  	remove_proc_entry("fs/nfs", NULL);
 diff -up linux-2.6.37.noarch/fs/nfsd/nfsd.h.orig linux-2.6.37.noarch/fs/nfsd/nfsd.h
---- linux-2.6.37.noarch/fs/nfsd/nfsd.h.orig	2011-01-28 09:37:32.566979114 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfsd.h	2011-01-28 09:43:53.363768972 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfsd.h.orig	2011-02-03 17:38:17.365390073 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfsd.h	2011-02-03 17:42:47.858623508 -0500
 @@ -287,11 +287,22 @@ extern time_t nfsd4_grace;
  #define NFSD4_1_SUPPORTED_ATTRS_WORD0 \
  	NFSD4_SUPPORTED_ATTRS_WORD0
@@ -12795,7 +12796,7 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfsd.h.orig linux-2.6.37.noarch/fs/nfsd/nfs
  {
 diff -up linux-2.6.37.noarch/fs/nfsd/nfsfh.c.orig linux-2.6.37.noarch/fs/nfsd/nfsfh.c
 --- linux-2.6.37.noarch/fs/nfsd/nfsfh.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfsfh.c	2011-01-28 09:43:53.364768868 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfsfh.c	2011-02-03 17:42:47.859623645 -0500
 @@ -10,6 +10,7 @@
  #include <linux/exportfs.h>
  
@@ -12833,7 +12834,7 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfsfh.c.orig linux-2.6.37.noarch/fs/nfsd/nf
  		__u32 tfh[2];
 diff -up linux-2.6.37.noarch/fs/nfsd/nfsfh.h.orig linux-2.6.37.noarch/fs/nfsd/nfsfh.h
 --- linux-2.6.37.noarch/fs/nfsd/nfsfh.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfsfh.h	2011-01-28 09:43:53.365768765 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfsfh.h	2011-02-03 17:42:47.859623645 -0500
 @@ -14,6 +14,7 @@ enum nfsd_fsid {
  	FSID_UUID8,
  	FSID_UUID16,
@@ -12886,8 +12887,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfsfh.h.orig linux-2.6.37.noarch/fs/nfsd/nf
 +
  #endif /* _LINUX_NFSD_FH_INT_H */
 diff -up linux-2.6.37.noarch/fs/nfsd/nfssvc.c.orig linux-2.6.37.noarch/fs/nfsd/nfssvc.c
---- linux-2.6.37.noarch/fs/nfsd/nfssvc.c.orig	2011-01-28 09:37:32.567979080 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/nfssvc.c	2011-01-28 09:43:53.365768765 -0500
+--- linux-2.6.37.noarch/fs/nfsd/nfssvc.c.orig	2011-02-03 17:38:17.367390112 -0500
++++ linux-2.6.37.noarch/fs/nfsd/nfssvc.c	2011-02-03 17:42:47.860623780 -0500
 @@ -116,7 +116,7 @@ struct svc_program		nfsd_program = {
  
  };
@@ -12898,8 +12899,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/nfssvc.c.orig linux-2.6.37.noarch/fs/nfsd/n
  int nfsd_vers(int vers, enum vers_op change)
  {
 diff -up linux-2.6.37.noarch/fs/nfsd/pnfsd.h.orig linux-2.6.37.noarch/fs/nfsd/pnfsd.h
---- linux-2.6.37.noarch/fs/nfsd/pnfsd.h.orig	2011-01-28 09:43:53.366768664 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/pnfsd.h	2011-01-28 09:43:53.366768664 -0500
+--- linux-2.6.37.noarch/fs/nfsd/pnfsd.h.orig	2011-02-03 17:42:47.860623780 -0500
++++ linux-2.6.37.noarch/fs/nfsd/pnfsd.h	2011-02-03 17:42:47.861623916 -0500
 @@ -0,0 +1,144 @@
 +/*
 + *  Copyright (c) 2005 The Regents of the University of Michigan.
@@ -13046,8 +13047,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/pnfsd.h.orig linux-2.6.37.noarch/fs/nfsd/pn
 +
 +#endif /* LINUX_NFSD_PNFSD_H */
 diff -up linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c.orig linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c
---- linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c.orig	2011-01-28 09:43:53.367768598 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c	2011-01-28 09:43:53.367768598 -0500
+--- linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c.orig	2011-02-03 17:42:47.861623916 -0500
++++ linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c	2011-02-03 17:42:47.861623916 -0500
 @@ -0,0 +1,225 @@
 +/*
 + * linux/fs/nfsd/pnfs_lexp.c
@@ -13275,8 +13276,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/pnfsd_lexp.c.orig linux-2.6.37.noarch/fs/nf
 +	inode->i_sb->s_pnfs_op = &pnfsd_lexp_ops;
 +}
 diff -up linux-2.6.37.noarch/fs/nfsd/spnfs_com.c.orig linux-2.6.37.noarch/fs/nfsd/spnfs_com.c
---- linux-2.6.37.noarch/fs/nfsd/spnfs_com.c.orig	2011-01-28 09:43:53.368768479 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/spnfs_com.c	2011-01-28 09:43:53.368768479 -0500
+--- linux-2.6.37.noarch/fs/nfsd/spnfs_com.c.orig	2011-02-03 17:42:47.862624053 -0500
++++ linux-2.6.37.noarch/fs/nfsd/spnfs_com.c	2011-02-03 17:42:47.862624053 -0500
 @@ -0,0 +1,535 @@
 +/*
 + * fs/nfsd/spnfs_com.c
@@ -13814,8 +13815,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/spnfs_com.c.orig linux-2.6.37.noarch/fs/nfs
 +}
 +#endif /* CONFIG_PROC_FS */
 diff -up linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c.orig linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c
---- linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c.orig	2011-01-28 09:43:53.369768328 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c	2011-01-28 09:43:53.369768328 -0500
+--- linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c.orig	2011-02-03 17:42:47.863624191 -0500
++++ linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c	2011-02-03 17:42:47.863624191 -0500
 @@ -0,0 +1,878 @@
 +/*
 + * fs/nfsd/spnfs_ops.c
@@ -14696,8 +14697,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/spnfs_ops.c.orig linux-2.6.37.noarch/fs/nfs
 +	return 0;
 +}
 diff -up linux-2.6.37.noarch/fs/nfsd/state.h.orig linux-2.6.37.noarch/fs/nfsd/state.h
---- linux-2.6.37.noarch/fs/nfsd/state.h.orig	2011-01-28 09:37:32.568979046 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/state.h	2011-01-28 09:43:53.370768171 -0500
+--- linux-2.6.37.noarch/fs/nfsd/state.h.orig	2011-02-03 17:38:17.367390112 -0500
++++ linux-2.6.37.noarch/fs/nfsd/state.h	2011-02-03 17:42:47.864624328 -0500
 @@ -37,6 +37,7 @@
  
  #include <linux/sunrpc/svc_xprt.h>
@@ -14839,8 +14840,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/state.h.orig linux-2.6.37.noarch/fs/nfsd/st
 +
  #endif   /* NFSD4_STATE_H */
 diff -up linux-2.6.37.noarch/fs/nfsd/vfs.c.orig linux-2.6.37.noarch/fs/nfsd/vfs.c
---- linux-2.6.37.noarch/fs/nfsd/vfs.c.orig	2011-01-28 09:37:32.569979012 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/vfs.c	2011-01-28 09:43:53.371768014 -0500
+--- linux-2.6.37.noarch/fs/nfsd/vfs.c.orig	2011-02-03 17:38:17.369390152 -0500
++++ linux-2.6.37.noarch/fs/nfsd/vfs.c	2011-02-03 17:42:47.865624464 -0500
 @@ -36,7 +36,11 @@
  #ifdef CONFIG_NFSD_V4
  #include "acl.h"
@@ -14967,8 +14968,8 @@ diff -up linux-2.6.37.noarch/fs/nfsd/vfs.c.orig linux-2.6.37.noarch/fs/nfsd/vfs.
  out_nfserr:
  	err = nfserrno(host_err);
 diff -up linux-2.6.37.noarch/fs/nfsd/xdr4.h.orig linux-2.6.37.noarch/fs/nfsd/xdr4.h
---- linux-2.6.37.noarch/fs/nfsd/xdr4.h.orig	2011-01-28 09:37:32.570978977 -0500
-+++ linux-2.6.37.noarch/fs/nfsd/xdr4.h	2011-01-28 09:43:53.372767858 -0500
+--- linux-2.6.37.noarch/fs/nfsd/xdr4.h.orig	2011-02-03 17:38:17.370390172 -0500
++++ linux-2.6.37.noarch/fs/nfsd/xdr4.h	2011-02-03 17:42:47.866624600 -0500
 @@ -37,6 +37,8 @@
  #ifndef _LINUX_NFSD_XDR4_H
  #define _LINUX_NFSD_XDR4_H
@@ -15046,7 +15047,7 @@ diff -up linux-2.6.37.noarch/fs/nfsd/xdr4.h.orig linux-2.6.37.noarch/fs/nfsd/xdr
  };
 diff -up linux-2.6.37.noarch/fs/nfs/file.c.orig linux-2.6.37.noarch/fs/nfs/file.c
 --- linux-2.6.37.noarch/fs/nfs/file.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/file.c	2011-01-28 09:43:53.316775510 -0500
++++ linux-2.6.37.noarch/fs/nfs/file.c	2011-02-03 17:42:47.810617941 -0500
 @@ -381,16 +381,16 @@ static int nfs_write_begin(struct file *
  	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
  	struct page *page;
@@ -15156,8 +15157,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/file.c.orig linux-2.6.37.noarch/fs/nfs/file.
  
  	ret = VM_FAULT_SIGBUS;
 diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inode.c
---- linux-2.6.37.noarch/fs/nfs/inode.c.orig	2011-01-28 09:37:32.529980398 -0500
-+++ linux-2.6.37.noarch/fs/nfs/inode.c	2011-01-28 09:43:53.317775328 -0500
+--- linux-2.6.37.noarch/fs/nfs/inode.c.orig	2011-02-03 17:38:17.325389282 -0500
++++ linux-2.6.37.noarch/fs/nfs/inode.c	2011-02-03 17:42:47.811618017 -0500
 @@ -648,6 +648,7 @@ struct nfs_open_context *get_nfs_open_co
  		atomic_inc(&ctx->lock_context.count);
  	return ctx;
@@ -15166,7 +15167,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inod
  
  static void __put_nfs_open_context(struct nfs_open_context *ctx, int is_sync)
  {
-@@ -1003,6 +1004,7 @@ void nfs_fattr_init(struct nfs_fattr *fa
+@@ -1011,6 +1012,7 @@ void nfs_fattr_init(struct nfs_fattr *fa
  	fattr->time_start = jiffies;
  	fattr->gencount = nfs_inc_attr_generation_counter();
  }
@@ -15174,7 +15175,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inod
  
  struct nfs_fattr *nfs_alloc_fattr(void)
  {
-@@ -1212,6 +1214,14 @@ static int nfs_update_inode(struct inode
+@@ -1220,6 +1222,14 @@ static int nfs_update_inode(struct inode
  		server->fsid = fattr->fsid;
  
  	/*
@@ -15189,7 +15190,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inod
  	 * Update the read time so we don't revalidate too often.
  	 */
  	nfsi->read_cache_jiffies = fattr->time_start;
-@@ -1410,9 +1420,10 @@ static int nfs_update_inode(struct inode
+@@ -1418,9 +1428,10 @@ static int nfs_update_inode(struct inode
   */
  void nfs4_evict_inode(struct inode *inode)
  {
@@ -15201,7 +15202,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inod
  	/* If we are holding a delegation, return it! */
  	nfs_inode_return_delegation_noreclaim(inode);
  	/* First call standard NFS clear_inode() code */
-@@ -1457,6 +1468,8 @@ static inline void nfs4_init_once(struct
+@@ -1465,6 +1476,8 @@ static inline void nfs4_init_once(struct
  	nfsi->delegation = NULL;
  	nfsi->delegation_state = 0;
  	init_rwsem(&nfsi->rwsem);
@@ -15211,9 +15212,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/inode.c.orig linux-2.6.37.noarch/fs/nfs/inod
  #endif
  }
 diff -up linux-2.6.37.noarch/fs/nfs/internal.h.orig linux-2.6.37.noarch/fs/nfs/internal.h
---- linux-2.6.37.noarch/fs/nfs/internal.h.orig	2011-01-28 09:37:32.529980398 -0500
-+++ linux-2.6.37.noarch/fs/nfs/internal.h	2011-01-28 09:43:53.318775148 -0500
-@@ -149,6 +149,16 @@ extern struct nfs_server *nfs_clone_serv
+--- linux-2.6.37.noarch/fs/nfs/internal.h.orig	2011-02-03 17:38:17.327389320 -0500
++++ linux-2.6.37.noarch/fs/nfs/internal.h	2011-02-03 17:42:47.812618093 -0500
+@@ -148,6 +148,16 @@ extern struct nfs_server *nfs_clone_serv
  					   struct nfs_fattr *);
  extern void nfs_mark_client_ready(struct nfs_client *clp, int state);
  extern int nfs4_check_client_ready(struct nfs_client *clp);
@@ -15230,7 +15231,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/internal.h.orig linux-2.6.37.noarch/fs/nfs/i
  #ifdef CONFIG_PROC_FS
  extern int __init nfs_fs_proc_init(void);
  extern void nfs_fs_proc_exit(void);
-@@ -214,6 +224,8 @@ extern const u32 nfs41_maxwrite_overhead
+@@ -213,6 +223,8 @@ extern const u32 nfs41_maxwrite_overhead
  extern struct rpc_procinfo nfs4_procedures[];
  #endif
  
@@ -15239,7 +15240,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/internal.h.orig linux-2.6.37.noarch/fs/nfs/i
  /* proc.c */
  void nfs_close_context(struct nfs_open_context *ctx, int is_sync);
  
-@@ -263,10 +275,31 @@ extern int nfs4_get_rootfh(struct nfs_se
+@@ -262,10 +274,31 @@ extern int nfs4_get_rootfh(struct nfs_se
  #endif
  
  /* read.c */
@@ -15273,7 +15274,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/internal.h.orig linux-2.6.37.noarch/fs/nfs/i
  		struct page *, struct page *);
 diff -up linux-2.6.37.noarch/fs/nfs/Kconfig.orig linux-2.6.37.noarch/fs/nfs/Kconfig
 --- linux-2.6.37.noarch/fs/nfs/Kconfig.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/Kconfig	2011-01-28 09:43:53.304777898 -0500
++++ linux-2.6.37.noarch/fs/nfs/Kconfig	2011-02-03 17:42:47.799616860 -0500
 @@ -87,6 +87,34 @@ config NFS_V4_1
  config PNFS_FILE_LAYOUT
  	tristate
@@ -15311,7 +15312,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/Kconfig.orig linux-2.6.37.noarch/fs/nfs/Kcon
  	depends on NFS_FS=y && IP_PNP
 diff -up linux-2.6.37.noarch/fs/nfs/Makefile.orig linux-2.6.37.noarch/fs/nfs/Makefile
 --- linux-2.6.37.noarch/fs/nfs/Makefile.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/Makefile	2011-01-28 09:43:53.305777685 -0500
++++ linux-2.6.37.noarch/fs/nfs/Makefile	2011-02-03 17:42:47.799616860 -0500
 @@ -21,3 +21,6 @@ nfs-$(CONFIG_NFS_FSCACHE) += fscache.o f
  
  obj-$(CONFIG_PNFS_FILE_LAYOUT) += nfs_layout_nfsv41_files.o
@@ -15320,8 +15321,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/Makefile.orig linux-2.6.37.noarch/fs/nfs/Mak
 +obj-$(CONFIG_PNFS_OBJLAYOUT) += objlayout/
 +obj-$(CONFIG_PNFS_BLOCK) += blocklayout/
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c.orig linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c
---- linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c.orig	2011-01-28 09:37:32.537980121 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c	2011-01-28 09:43:53.320774796 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c.orig	2011-02-03 17:38:17.334389459 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c	2011-02-03 17:42:47.814618251 -0500
 @@ -41,7 +41,7 @@ MODULE_AUTHOR("Dean Hildebrand <dhildebz
  MODULE_DESCRIPTION("The NFSv4 file layout driver");
  
@@ -15532,33 +15533,6 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c.orig linux-2.6.37.noarch/fs
  /*
   * filelayout_check_layout()
   *
-@@ -82,7 +276,7 @@ filelayout_check_layout(struct pnfs_layo
- {
- 	struct nfs4_file_layout_dsaddr *dsaddr;
- 	int status = -EINVAL;
--	struct nfs_server *nfss = NFS_SERVER(lo->plh_inode);
-+	struct nfs_server *nfss = NFS_SERVER(lo->inode);
- 
- 	dprintk("--> %s\n", __func__);
- 
-@@ -101,7 +295,7 @@ filelayout_check_layout(struct pnfs_layo
- 	/* find and reference the deviceid */
- 	dsaddr = nfs4_fl_find_get_deviceid(nfss->nfs_client, id);
- 	if (dsaddr == NULL) {
--		dsaddr = get_device_info(lo->plh_inode, id);
-+		dsaddr = get_device_info(lo->inode, id);
- 		if (dsaddr == NULL)
- 			goto out;
- 	}
-@@ -243,7 +437,7 @@ filelayout_alloc_lseg(struct pnfs_layout
- static void
- filelayout_free_lseg(struct pnfs_layout_segment *lseg)
- {
--	struct nfs_server *nfss = NFS_SERVER(lseg->pls_layout->plh_inode);
-+	struct nfs_server *nfss = NFS_SERVER(lseg->layout->inode);
- 	struct nfs4_filelayout_segment *fl = FILELAYOUT_LSEG(lseg);
- 
- 	dprintk("--> %s\n", __func__);
 @@ -252,14 +446,229 @@ filelayout_free_lseg(struct pnfs_layout_
  	_filelayout_free_lseg(fl);
  }
@@ -15790,8 +15764,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayout.c.orig linux-2.6.37.noarch/fs
  
  static int __init nfs4filelayout_init(void)
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c
---- linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c	2011-01-28 09:43:53.321774623 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig	2011-02-03 17:38:17.335389480 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c	2011-02-03 17:42:47.815618339 -0500
 @@ -104,6 +104,109 @@ _data_server_lookup_locked(u32 ip_addr, 
  	return NULL;
  }
@@ -15902,7 +15876,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig linux-2.6.37.noarch
  static void
  destroy_ds(struct nfs4_pnfs_ds *ds)
  {
-@@ -446,3 +549,72 @@ nfs4_fl_find_get_deviceid(struct nfs_cli
+@@ -451,3 +554,72 @@ nfs4_fl_find_get_deviceid(struct nfs_cli
  	return (d == NULL) ? NULL :
  		container_of(d, struct nfs4_file_layout_dsaddr, deviceid);
  }
@@ -15965,7 +15939,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig linux-2.6.37.noarch
 +	if (!dsaddr->ds_list[ds_idx]->ds_clp) {
 +		int err;
 +
-+		err = nfs4_pnfs_ds_create(NFS_SERVER(lseg->layout->inode),
++		err = nfs4_pnfs_ds_create(NFS_SERVER(lseg->pls_layout->plh_inode),
 +					  dsaddr->ds_list[ds_idx]);
 +		if (err) {
 +			printk(KERN_ERR "%s nfs4_pnfs_ds_create error %d\n",
@@ -15977,7 +15951,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayoutdev.c.orig linux-2.6.37.noarch
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h.orig linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h
 --- linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h	2011-01-28 09:43:53.321774623 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h	2011-02-03 17:42:47.815618339 -0500
 @@ -83,9 +83,15 @@ FILELAYOUT_LSEG(struct pnfs_layout_segme
  			    generic_hdr);
  }
@@ -15995,8 +15969,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4filelayout.h.orig linux-2.6.37.noarch/fs
  nfs4_fl_find_get_deviceid(struct nfs_client *, struct nfs4_deviceid *dev_id);
  struct nfs4_file_layout_dsaddr *
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4_fs.h.orig linux-2.6.37.noarch/fs/nfs/nfs4_fs.h
---- linux-2.6.37.noarch/fs/nfs/nfs4_fs.h.orig	2011-01-28 09:37:32.536980156 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4_fs.h	2011-01-28 09:43:53.319774971 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4_fs.h.orig	2011-02-03 17:38:17.333389438 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4_fs.h	2011-02-03 17:42:47.813618170 -0500
 @@ -44,9 +44,9 @@ enum nfs4_client_state {
  	NFS4CLNT_RECLAIM_REBOOT,
  	NFS4CLNT_RECLAIM_NOGRACE,
@@ -16074,9 +16048,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4_fs.h.orig linux-2.6.37.noarch/fs/nfs/nf
  extern void nfs4_put_state_owner(struct nfs4_state_owner *);
  extern struct nfs4_state * nfs4_get_open_state(struct inode *, struct nfs4_state_owner *);
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/nfs4proc.c
---- linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig	2011-01-28 09:37:32.539980051 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4proc.c	2011-01-28 09:43:53.324774117 -0500
-@@ -69,7 +69,7 @@ struct nfs4_opendata;
+--- linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig	2011-02-03 17:38:17.337389519 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4proc.c	2011-02-03 17:42:47.818618615 -0500
+@@ -70,7 +70,7 @@ struct nfs4_opendata;
  static int _nfs4_proc_open(struct nfs4_opendata *data);
  static int _nfs4_recover_proc_open(struct nfs4_opendata *data);
  static int nfs4_do_fsinfo(struct nfs_server *, struct nfs_fh *, struct nfs_fsinfo *);
@@ -16085,7 +16059,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  static int _nfs4_proc_lookup(struct inode *dir, const struct qstr *name, struct nfs_fh *fhandle, struct nfs_fattr *fattr);
  static int _nfs4_proc_getattr(struct nfs_server *server, struct nfs_fh *fhandle, struct nfs_fattr *fattr);
  static int nfs4_do_setattr(struct inode *inode, struct rpc_cred *cred,
-@@ -127,12 +127,13 @@ const u32 nfs4_pathconf_bitmap[2] = {
+@@ -128,12 +128,13 @@ const u32 nfs4_pathconf_bitmap[2] = {
  	0
  };
  
@@ -16101,7 +16075,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  };
  
  const u32 nfs4_fs_locations_bitmap[2] = {
-@@ -572,6 +573,7 @@ static int nfs41_setup_sequence(struct n
+@@ -573,6 +574,7 @@ static int nfs41_setup_sequence(struct n
  }
  
  int nfs4_setup_sequence(const struct nfs_server *server,
@@ -16109,7 +16083,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  			struct nfs4_sequence_args *args,
  			struct nfs4_sequence_res *res,
  			int cache_reply,
-@@ -580,6 +582,8 @@ int nfs4_setup_sequence(const struct nfs
+@@ -581,6 +583,8 @@ int nfs4_setup_sequence(const struct nfs
  	struct nfs4_session *session = nfs4_get_session(server);
  	int ret = 0;
  
@@ -16118,7 +16092,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	if (session == NULL) {
  		args->sa_session = NULL;
  		res->sr_session = NULL;
-@@ -610,7 +614,7 @@ static void nfs41_call_sync_prepare(stru
+@@ -611,7 +615,7 @@ static void nfs41_call_sync_prepare(stru
  
  	dprintk("--> %s data->seq_server %p\n", __func__, data->seq_server);
  
@@ -16127,7 +16101,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				data->seq_res, data->cache_reply, task))
  		return;
  	rpc_call_start(task);
-@@ -1398,7 +1402,7 @@ static void nfs4_open_prepare(struct rpc
+@@ -1399,7 +1403,7 @@ static void nfs4_open_prepare(struct rpc
  		nfs_copy_fh(&data->o_res.fh, data->o_arg.fh);
  	}
  	data->timestamp = jiffies;
@@ -16136,7 +16110,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				&data->o_arg.seq_args,
  				&data->o_res.seq_res, 1, task))
  		return;
-@@ -1573,9 +1577,8 @@ static int _nfs4_proc_open(struct nfs4_o
+@@ -1574,9 +1578,8 @@ static int _nfs4_proc_open(struct nfs4_o
  	return 0;
  }
  
@@ -16147,7 +16121,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	unsigned int loop;
  	int ret;
  
-@@ -1591,6 +1594,7 @@ static int nfs4_recover_expired_lease(st
+@@ -1592,6 +1595,7 @@ static int nfs4_recover_expired_lease(st
  	}
  	return ret;
  }
@@ -16155,7 +16129,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  
  /*
   * OPEN_EXPIRED:
-@@ -1679,7 +1683,7 @@ static int _nfs4_do_open(struct inode *d
+@@ -1680,7 +1684,7 @@ static int _nfs4_do_open(struct inode *d
  		dprintk("nfs4_do_open: nfs4_get_state_owner failed!\n");
  		goto out_err;
  	}
@@ -16164,7 +16138,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	if (status != 0)
  		goto err_put_state_owner;
  	if (path->dentry->d_inode != NULL)
-@@ -1839,8 +1843,6 @@ struct nfs4_closedata {
+@@ -1840,8 +1844,6 @@ struct nfs4_closedata {
  	struct nfs_closeres res;
  	struct nfs_fattr fattr;
  	unsigned long timestamp;
@@ -16173,7 +16147,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  };
  
  static void nfs4_free_closedata(void *data)
-@@ -1848,8 +1850,6 @@ static void nfs4_free_closedata(void *da
+@@ -1849,8 +1851,6 @@ static void nfs4_free_closedata(void *da
  	struct nfs4_closedata *calldata = data;
  	struct nfs4_state_owner *sp = calldata->state->owner;
  
@@ -16182,7 +16156,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	nfs4_put_open_state(calldata->state);
  	nfs_free_seqid(calldata->arg.seqid);
  	nfs4_put_state_owner(sp);
-@@ -1882,9 +1882,6 @@ static void nfs4_close_done(struct rpc_t
+@@ -1883,9 +1883,6 @@ static void nfs4_close_done(struct rpc_t
  	 */
  	switch (task->tk_status) {
  		case 0:
@@ -16192,7 +16166,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  			nfs_set_open_stateid(state, &calldata->res.stateid, 0);
  			renew_lease(server, calldata->timestamp);
  			nfs4_close_clear_stateid_flags(state,
-@@ -1897,7 +1894,7 @@ static void nfs4_close_done(struct rpc_t
+@@ -1898,7 +1895,7 @@ static void nfs4_close_done(struct rpc_t
  			if (calldata->arg.fmode == 0)
  				break;
  		default:
@@ -16201,7 +16175,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				rpc_restart_call_prepare(task);
  	}
  	nfs_release_seqid(calldata->arg.seqid);
-@@ -1937,19 +1934,12 @@ static void nfs4_close_prepare(struct rp
+@@ -1938,19 +1935,12 @@ static void nfs4_close_prepare(struct rp
  		return;
  	}
  
@@ -16223,7 +16197,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				&calldata->arg.seq_args, &calldata->res.seq_res,
  				1, task))
  		return;
-@@ -1973,7 +1963,7 @@ static const struct rpc_call_ops nfs4_cl
+@@ -1974,7 +1964,7 @@ static const struct rpc_call_ops nfs4_cl
   *
   * NOTE: Caller must be holding the sp->so_owner semaphore!
   */
@@ -16232,7 +16206,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  {
  	struct nfs_server *server = NFS_SERVER(state->inode);
  	struct nfs4_closedata *calldata;
-@@ -2008,7 +1998,6 @@ int nfs4_do_close(struct path *path, str
+@@ -2009,7 +1999,6 @@ int nfs4_do_close(struct path *path, str
  	calldata->res.fattr = &calldata->fattr;
  	calldata->res.seqid = calldata->arg.seqid;
  	calldata->res.server = server;
@@ -16240,7 +16214,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	path_get(path);
  	calldata->path = *path;
  
-@@ -2026,8 +2015,6 @@ int nfs4_do_close(struct path *path, str
+@@ -2027,8 +2016,6 @@ int nfs4_do_close(struct path *path, str
  out_free_calldata:
  	kfree(calldata);
  out:
@@ -16249,7 +16223,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	nfs4_put_open_state(state);
  	nfs4_put_state_owner(sp);
  	return status;
-@@ -2269,6 +2256,9 @@ nfs4_proc_setattr(struct dentry *dentry,
+@@ -2270,6 +2257,9 @@ nfs4_proc_setattr(struct dentry *dentry,
  	struct nfs4_state *state = NULL;
  	int status;
  
@@ -16259,7 +16233,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	nfs_fattr_init(fattr);
  	
  	/* Search for an existing open(O_WRITE) file */
-@@ -2596,7 +2586,7 @@ static int nfs4_proc_unlink_done(struct 
+@@ -2597,7 +2587,7 @@ static int nfs4_proc_unlink_done(struct 
  
  	if (!nfs4_sequence_done(task, &res->seq_res))
  		return 0;
@@ -16268,7 +16242,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  		return 0;
  	update_changeattr(dir, &res->cinfo);
  	nfs_post_op_update_inode(dir, res->dir_attr);
-@@ -2621,7 +2611,7 @@ static int nfs4_proc_rename_done(struct 
+@@ -2622,7 +2612,7 @@ static int nfs4_proc_rename_done(struct 
  
  	if (!nfs4_sequence_done(task, &res->seq_res))
  		return 0;
@@ -16277,7 +16251,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  		return 0;
  
  	update_changeattr(old_dir, &res->old_cinfo);
-@@ -3072,19 +3062,31 @@ static int nfs4_proc_pathconf(struct nfs
+@@ -3073,19 +3063,31 @@ static int nfs4_proc_pathconf(struct nfs
  static int nfs4_read_done(struct rpc_task *task, struct nfs_read_data *data)
  {
  	struct nfs_server *server = NFS_SERVER(data->inode);
@@ -16312,7 +16286,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  		renew_lease(server, data->timestamp);
  	return 0;
  }
-@@ -3095,20 +3097,56 @@ static void nfs4_proc_read_setup(struct 
+@@ -3096,20 +3098,56 @@ static void nfs4_proc_read_setup(struct 
  	msg->rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_READ];
  }
  
@@ -16374,7 +16348,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	}
  	return 0;
  }
-@@ -3121,21 +3159,42 @@ static void nfs4_proc_write_setup(struct
+@@ -3122,21 +3160,42 @@ static void nfs4_proc_write_setup(struct
  	data->res.server = server;
  	data->timestamp   = jiffies;
  
@@ -16420,7 +16394,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	return 0;
  }
  
-@@ -3145,6 +3204,12 @@ static void nfs4_proc_commit_setup(struc
+@@ -3146,6 +3205,12 @@ static void nfs4_proc_commit_setup(struc
  	
  	data->args.bitmask = server->cache_consistency_bitmask;
  	data->res.server = server;
@@ -16433,7 +16407,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	msg->rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_COMMIT];
  }
  
-@@ -3451,9 +3516,10 @@ static int nfs4_proc_set_acl(struct inod
+@@ -3452,9 +3517,10 @@ static int nfs4_proc_set_acl(struct inod
  }
  
  static int
@@ -16446,7 +16420,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  
  	if (task->tk_status >= 0)
  		return 0;
-@@ -3477,14 +3543,16 @@ nfs4_async_handle_error(struct rpc_task 
+@@ -3478,14 +3544,16 @@ nfs4_async_handle_error(struct rpc_task 
  		case -NFS4ERR_CONN_NOT_BOUND_TO_SESSION:
  		case -NFS4ERR_SEQ_FALSE_RETRY:
  		case -NFS4ERR_SEQ_MISORDERED:
@@ -16466,7 +16440,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  		case -NFS4ERR_GRACE:
  		case -EKEYEXPIRED:
  			rpc_delay(task, NFS4_POLL_RETRY_MAX);
-@@ -3497,6 +3565,8 @@ nfs4_async_handle_error(struct rpc_task 
+@@ -3498,6 +3566,8 @@ nfs4_async_handle_error(struct rpc_task 
  	task->tk_status = nfs4_map_errors(task->tk_status);
  	return 0;
  do_state_recovery:
@@ -16475,7 +16449,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	rpc_sleep_on(&clp->cl_rpcwaitq, task, NULL);
  	nfs4_schedule_state_recovery(clp);
  	if (test_bit(NFS4CLNT_MANAGER_RUNNING, &clp->cl_state) == 0)
-@@ -3630,8 +3700,8 @@ static void nfs4_delegreturn_done(struct
+@@ -3631,8 +3701,8 @@ static void nfs4_delegreturn_done(struct
  		renew_lease(data->res.server, data->timestamp);
  		break;
  	default:
@@ -16486,7 +16460,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  			nfs_restart_rpc(task, data->res.server->nfs_client);
  			return;
  		}
-@@ -3651,7 +3721,7 @@ static void nfs4_delegreturn_prepare(str
+@@ -3652,7 +3722,7 @@ static void nfs4_delegreturn_prepare(str
  
  	d_data = (struct nfs4_delegreturndata *)data;
  
@@ -16495,7 +16469,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				&d_data->args.seq_args,
  				&d_data->res.seq_res, 1, task))
  		return;
-@@ -3885,7 +3955,7 @@ static void nfs4_locku_done(struct rpc_t
+@@ -3886,7 +3956,7 @@ static void nfs4_locku_done(struct rpc_t
  		case -NFS4ERR_EXPIRED:
  			break;
  		default:
@@ -16504,7 +16478,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				nfs_restart_rpc(task,
  						 calldata->server->nfs_client);
  	}
-@@ -3903,7 +3973,7 @@ static void nfs4_locku_prepare(struct rp
+@@ -3904,7 +3974,7 @@ static void nfs4_locku_prepare(struct rp
  		return;
  	}
  	calldata->timestamp = jiffies;
@@ -16513,7 +16487,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				&calldata->arg.seq_args,
  				&calldata->res.seq_res, 1, task))
  		return;
-@@ -4058,7 +4128,7 @@ static void nfs4_lock_prepare(struct rpc
+@@ -4059,7 +4129,7 @@ static void nfs4_lock_prepare(struct rpc
  	} else
  		data->arg.new_lock_owner = 0;
  	data->timestamp = jiffies;
@@ -16522,7 +16496,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  				&data->arg.seq_args,
  				&data->res.seq_res, 1, task))
  		return;
-@@ -5077,7 +5147,7 @@ int nfs4_init_session(struct nfs_server 
+@@ -5067,7 +5137,7 @@ int nfs4_init_session(struct nfs_server 
  	session->fc_attrs.max_rqst_sz = wsize + nfs41_maxwrite_overhead;
  	session->fc_attrs.max_resp_sz = rsize + nfs41_maxread_overhead;
  
@@ -16531,7 +16505,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	if (!ret)
  		ret = nfs4_check_client_ready(clp);
  	return ret;
-@@ -5330,24 +5400,53 @@ static void
+@@ -5320,24 +5390,53 @@ static void
  nfs4_layoutget_prepare(struct rpc_task *task, void *calldata)
  {
  	struct nfs4_layoutget *lgp = calldata;
@@ -16589,7 +16563,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  }
  
  static void nfs4_layoutget_done(struct rpc_task *task, void *calldata)
-@@ -5357,9 +5456,14 @@ static void nfs4_layoutget_done(struct r
+@@ -5347,9 +5446,14 @@ static void nfs4_layoutget_done(struct r
  
  	dprintk("--> %s\n", __func__);
  
@@ -16606,7 +16580,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	switch (task->tk_status) {
  	case 0:
  		break;
-@@ -5368,7 +5472,12 @@ static void nfs4_layoutget_done(struct r
+@@ -5358,7 +5462,12 @@ static void nfs4_layoutget_done(struct r
  		task->tk_status = -NFS4ERR_DELAY;
  		/* Fall through */
  	default:
@@ -16620,7 +16594,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  			rpc_restart_call_prepare(task);
  			return;
  		}
-@@ -5381,6 +5490,7 @@ static void nfs4_layoutget_release(void 
+@@ -5371,6 +5480,7 @@ static void nfs4_layoutget_release(void 
  	struct nfs4_layoutget *lgp = calldata;
  
  	dprintk("--> %s\n", __func__);
@@ -16628,7 +16602,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  	if (lgp->res.layout.buf != NULL)
  		free_page((unsigned long) lgp->res.layout.buf);
  	put_nfs_open_context(lgp->args.ctx);
-@@ -5429,11 +5539,279 @@ int nfs4_proc_layoutget(struct nfs4_layo
+@@ -5419,11 +5529,279 @@ int nfs4_proc_layoutget(struct nfs4_layo
  		status = task->tk_status;
  	if (status == 0)
  		status = pnfs_layout_process(lgp);
@@ -16778,12 +16752,12 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
 +	if ((task->tk_status == 0) && (lrp->args.return_type == RETURN_FILE)) {
 +		struct pnfs_layout_hdr *lo = NFS_I(lrp->args.inode)->layout;
 +
-+		spin_lock(&lo->inode->i_lock);
++		spin_lock(&lo->plh_inode->i_lock);
 +		if (lrp->res.lrs_present)
 +			pnfs_set_layout_stateid(lo, &lrp->res.stateid, true);
 +		else
-+			BUG_ON(!list_empty(&lo->segs));
-+		spin_unlock(&lo->inode->i_lock);
++			BUG_ON(!list_empty(&lo->plh_segs));
++		spin_unlock(&lo->plh_inode->i_lock);
 +	}
 +	dprintk("<-- %s\n", __func__);
 +}
@@ -16836,10 +16810,10 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
 +	if (lrp->args.return_type == RETURN_FILE) {
 +		struct pnfs_layout_hdr *lo = NFS_I(lrp->args.inode)->layout;
 +		/* FIXME we should test for BULK here */
-+		spin_lock(&lo->inode->i_lock);
++		spin_lock(&lo->plh_inode->i_lock);
 +		BUG_ON(lo->plh_block_lgets == 0);
 +		atomic_inc(&lo->plh_outstanding);
-+		spin_unlock(&lo->inode->i_lock);
++		spin_unlock(&lo->plh_inode->i_lock);
 +	}
 +	task = rpc_run_task(&task_setup_data);
 +	if (IS_ERR(task))
@@ -16908,7 +16882,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  static int
  _nfs4_proc_getdeviceinfo(struct nfs_server *server, struct pnfs_device *pdev)
  {
-@@ -5447,11 +5825,13 @@ _nfs4_proc_getdeviceinfo(struct nfs_serv
+@@ -5437,11 +5815,13 @@ _nfs4_proc_getdeviceinfo(struct nfs_serv
  		.rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_GETDEVICEINFO],
  		.rpc_argp = &args,
  		.rpc_resp = &res,
@@ -16923,8 +16897,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4proc.c.orig linux-2.6.37.noarch/fs/nfs/n
  
  	return status;
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4renewd.c.orig linux-2.6.37.noarch/fs/nfs/nfs4renewd.c
---- linux-2.6.37.noarch/fs/nfs/nfs4renewd.c.orig	2011-01-28 09:37:32.540980017 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4renewd.c	2011-01-28 09:43:53.326773791 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4renewd.c.orig	2011-02-03 17:38:17.338389538 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4renewd.c	2011-02-03 17:42:47.820618813 -0500
 @@ -65,7 +65,7 @@ nfs4_renew_state(struct work_struct *wor
  	dprintk("%s: start\n", __func__);
  
@@ -16935,8 +16909,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4renewd.c.orig linux-2.6.37.noarch/fs/nfs
  		goto out;
  	}
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs/nfs4state.c
---- linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig	2011-01-28 09:37:32.542979947 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4state.c	2011-01-28 09:43:53.327773630 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig	2011-02-03 17:38:17.340389577 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4state.c	2011-02-03 17:42:47.821618918 -0500
 @@ -153,6 +153,11 @@ static int nfs41_setup_state_renewal(str
  	int status;
  	struct nfs_fsinfo fsinfo;
@@ -16957,10 +16931,10 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs/
  
  	nfs4_begin_drain_session(clp);
  	status = nfs4_proc_exchange_id(clp, cred);
-@@ -238,6 +244,16 @@ int nfs41_init_clientid(struct nfs_clien
- 		nfs_callback_down(1);
- 		status = 0;
- 	}
+@@ -232,6 +238,16 @@ int nfs41_init_clientid(struct nfs_clien
+ 	status = nfs4_proc_create_session(clp);
+ 	if (status != 0)
+ 		goto out;
 +	if (is_ds_only_session(req_exchange_flags)) {
 +		clp->cl_exchange_flags &=
 +		     ~(EXCHGID4_FLAG_USE_PNFS_MDS | EXCHGID4_FLAG_USE_NON_PNFS);
@@ -16974,7 +16948,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs/
  	nfs41_setup_state_renewal(clp);
  	nfs_mark_client_ready(clp, NFS_CS_READY);
  out:
-@@ -669,9 +685,22 @@ static void __nfs4_close(struct path *pa
+@@ -663,9 +679,22 @@ static void __nfs4_close(struct path *pa
  		nfs4_put_open_state(state);
  		nfs4_put_state_owner(owner);
  	} else {
@@ -16999,7 +16973,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs/
  	}
  }
  
-@@ -1661,6 +1690,10 @@ static void nfs4_state_manager(struct nf
+@@ -1655,6 +1684,10 @@ static void nfs4_state_manager(struct nf
  			nfs_client_return_marked_delegations(clp);
  			continue;
  		}
@@ -17011,8 +16985,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4state.c.orig linux-2.6.37.noarch/fs/nfs/
  		if (test_and_clear_bit(NFS4CLNT_RECALL_SLOT, &clp->cl_state)
  		   && nfs4_has_session(clp)) {
 diff -up linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfs/nfs4xdr.c
---- linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig	2011-01-28 09:37:32.546979809 -0500
-+++ linux-2.6.37.noarch/fs/nfs/nfs4xdr.c	2011-01-28 09:43:53.330773162 -0500
+--- linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig	2011-02-03 17:38:17.344389658 -0500
++++ linux-2.6.37.noarch/fs/nfs/nfs4xdr.c	2011-02-03 17:42:47.824619242 -0500
 @@ -90,7 +90,7 @@ static int nfs4_stat_to_errno(int);
  #define encode_getfh_maxsz      (op_encode_hdr_maxsz)
  #define decode_getfh_maxsz      (op_decode_hdr_maxsz + 1 + \
@@ -17269,7 +17243,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfs/nf
 +		p = xdr_encode_hyper(p, args->range.offset);
 +		p = xdr_encode_hyper(p, args->range.length);
 +		spin_lock(&args->inode->i_lock);
-+		memcpy(stateid.data, NFS_I(args->inode)->layout->stateid.data,
++		memcpy(stateid.data, NFS_I(args->inode)->layout->plh_stateid.data,
 +		       NFS4_STATEID_SIZE);
 +		spin_unlock(&args->inode->i_lock);
 +		p = xdr_encode_opaque_fixed(p, &stateid.data,
@@ -17811,7 +17785,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfs/nf
  	uint32_t len;
  	__be32 *p = xdr_inline_decode(xdr, 4);
  	if (unlikely(!p))
-@@ -6266,8 +6824,13 @@ struct rpc_procinfo	nfs4_procedures[] = 
+@@ -6263,8 +6821,13 @@ struct rpc_procinfo	nfs4_procedures[] = 
  	PROC(SEQUENCE,		enc_sequence,		dec_sequence),
  	PROC(GET_LEASE_TIME,	enc_get_lease_time,	dec_get_lease_time),
  	PROC(RECLAIM_COMPLETE,	enc_reclaim_complete,	dec_reclaim_complete),
@@ -17826,8 +17800,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/nfs4xdr.c.orig linux-2.6.37.noarch/fs/nfs/nf
  };
  
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild.orig linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild
---- linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild.orig	2011-01-28 09:43:53.331773009 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild	2011-01-28 09:43:53.331773009 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild.orig	2011-02-03 17:42:47.825619353 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild	2011-02-03 17:42:47.825619353 -0500
 @@ -0,0 +1,11 @@
 +#
 +# Makefile for the pNFS Objects Layout Driver kernel module
@@ -17841,8 +17815,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/Kbuild.orig linux-2.6.37.noarch/fs
 +panlayoutdriver-y := pnfs_osd_xdr_cli.o objlayout.o panfs_shim.o
 +obj-$(CONFIG_PNFS_PANLAYOUT) += panlayoutdriver.o
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c.orig linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c
---- linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c.orig	2011-01-28 09:43:53.333772709 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c	2011-01-28 09:43:53.333772709 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c.orig	2011-02-03 17:42:47.826619467 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c	2011-02-03 17:42:47.826619467 -0500
 @@ -0,0 +1,1060 @@
 +/*
 + *  objio_osd.c
@@ -18029,7 +18003,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c.orig linux-2.6.37.noar
 +	struct nfs4_deviceid *d_id;
 +	struct osd_dev *od;
 +	struct osd_dev_info odi;
-+	struct objio_mount_type *omt = NFS_SERVER(pnfslay->inode)->pnfs_ld_data;
++	struct objio_mount_type *omt = NFS_SERVER(pnfslay->plh_inode)->pnfs_ld_data;
 +	int err;
 +
 +	d_id = &layout->olo_comps[comp].oc_object_id.oid_device_id;
@@ -18905,8 +18879,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objio_osd.c.orig linux-2.6.37.noar
 +module_init(objlayout_init);
 +module_exit(objlayout_exit);
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c
---- linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig	2011-01-28 09:43:53.334772561 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c	2011-01-28 09:43:53.334772561 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig	2011-02-03 17:42:47.827619582 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c	2011-02-03 17:42:47.827619582 -0500
 @@ -0,0 +1,773 @@
 +/*
 + *  objlayout.c
@@ -19012,7 +18986,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noar
 +	pnfs_osd_layout = (struct pnfs_osd_layout *)objlseg->pnfs_osd_layout;
 +	pnfs_osd_xdr_decode_layout(pnfs_osd_layout, layout);
 +
-+	objlseg->lseg.range = lgr->range;
++	objlseg->lseg.pls_range = lgr->range;
 +	status = objio_alloc_lseg(&objlseg->internal, pnfslay, &objlseg->lseg,
 +				  pnfs_osd_layout);
 +	if (status)
@@ -19087,11 +19061,11 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noar
 +	if (objio_alloc_io_state(objlseg->internal, &state))
 +		return NULL;
 +
-+	BUG_ON(offset < lseg->range.offset);
-+	lseg_end_offset = end_offset(lseg->range.offset, lseg->range.length);
++	BUG_ON(offset < lseg->pls_range.offset);
++	lseg_end_offset = end_offset(lseg->pls_range.offset, lseg->pls_range.length);
 +	BUG_ON(offset >= lseg_end_offset);
 +	if (offset + count > lseg_end_offset) {
-+		count = lseg->range.length - (offset - lseg->range.offset);
++		count = lseg->pls_range.length - (offset - lseg->pls_range.offset);
 +		dprintk("%s: truncated count %Zd\n", __func__, count);
 +	}
 +
@@ -19142,7 +19116,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noar
 +	if (likely(state->status >= 0)) {
 +		objlayout_free_io_state(state);
 +	} else {
-+		struct objlayout *objlay = OBJLAYOUT(state->objlseg->lseg.layout);
++		struct objlayout *objlay = OBJLAYOUT(state->objlseg->lseg.pls_layout);
 +
 +		spin_lock(&objlay->lock);
 +		objlay->delta_space_valid = OBJ_DSU_INVALID;
@@ -19615,8 +19589,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noar
 +	pd.pglen = PAGE_SIZE;
 +	pd.mincount = 0;
 +
-+	sb = pnfslay->inode->i_sb;
-+	err = nfs4_proc_getdeviceinfo(NFS_SERVER(pnfslay->inode), &pd);
++	sb = pnfslay->plh_inode->i_sb;
++	err = nfs4_proc_getdeviceinfo(NFS_SERVER(pnfslay->plh_inode), &pd);
 +	dprintk("%s nfs_getdeviceinfo returned %d\n", __func__, err);
 +	if (err)
 +		goto err_out;
@@ -19682,8 +19656,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.c.orig linux-2.6.37.noar
 +	return 0;
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h.orig linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h
---- linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h.orig	2011-01-28 09:43:53.334772561 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h	2011-01-28 09:43:53.334772561 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h.orig	2011-02-03 17:42:47.828619698 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h	2011-02-03 17:42:47.828619698 -0500
 @@ -0,0 +1,206 @@
 +/*
 + *  objlayout.h
@@ -19827,7 +19801,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h.orig linux-2.6.37.noar
 +static inline void
 +objlayout_add_delta_space_used(struct objlayout_io_state *state, s64 space_used)
 +{
-+	struct objlayout *objlay = OBJLAYOUT(state->objlseg->lseg.layout);
++	struct objlayout *objlay = OBJLAYOUT(state->objlseg->lseg.pls_layout);
 +
 +	/* If one of the I/Os errored out and the delta_space_used was
 +	 * invalid we render the complete report as invalid. Protocol mandate
@@ -19892,8 +19866,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/objlayout.h.orig linux-2.6.37.noar
 +
 +#endif /* _OBJLAYOUT_H */
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c.orig linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c
---- linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c.orig	2011-01-28 09:43:53.335772417 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c	2011-01-28 09:43:53.335772417 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c.orig	2011-02-03 17:42:47.829619815 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c	2011-02-03 17:42:47.829619815 -0500
 @@ -0,0 +1,702 @@
 +/*
 + *  panfs_shim.c
@@ -20126,8 +20100,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c.orig linux-2.6.37.noa
 +		goto err;
 +	buf = (u8 *)&mcs[1];
 +
-+	mcs->offset = lseg->range.offset;
-+	mcs->length = lseg->range.length;
++	mcs->offset = lseg->pls_range.offset;
++	mcs->length = lseg->pls_range.length;
 +#if 0
 +	/* FIXME: for now */
 +	mcs->expiration_time.ts_sec  = 0;
@@ -20598,8 +20572,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.c.orig linux-2.6.37.noa
 +module_init(panlayout_init);
 +module_exit(panlayout_exit);
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h.orig linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h
---- linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h.orig	2011-01-28 09:43:53.336772273 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h	2011-01-28 09:43:53.336772273 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h.orig	2011-02-03 17:42:47.830619941 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h	2011-02-03 17:42:47.830619941 -0500
 @@ -0,0 +1,482 @@
 +/*
 + *  panfs_shim.h
@@ -21084,8 +21058,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/panfs_shim.h.orig linux-2.6.37.noa
 +
 +#endif /* _PANLAYOUT_PANFS_SHIM_H */
 diff -up linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c.orig linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c
---- linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c.orig	2011-01-28 09:43:53.337772132 -0500
-+++ linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c	2011-01-28 09:43:53.337772132 -0500
+--- linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c.orig	2011-02-03 17:42:47.830619941 -0500
++++ linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c	2011-02-03 17:42:47.830619941 -0500
 @@ -0,0 +1,435 @@
 +/*
 + *  pnfs_osd_xdr.c
@@ -21523,8 +21497,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/objlayout/pnfs_osd_xdr_cli.c.orig linux-2.6.
 +	return 0;
 +}
 diff -up linux-2.6.37.noarch/fs/nfs/pagelist.c.orig linux-2.6.37.noarch/fs/nfs/pagelist.c
---- linux-2.6.37.noarch/fs/nfs/pagelist.c.orig	2011-01-28 09:37:32.547979774 -0500
-+++ linux-2.6.37.noarch/fs/nfs/pagelist.c	2011-01-28 09:43:53.338771991 -0500
+--- linux-2.6.37.noarch/fs/nfs/pagelist.c.orig	2011-02-03 17:38:17.345389677 -0500
++++ linux-2.6.37.noarch/fs/nfs/pagelist.c	2011-02-03 17:42:47.831620053 -0500
 @@ -20,6 +20,7 @@
  #include <linux/nfs_mount.h>
  
@@ -21626,8 +21600,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/pagelist.c.orig linux-2.6.37.noarch/fs/nfs/p
  				if (res == INT_MAX)
  					goto out;
 diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.c
---- linux-2.6.37.noarch/fs/nfs/pnfs.c.orig	2011-01-28 09:37:32.548979739 -0500
-+++ linux-2.6.37.noarch/fs/nfs/pnfs.c	2011-01-28 09:43:53.339771853 -0500
+--- linux-2.6.37.noarch/fs/nfs/pnfs.c.orig	2011-02-03 17:38:17.347389717 -0500
++++ linux-2.6.37.noarch/fs/nfs/pnfs.c	2011-02-03 17:42:47.833620266 -0500
 @@ -30,6 +30,7 @@
  #include <linux/nfs_fs.h>
  #include "internal.h"
@@ -21738,7 +21712,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +static void
 +pnfs_free_layout_hdr(struct pnfs_layout_hdr *lo)
 +{
-+	struct pnfs_layoutdriver_type *ld = NFS_SERVER(lo->inode)->pnfs_curr_ld;
++	struct pnfs_layoutdriver_type *ld = NFS_SERVER(lo->plh_inode)->pnfs_curr_ld;
 +	return ld->alloc_layout_hdr ? ld->free_layout_hdr(lo) : kfree(lo);
 +}
 +
@@ -21746,51 +21720,38 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  destroy_layout_hdr(struct pnfs_layout_hdr *lo)
  {
  	dprintk("%s: freeing layout cache %p\n", __func__, lo);
--	BUG_ON(!list_empty(&lo->plh_layouts));
--	NFS_I(lo->plh_inode)->layout = NULL;
+ 	BUG_ON(!list_empty(&lo->plh_layouts));
+ 	NFS_I(lo->plh_inode)->layout = NULL;
 -	kfree(lo);
-+	BUG_ON(!list_empty(&lo->layouts));
-+	NFS_I(lo->inode)->layout = NULL;
 +	pnfs_free_layout_hdr(lo);
  }
  
  static void
  put_layout_hdr_locked(struct pnfs_layout_hdr *lo)
  {
-+	assert_spin_locked(&lo->inode->i_lock);
++	assert_spin_locked(&lo->plh_inode->i_lock);
 +	BUG_ON(atomic_read(&lo->plh_refcount) == 0);
  	if (atomic_dec_and_test(&lo->plh_refcount))
  		destroy_layout_hdr(lo);
  }
-@@ -203,8 +276,9 @@ put_layout_hdr_locked(struct pnfs_layout
- void
- put_layout_hdr(struct pnfs_layout_hdr *lo)
+@@ -205,6 +278,7 @@ put_layout_hdr(struct pnfs_layout_hdr *l
  {
--	struct inode *inode = lo->plh_inode;
-+	struct inode *inode = lo->inode;
+ 	struct inode *inode = lo->plh_inode;
  
 +	BUG_ON(atomic_read(&lo->plh_refcount) == 0);
  	if (atomic_dec_and_lock(&lo->plh_refcount, &inode->i_lock)) {
  		destroy_layout_hdr(lo);
  		spin_unlock(&inode->i_lock);
-@@ -214,27 +288,52 @@ put_layout_hdr(struct pnfs_layout_hdr *l
- static void
- init_lseg(struct pnfs_layout_hdr *lo, struct pnfs_layout_segment *lseg)
- {
--	INIT_LIST_HEAD(&lseg->pls_list);
-+	INIT_LIST_HEAD(&lseg->fi_list);
- 	atomic_set(&lseg->pls_refcount, 1);
+@@ -219,22 +293,42 @@ init_lseg(struct pnfs_layout_hdr *lo, st
  	smp_mb();
  	set_bit(NFS_LSEG_VALID, &lseg->pls_flags);
--	lseg->pls_layout = lo;
-+	lseg->layout = lo;
+ 	lseg->pls_layout = lo;
 +	lseg->pls_notify_mask = 0;
  }
  
  static void free_lseg(struct pnfs_layout_segment *lseg)
  {
--	struct inode *ino = lseg->pls_layout->plh_inode;
-+	struct inode *ino = lseg->layout->inode;
+ 	struct inode *ino = lseg->pls_layout->plh_inode;
 +	u64 mask = lseg->pls_notify_mask;
  
 +	BUG_ON(atomic_read(&lseg->pls_refcount) != 0);
@@ -21804,20 +21765,15 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +static void
 +_put_lseg_common(struct pnfs_layout_segment *lseg)
 +{
-+	struct inode *ino = lseg->layout->inode;
++	struct inode *ino = lseg->pls_layout->plh_inode;
 +
 +	BUG_ON(test_bit(NFS_LSEG_VALID, &lseg->pls_flags));
-+	list_del(&lseg->fi_list);
-+	if (list_empty(&lseg->layout->segs)) {
-+		struct nfs_client *clp;
-+
-+		clp = NFS_SERVER(ino)->nfs_client;
-+		spin_lock(&clp->cl_lock);
-+		/* List does not take a reference, so no need for put here */
-+		list_del_init(&lseg->layout->layouts);
-+		spin_unlock(&clp->cl_lock);
-+		clear_bit(NFS_LAYOUT_BULK_RECALL, &lseg->layout->plh_flags);
-+		if (!pnfs_layoutgets_blocked(lseg->layout, NULL))
++	list_del(&lseg->pls_list);
++	if (list_empty(&lseg->pls_layout->plh_segs)) {
++		set_bit(NFS_LAYOUT_DESTROYED, &lseg->pls_layout->plh_flags);
++		/* Matched by initial refcount set in alloc_init_layout_hdr */
++		put_layout_hdr_locked(lseg->pls_layout);
++		if (!pnfs_layoutgets_blocked(lseg->pls_layout, NULL))
 +			rpc_wake_up(&NFS_I(ino)->lo_rpcwaitq_stateid);
 +	}
 +	rpc_wake_up(&NFS_I(ino)->lo_rpcwaitq);
@@ -21832,25 +21788,17 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  put_lseg_locked(struct pnfs_layout_segment *lseg,
  		struct list_head *tmp_list)
  {
-@@ -242,74 +341,142 @@ put_lseg_locked(struct pnfs_layout_segme
+@@ -242,98 +336,194 @@ put_lseg_locked(struct pnfs_layout_segme
  		atomic_read(&lseg->pls_refcount),
  		test_bit(NFS_LSEG_VALID, &lseg->pls_flags));
  	if (atomic_dec_and_test(&lseg->pls_refcount)) {
 -		struct inode *ino = lseg->pls_layout->plh_inode;
-+		_put_lseg_common(lseg);
-+		list_add(&lseg->fi_list, tmp_list);
-+	}
-+}
- 
+-
 -		BUG_ON(test_bit(NFS_LSEG_VALID, &lseg->pls_flags));
 -		list_del(&lseg->pls_list);
 -		if (list_empty(&lseg->pls_layout->plh_segs)) {
 -			struct nfs_client *clp;
-+void
-+put_lseg(struct pnfs_layout_segment *lseg)
-+{
-+	struct inode *ino;
- 
+-
 -			clp = NFS_SERVER(ino)->nfs_client;
 -			spin_lock(&clp->cl_lock);
 -			/* List does not take a reference, so no need for put here */
@@ -21859,48 +21807,53 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 -			clear_bit(NFS_LAYOUT_BULK_RECALL, &lseg->pls_layout->plh_flags);
 -		}
 -		rpc_wake_up(&NFS_SERVER(ino)->roc_rpcwaitq);
--		list_add(&lseg->pls_list, tmp_list);
++		_put_lseg_common(lseg);
+ 		list_add(&lseg->pls_list, tmp_list);
 -		return 1;
+ 	}
+-	return 0;
+ }
+ 
+-static bool
+-should_free_lseg(u32 lseg_iomode, u32 recall_iomode)
++void
++put_lseg(struct pnfs_layout_segment *lseg)
+ {
+-	return (recall_iomode == IOMODE_ANY ||
+-		lseg_iomode == recall_iomode);
++	struct inode *ino;
++
 +	if (!lseg)
 +		return;
 +
 +	dprintk("%s: lseg %p ref %d valid %d\n", __func__, lseg,
 +		atomic_read(&lseg->pls_refcount),
 +		test_bit(NFS_LSEG_VALID, &lseg->pls_flags));
-+	ino = lseg->layout->inode;
++	ino = lseg->pls_layout->plh_inode;
 +	if (atomic_dec_and_lock(&lseg->pls_refcount, &ino->i_lock)) {
 +		_put_lseg_common(lseg);
 +		spin_unlock(&ino->i_lock);
 +		free_lseg(lseg);
- 	}
--	return 0;
- }
++	}
++}
 +EXPORT_SYMBOL_GPL(put_lseg);
- 
--static bool
--should_free_lseg(u32 lseg_iomode, u32 recall_iomode)
++
 +void get_lseg(struct pnfs_layout_segment *lseg)
- {
--	return (recall_iomode == IOMODE_ANY ||
--		lseg_iomode == recall_iomode);
++{
 +	atomic_inc(&lseg->pls_refcount);
 +	smp_mb__after_atomic_inc();
- }
++}
 +EXPORT_SYMBOL_GPL(get_lseg);
- 
--/* Returns 1 if lseg is removed from list, 0 otherwise */
--static int mark_lseg_invalid(struct pnfs_layout_segment *lseg,
--			     struct list_head *tmp_list)
++
 +static inline u64
 +end_offset(u64 start, u64 len)
- {
--	int rv = 0;
++{
 +	u64 end;
 +
 +	end = start + len;
 +	return end >= start ? end: NFS4_MAX_UINT64;
 +}
- 
++
 +/* last octet in a range */
 +static inline u64
 +last_byte_offset(u64 start, u64 len)
@@ -21949,21 +21902,25 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +
 +	return (end1 == NFS4_MAX_UINT64 || end1 > start2) &&
 +	       (end2 == NFS4_MAX_UINT64 || end2 > start1);
-+}
-+
+ }
+ 
+-/* Returns 1 if lseg is removed from list, 0 otherwise */
+-static int mark_lseg_invalid(struct pnfs_layout_segment *lseg,
+-			     struct list_head *tmp_list)
 +bool
 +should_free_lseg(struct pnfs_layout_range *lseg_range,
 +		 struct pnfs_layout_range *recall_range)
-+{
+ {
+-	int rv = 0;
 +	return (recall_range->iomode == IOMODE_ANY ||
 +		lseg_range->iomode == recall_range->iomode) &&
 +	       lo_seg_intersecting(lseg_range, recall_range);
 +}
-+
+ 
 +static void mark_lseg_invalid(struct pnfs_layout_segment *lseg,
 +			      struct list_head *tmp_list)
 +{
-+	assert_spin_locked(&lseg->layout->inode->i_lock);
++	assert_spin_locked(&lseg->pls_layout->plh_inode->i_lock);
  	if (test_and_clear_bit(NFS_LSEG_VALID, &lseg->pls_flags)) {
  		/* Remove the reference keeping the lseg in the
  		 * list.  It will now be removed when all
@@ -21995,19 +21952,21 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +	dprintk("%s:Begin lo %p offset %llu length %llu iomode %d\n",
 +		__func__, lo, range->offset, range->length, range->iomode);
  
--	list_for_each_entry_safe(lseg, next, &lo->plh_segs, pls_list)
++	assert_spin_locked(&lo->plh_inode->i_lock);
++	if (list_empty(&lo->plh_segs)) {
++		if (!test_and_set_bit(NFS_LAYOUT_DESTROYED, &lo->plh_flags))
++			put_layout_hdr_locked(lo);
++		return 0;
++	}
+ 	list_for_each_entry_safe(lseg, next, &lo->plh_segs, pls_list)
 -		if (should_free_lseg(lseg->pls_range.iomode, iomode)) {
-+	assert_spin_locked(&lo->inode->i_lock);
-+	list_for_each_entry_safe(lseg, next, &lo->segs, fi_list)
-+		if (should_free_lseg(&lseg->range, range)) {
++		if (should_free_lseg(&lseg->pls_range, range)) {
  			dprintk("%s: freeing lseg %p iomode %d "
  				"offset %llu length %llu\n", __func__,
--				lseg, lseg->pls_range.iomode, lseg->pls_range.offset,
--				lseg->pls_range.length);
+ 				lseg, lseg->pls_range.iomode, lseg->pls_range.offset,
+ 				lseg->pls_range.length);
 -			invalid++;
 -			removed += mark_lseg_invalid(lseg, tmp_list);
-+				lseg, lseg->range.iomode, lseg->range.offset,
-+				lseg->range.length);
 +			mark_lseg_invalid(lseg, tmp_list);
 +			rv = true;
  		}
@@ -22017,16 +21976,32 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +	return rv;
  }
  
++/* note free_me must contain lsegs from a single layout_hdr */
  void
-@@ -317,23 +484,29 @@ pnfs_free_lseg_list(struct list_head *fr
+ pnfs_free_lseg_list(struct list_head *free_me)
  {
  	struct pnfs_layout_segment *lseg, *tmp;
++	struct pnfs_layout_hdr *lo;
  
 -	list_for_each_entry_safe(lseg, tmp, free_me, pls_list) {
 -		list_del(&lseg->pls_list);
-+	list_for_each_entry_safe(lseg, tmp, free_me, fi_list)
- 		free_lseg(lseg);
--	}
+-		free_lseg(lseg);
++	if (list_empty(free_me))
++		return;
++
++	lo = list_first_entry(free_me, struct pnfs_layout_segment,
++			      pls_list)->pls_layout;
++
++	if (test_bit(NFS_LAYOUT_DESTROYED, &lo->plh_flags)) {
++		struct nfs_client *clp;
++
++		clp = NFS_SERVER(lo->plh_inode)->nfs_client;
++		spin_lock(&clp->cl_lock);
++		list_del_init(&lo->plh_layouts);
++		spin_unlock(&clp->cl_lock);
+ 	}
++	list_for_each_entry_safe(lseg, tmp, free_me, pls_list)
++		free_lseg(lseg);
 +	INIT_LIST_HEAD(free_me);
  }
  
@@ -22046,55 +22021,36 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	if (lo) {
 -		set_bit(NFS_LAYOUT_DESTROYED, &nfsi->layout->plh_flags);
 -		mark_matching_lsegs_invalid(lo, &tmp_list, IOMODE_ANY);
++		lo->plh_block_lgets++; /* permanently block new LAYOUTGETs */
 +		pnfs_clear_lseg_list(lo, &tmp_list, &range);
-+		WARN_ON(!list_empty(&nfsi->layout->segs));
-+		WARN_ON(!list_empty(&nfsi->layout->layouts));
++		WARN_ON(!list_empty(&nfsi->layout->plh_segs));
++		WARN_ON(!list_empty(&nfsi->layout->plh_layouts));
 +
  		/* Matched by refcount set to 1 in alloc_init_layout_hdr */
  		put_layout_hdr_locked(lo);
  	}
-@@ -357,30 +530,28 @@ pnfs_destroy_all_layouts(struct nfs_clie
- 
- 	while (!list_empty(&tmp_list)) {
- 		lo = list_entry(tmp_list.next, struct pnfs_layout_hdr,
--				plh_layouts);
-+				layouts);
- 		dprintk("%s freeing layout for inode %lu\n", __func__,
--			lo->plh_inode->i_ino);
--		pnfs_destroy_layout(NFS_I(lo->plh_inode));
-+			lo->inode->i_ino);
-+		pnfs_destroy_layout(NFS_I(lo->inode));
- 	}
- }
- 
--/* update lo->plh_stateid with new if is more recent */
-+/* update lo->stateid with new if is more recent */
- void
- pnfs_set_layout_stateid(struct pnfs_layout_hdr *lo, const nfs4_stateid *new,
- 			bool update_barrier)
+@@ -371,16 +561,14 @@ pnfs_set_layout_stateid(struct pnfs_layo
  {
  	u32 oldseq, newseq;
  
--	oldseq = be32_to_cpu(lo->plh_stateid.stateid.seqid);
-+	assert_spin_locked(&lo->inode->i_lock);
-+	oldseq = be32_to_cpu(lo->stateid.stateid.seqid);
++	assert_spin_locked(&lo->plh_inode->i_lock);
+ 	oldseq = be32_to_cpu(lo->plh_stateid.stateid.seqid);
  	newseq = be32_to_cpu(new->stateid.seqid);
  	if ((int)(newseq - oldseq) > 0) {
--		memcpy(&lo->plh_stateid, &new->stateid, sizeof(new->stateid));
+ 		memcpy(&lo->plh_stateid, &new->stateid, sizeof(new->stateid));
 -		if (update_barrier) {
 -			u32 new_barrier = be32_to_cpu(new->stateid.seqid);
 -
 -			if ((int)(new_barrier - lo->plh_barrier))
 -				lo->plh_barrier = new_barrier;
 -		} else {
-+		memcpy(&lo->stateid, &new->stateid, sizeof(new->stateid));
 +		if (update_barrier)
 +			lo->plh_barrier = be32_to_cpu(new->stateid.seqid);
 +		else {
  			/* Because of wraparound, we want to keep the barrier
  			 * "close" to the current seqids.  It needs to be
  			 * within 2**31 to count as "behind", so if it
-@@ -394,20 +565,6 @@ pnfs_set_layout_stateid(struct pnfs_layo
+@@ -394,20 +582,6 @@ pnfs_set_layout_stateid(struct pnfs_layo
  	}
  }
  
@@ -22115,46 +22071,39 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  int
  pnfs_choose_layoutget_stateid(nfs4_stateid *dst, struct pnfs_layout_hdr *lo,
  			      struct nfs4_state *open_state)
-@@ -415,10 +572,11 @@ pnfs_choose_layoutget_stateid(nfs4_state
+@@ -415,8 +589,10 @@ pnfs_choose_layoutget_stateid(nfs4_state
  	int status = 0;
  
  	dprintk("--> %s\n", __func__);
 -	spin_lock(&lo->plh_inode->i_lock);
 -	if (pnfs_layoutgets_blocked(lo, NULL, 1)) {
-+	assert_spin_locked(&lo->inode->i_lock);
++	assert_spin_locked(&lo->plh_inode->i_lock);
 +	if (lo->plh_block_lgets ||
++	    test_bit(NFS_LAYOUT_DESTROYED, &lo->plh_flags) ||
 +	    test_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags)) {
  		status = -EAGAIN;
--	} else if (list_empty(&lo->plh_segs)) {
-+	} else if (list_empty(&lo->segs)) {
+ 	} else if (list_empty(&lo->plh_segs)) {
  		int seq;
- 
- 		do {
-@@ -427,9 +585,8 @@ pnfs_choose_layoutget_stateid(nfs4_state
- 			       sizeof(open_state->stateid.data));
+@@ -428,8 +604,7 @@ pnfs_choose_layoutget_stateid(nfs4_state
  		} while (read_seqretry(&open_state->seqlock, seq));
  	} else
--		memcpy(dst->data, lo->plh_stateid.data, sizeof(lo->plh_stateid.data));
+ 		memcpy(dst->data, lo->plh_stateid.data, sizeof(lo->plh_stateid.data));
 -	spin_unlock(&lo->plh_inode->i_lock);
 -	dprintk("<-- %s\n", __func__);
-+		memcpy(dst->data, lo->stateid.data, sizeof(lo->stateid.data));
 +	dprintk("<-- %s status=%d\n", __func__, status);
  	return status;
  }
  
-@@ -442,9 +599,9 @@ pnfs_choose_layoutget_stateid(nfs4_state
+@@ -442,7 +617,7 @@ pnfs_choose_layoutget_stateid(nfs4_state
  static struct pnfs_layout_segment *
  send_layoutget(struct pnfs_layout_hdr *lo,
  	   struct nfs_open_context *ctx,
 -	   u32 iomode)
 +	   struct pnfs_layout_range *range)
  {
--	struct inode *ino = lo->plh_inode;
-+	struct inode *ino = lo->inode;
+ 	struct inode *ino = lo->plh_inode;
  	struct nfs_server *server = NFS_SERVER(ino);
- 	struct nfs4_layoutget *lgp;
- 	struct pnfs_layout_segment *lseg = NULL;
-@@ -453,13 +610,15 @@ send_layoutget(struct pnfs_layout_hdr *l
+@@ -453,13 +628,15 @@ send_layoutget(struct pnfs_layout_hdr *l
  
  	BUG_ON(ctx == NULL);
  	lgp = kzalloc(sizeof(*lgp), GFP_KERNEL);
@@ -22175,7 +22124,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	lgp->args.type = server->pnfs_curr_ld->id;
  	lgp->args.inode = ino;
  	lgp->args.ctx = get_nfs_open_context(ctx);
-@@ -471,86 +630,119 @@ send_layoutget(struct pnfs_layout_hdr *l
+@@ -471,86 +648,119 @@ send_layoutget(struct pnfs_layout_hdr *l
  	nfs4_proc_layoutget(lgp);
  	if (!lseg) {
  		/* remember that LAYOUTGET failed and suspend trying */
@@ -22201,13 +22150,12 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 -	if (!lo || !test_and_clear_bit(NFS_LAYOUT_ROC, &lo->plh_flags) ||
 -	    test_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags))
 -		goto out_nolayout;
--	list_for_each_entry_safe(lseg, tmp, &lo->plh_segs, pls_list)
++	assert_spin_locked(&lo->plh_inode->i_lock);
+ 	list_for_each_entry_safe(lseg, tmp, &lo->plh_segs, pls_list)
 -		if (test_bit(NFS_LSEG_ROC, &lseg->pls_flags)) {
 -			mark_lseg_invalid(lseg, &tmp_list);
 -			found = true;
-+	assert_spin_locked(&lo->inode->i_lock);
-+	list_for_each_entry_safe(lseg, tmp, &lo->segs, fi_list)
-+		if (should_free_lseg(&lseg->range, range)) {
++		if (should_free_lseg(&lseg->pls_range, range)) {
 +			lseg->pls_notify_mask |= (1 << notify_bit);
 +			atomic_inc(notify_count);
 +			mark_lseg_invalid(lseg, tmp_list);
@@ -22244,8 +22192,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 -	put_layout_hdr_locked(lo);
 -	spin_unlock(&ino->i_lock);
 +	spin_lock(&nfsi->vfs_inode.i_lock);
-+	list_for_each_entry(lseg, &nfsi->layout->segs, fi_list)
-+		if (should_free_lseg(&lseg->range, range)) {
++	list_for_each_entry(lseg, &nfsi->layout->plh_segs, pls_list)
++		if (should_free_lseg(&lseg->pls_range, range)) {
 +			ret = true;
 +			break;
 +		}
@@ -22351,7 +22299,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  }
  
  /*
-@@ -559,10 +751,24 @@ bool pnfs_roc_drain(struct inode *ino, u
+@@ -559,10 +769,24 @@ bool pnfs_roc_drain(struct inode *ino, u
   * are seen first.
   */
  static s64
@@ -22378,49 +22326,26 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  }
  
  static void
-@@ -574,27 +780,30 @@ pnfs_insert_layout(struct pnfs_layout_hd
+@@ -576,7 +800,7 @@ pnfs_insert_layout(struct pnfs_layout_hd
  
- 	dprintk("%s:Begin\n", __func__);
- 
--	assert_spin_locked(&lo->plh_inode->i_lock);
--	list_for_each_entry(lp, &lo->plh_segs, pls_list) {
+ 	assert_spin_locked(&lo->plh_inode->i_lock);
+ 	list_for_each_entry(lp, &lo->plh_segs, pls_list) {
 -		if (cmp_layout(lp->pls_range.iomode, lseg->pls_range.iomode) > 0)
-+	assert_spin_locked(&lo->inode->i_lock);
-+	list_for_each_entry(lp, &lo->segs, fi_list) {
-+		if (cmp_layout(&lp->range, &lseg->range) > 0)
++		if (cmp_layout(&lp->pls_range, &lseg->pls_range) > 0)
  			continue;
--		list_add_tail(&lseg->pls_list, &lp->pls_list);
-+		list_add_tail(&lseg->fi_list, &lp->fi_list);
+ 		list_add_tail(&lseg->pls_list, &lp->pls_list);
  		dprintk("%s: inserted lseg %p "
- 			"iomode %d offset %llu length %llu before "
- 			"lp %p iomode %d offset %llu length %llu\n",
--			__func__, lseg, lseg->pls_range.iomode,
--			lseg->pls_range.offset, lseg->pls_range.length,
--			lp, lp->pls_range.iomode, lp->pls_range.offset,
--			lp->pls_range.length);
-+			__func__, lseg, lseg->range.iomode,
-+			lseg->range.offset, lseg->range.length,
-+			lp, lp->range.iomode, lp->range.offset,
-+			lp->range.length);
- 		found = 1;
- 		break;
+@@ -591,6 +815,9 @@ pnfs_insert_layout(struct pnfs_layout_hd
  	}
  	if (!found) {
--		list_add_tail(&lseg->pls_list, &lo->plh_segs);
-+		list_add_tail(&lseg->fi_list, &lo->segs);
-+		if (list_is_singular(&lo->segs) &&
+ 		list_add_tail(&lseg->pls_list, &lo->plh_segs);
++		if (list_is_singular(&lo->plh_segs) &&
 +		    !pnfs_layoutgets_blocked(lo, NULL))
-+			rpc_wake_up(&NFS_I(lo->inode)->lo_rpcwaitq_stateid);
++			rpc_wake_up(&NFS_I(lo->plh_inode)->lo_rpcwaitq_stateid);
  		dprintk("%s: inserted lseg %p "
  			"iomode %d offset %llu length %llu at tail\n",
--			__func__, lseg, lseg->pls_range.iomode,
--			lseg->pls_range.offset, lseg->pls_range.length);
-+			__func__, lseg, lseg->range.iomode,
-+			lseg->range.offset, lseg->range.length);
- 	}
- 	get_layout_hdr(lo);
- 
-@@ -606,14 +815,14 @@ alloc_init_layout_hdr(struct inode *ino)
+ 			__func__, lseg, lseg->pls_range.iomode,
+@@ -606,7 +833,7 @@ alloc_init_layout_hdr(struct inode *ino)
  {
  	struct pnfs_layout_hdr *lo;
  
@@ -22429,33 +22354,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	if (!lo)
  		return NULL;
  	atomic_set(&lo->plh_refcount, 1);
--	INIT_LIST_HEAD(&lo->plh_layouts);
--	INIT_LIST_HEAD(&lo->plh_segs);
-+	INIT_LIST_HEAD(&lo->layouts);
-+	INIT_LIST_HEAD(&lo->segs);
- 	INIT_LIST_HEAD(&lo->plh_bulk_recall);
--	lo->plh_inode = ino;
-+	lo->inode = ino;
- 	return lo;
- }
- 
-@@ -626,12 +835,9 @@ pnfs_find_alloc_layout(struct inode *ino
- 	dprintk("%s Begin ino=%p layout=%p\n", __func__, ino, nfsi->layout);
- 
- 	assert_spin_locked(&ino->i_lock);
--	if (nfsi->layout) {
--		if (test_bit(NFS_LAYOUT_DESTROYED, &nfsi->layout->plh_flags))
--			return NULL;
--		else
--			return nfsi->layout;
--	}
-+	if (nfsi->layout)
-+		return nfsi->layout;
-+
- 	spin_unlock(&ino->i_lock);
- 	new = alloc_init_layout_hdr(ino);
- 	spin_lock(&ino->i_lock);
-@@ -639,13 +845,13 @@ pnfs_find_alloc_layout(struct inode *ino
+@@ -639,13 +866,13 @@ pnfs_find_alloc_layout(struct inode *ino
  	if (likely(nfsi->layout == NULL))	/* Won the race? */
  		nfsi->layout = new;
  	else
@@ -22471,7 +22370,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
   * -----	-----	-----
   * ANY		READ	true
   * ANY		RW	true
-@@ -655,34 +861,47 @@ pnfs_find_alloc_layout(struct inode *ino
+@@ -655,16 +882,28 @@ pnfs_find_alloc_layout(struct inode *ino
   * READ		RW	true
   */
  static int
@@ -22482,14 +22381,15 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 -	return (iomode != IOMODE_RW || lseg->pls_range.iomode == IOMODE_RW);
 +	struct pnfs_layout_range range1;
 +
-+	if ((range->iomode == IOMODE_RW && lseg->range.iomode != IOMODE_RW) ||
-+	    !lo_seg_intersecting(&lseg->range, range))
++	if ((range->iomode == IOMODE_RW &&
++	     lseg->pls_range.iomode != IOMODE_RW) ||
++	    !lo_seg_intersecting(&lseg->pls_range, range))
 +		return 0;
 +
 +	/* range1 covers only the first byte in the range */
 +	range1 = *range;
 +	range1.length = 1;
-+	return lo_seg_contained(&lseg->range, &range1);
++	return lo_seg_contained(&lseg->pls_range, &range1);
  }
  
  /*
@@ -22502,12 +22402,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  {
  	struct pnfs_layout_segment *lseg, *ret = NULL;
  
- 	dprintk("%s:Begin\n", __func__);
- 
--	assert_spin_locked(&lo->plh_inode->i_lock);
--	list_for_each_entry(lseg, &lo->plh_segs, pls_list) {
-+	assert_spin_locked(&lo->inode->i_lock);
-+	list_for_each_entry(lseg, &lo->segs, fi_list) {
+@@ -673,16 +912,18 @@ pnfs_find_lseg(struct pnfs_layout_hdr *l
+ 	assert_spin_locked(&lo->plh_inode->i_lock);
+ 	list_for_each_entry(lseg, &lo->plh_segs, pls_list) {
  		if (test_bit(NFS_LSEG_VALID, &lseg->pls_flags) &&
 -		    is_matching_lseg(lseg, iomode)) {
 +		    is_matching_lseg(lseg, range)) {
@@ -22516,7 +22413,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  			break;
  		}
 -		if (cmp_layout(iomode, lseg->pls_range.iomode) > 0)
-+		if (cmp_layout(range, &lseg->range) > 0)
++		if (cmp_layout(range, &lseg->pls_range) > 0)
  			break;
  	}
  
@@ -22528,7 +22425,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	return ret;
  }
  
-@@ -693,8 +912,15 @@ pnfs_find_lseg(struct pnfs_layout_hdr *l
+@@ -693,12 +934,20 @@ pnfs_find_lseg(struct pnfs_layout_hdr *l
  struct pnfs_layout_segment *
  pnfs_update_layout(struct inode *ino,
  		   struct nfs_open_context *ctx,
@@ -22544,7 +22441,12 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	struct nfs_inode *nfsi = NFS_I(ino);
  	struct nfs_client *clp = NFS_SERVER(ino)->nfs_client;
  	struct pnfs_layout_hdr *lo;
-@@ -709,14 +935,8 @@ pnfs_update_layout(struct inode *ino,
+ 	struct pnfs_layout_segment *lseg = NULL;
++	bool first = false;
+ 
+ 	if (!pnfs_enabled_sb(NFS_SERVER(ino)))
+ 		return NULL;
+@@ -709,14 +958,8 @@ pnfs_update_layout(struct inode *ino,
  		goto out_unlock;
  	}
  
@@ -22560,7 +22462,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	if (lseg)
  		goto out_unlock;
  
-@@ -724,35 +944,29 @@ pnfs_update_layout(struct inode *ino,
+@@ -724,12 +967,11 @@ pnfs_update_layout(struct inode *ino,
  	if (test_bit(lo_fail_bit(iomode), &nfsi->layout->plh_flags))
  		goto out_unlock;
  
@@ -22568,66 +22470,64 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 -		goto out_unlock;
 -	atomic_inc(&lo->plh_outstanding);
 -
--	get_layout_hdr(lo);
+ 	get_layout_hdr(lo);
 -	if (list_empty(&lo->plh_segs)) {
-+	get_layout_hdr(lo); /* Matched in pnfs_layoutget_release */
-+	if (list_empty(&lo->segs)) {
++	if (list_empty(&lo->plh_segs))
++		first = true;
++	spin_unlock(&ino->i_lock);
++	if (first) {
  		/* The lo must be on the clp list if there is any
  		 * chance of a CB_LAYOUTRECALL(FILE) coming in.
  		 */
- 		spin_lock(&clp->cl_lock);
--		BUG_ON(!list_empty(&lo->plh_layouts));
--		list_add_tail(&lo->plh_layouts, &clp->cl_layouts);
-+		BUG_ON(!list_empty(&lo->layouts));
-+		list_add_tail(&lo->layouts, &clp->cl_layouts);
+@@ -738,21 +980,13 @@ pnfs_update_layout(struct inode *ino,
+ 		list_add_tail(&lo->plh_layouts, &clp->cl_layouts);
  		spin_unlock(&clp->cl_lock);
  	}
- 	spin_unlock(&ino->i_lock);
+-	spin_unlock(&ino->i_lock);
  
 -	lseg = send_layoutget(lo, ctx, iomode);
-+	lseg = send_layoutget(lo, ctx, &arg);
- 	if (!lseg) {
- 		spin_lock(&ino->i_lock);
+-	if (!lseg) {
+-		spin_lock(&ino->i_lock);
 -		if (list_empty(&lo->plh_segs)) {
-+		if (list_empty(&lo->segs)) {
- 			spin_lock(&clp->cl_lock);
+-			spin_lock(&clp->cl_lock);
 -			list_del_init(&lo->plh_layouts);
-+			list_del_init(&lo->layouts);
- 			spin_unlock(&clp->cl_lock);
- 			clear_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags);
- 		}
- 		spin_unlock(&ino->i_lock);
+-			spin_unlock(&clp->cl_lock);
+-			clear_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags);
+-		}
+-		spin_unlock(&ino->i_lock);
++	lseg = send_layoutget(lo, ctx, &arg);
++	if (!lseg && first) {
++		spin_lock(&clp->cl_lock);
++		list_del_init(&lo->plh_layouts);
++		spin_unlock(&clp->cl_lock);
  	}
 -	atomic_dec(&lo->plh_outstanding);
 -	put_layout_hdr(lo);
  out:
  	dprintk("%s end, state 0x%lx lseg %p\n", __func__,
  		nfsi->layout->plh_flags, lseg);
-@@ -762,27 +976,29 @@ out_unlock:
+@@ -762,6 +996,20 @@ out_unlock:
  	goto out;
  }
  
 +bool
 +pnfs_layoutgets_blocked(struct pnfs_layout_hdr *lo, nfs4_stateid *stateid)
 +{
-+	assert_spin_locked(&lo->inode->i_lock);
++	assert_spin_locked(&lo->plh_inode->i_lock);
 +	if ((stateid) &&
 +	    (int)(lo->plh_barrier - be32_to_cpu(stateid->stateid.seqid)) >= 0)
 +		return true;
 +	return lo->plh_block_lgets ||
++		test_bit(NFS_LAYOUT_DESTROYED, &lo->plh_flags) ||
 +		test_bit(NFS_LAYOUT_BULK_RECALL, &lo->plh_flags) ||
-+		(list_empty(&lo->segs) &&
++		(list_empty(&lo->plh_segs) &&
 +		 (atomic_read(&lo->plh_outstanding) != 0));
 +}
 +
  int
  pnfs_layout_process(struct nfs4_layoutget *lgp)
  {
- 	struct pnfs_layout_hdr *lo = NFS_I(lgp->args.inode)->layout;
- 	struct nfs4_layoutget_res *res = &lgp->res;
- 	struct pnfs_layout_segment *lseg;
--	struct inode *ino = lo->plh_inode;
-+	struct inode *ino = lo->inode;
+@@ -772,17 +1020,6 @@ pnfs_layout_process(struct nfs4_layoutge
  	struct nfs_client *clp = NFS_SERVER(ino)->nfs_client;
  	int status = 0;
  
@@ -22645,7 +22545,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  	/* Inject layout blob into I/O device driver */
  	lseg = NFS_SERVER(ino)->pnfs_curr_ld->alloc_lseg(lo, res);
  	if (!lseg || IS_ERR(lseg)) {
-@@ -792,43 +1008,572 @@ pnfs_layout_process(struct nfs4_layoutge
+@@ -792,43 +1029,572 @@ pnfs_layout_process(struct nfs4_layoutge
  			status = PTR_ERR(lseg);
  		dprintk("%s: Could not allocate layout: error %d\n",
  		       __func__, status);
@@ -22672,8 +22572,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  		goto out_forget_reply;
  	}
  	init_lseg(lo, lseg);
--	lseg->pls_range = res->range;
-+	lseg->range = res->range;
+ 	lseg->pls_range = res->range;
 +	get_lseg(lseg);
  	*lgp->lsegpp = lseg;
  	pnfs_insert_layout(lo, lseg);
@@ -22699,13 +22598,12 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  
  out_forget_reply:
  	spin_unlock(&ino->i_lock);
--	lseg->pls_layout = lo;
-+	lseg->layout = lo;
+ 	lseg->pls_layout = lo;
  	NFS_SERVER(ino)->pnfs_curr_ld->free_lseg(lseg);
 +	spin_lock(&ino->i_lock);
-+	goto out;
-+}
-+
+ 	goto out;
+ }
+ 
 +void
 +readahead_range(struct inode *inode, struct list_head *pages, loff_t *offset,
 +		size_t *count)
@@ -23191,7 +23089,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +	nfsi->layout->write_end_pos = 0;
 +	nfsi->layout->cred = NULL;
 +	__clear_bit(NFS_LAYOUT_NEED_LCOMMIT, &nfsi->layout->plh_flags);
-+	memcpy(data->args.stateid.data, nfsi->layout->stateid.data,
++	memcpy(data->args.stateid.data, nfsi->layout->plh_stateid.data,
 +	       NFS4_STATEID_SIZE);
 +
 +	/* Reference for layoutcommit matched in pnfs_layoutcommit_release */
@@ -23214,9 +23112,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
 +	return status;
 +out_free:
 +	kfree(data);
- 	goto out;
- }
- 
++	goto out;
++}
++
 +void pnfs_free_fsdata(struct pnfs_fsdata *fsdata)
 +{
 +	/* lseg refcounting handled directly in nfs_write_end */
@@ -23226,7 +23124,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  /*
   * Device ID cache. Currently supports one layout type per struct nfs_client.
   * Add layout type to the lookup key to expand to support multiple types.
-@@ -861,6 +1606,25 @@ pnfs_alloc_init_deviceid_cache(struct nf
+@@ -861,6 +1627,25 @@ pnfs_alloc_init_deviceid_cache(struct nf
  }
  EXPORT_SYMBOL_GPL(pnfs_alloc_init_deviceid_cache);
  
@@ -23252,7 +23150,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  /*
   * Called from pnfs_layoutdriver_type->free_lseg
   * last layout segment reference frees deviceid
-@@ -869,29 +1633,33 @@ void
+@@ -869,29 +1654,33 @@ void
  pnfs_put_deviceid(struct pnfs_deviceid_cache *c,
  		  struct pnfs_deviceid_node *devid)
  {
@@ -23302,9 +23200,9 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.c.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  struct pnfs_deviceid_node *
  pnfs_find_get_deviceid(struct pnfs_deviceid_cache *c, struct nfs4_deviceid *id)
 diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.h
---- linux-2.6.37.noarch/fs/nfs/pnfs.h.orig	2011-01-28 09:37:32.549979704 -0500
-+++ linux-2.6.37.noarch/fs/nfs/pnfs.h	2011-01-28 09:43:53.341771581 -0500
-@@ -30,17 +30,31 @@
+--- linux-2.6.37.noarch/fs/nfs/pnfs.h.orig	2011-02-03 17:38:17.347389717 -0500
++++ linux-2.6.37.noarch/fs/nfs/pnfs.h	2011-02-03 17:42:47.834620379 -0500
+@@ -30,9 +30,11 @@
  #ifndef FS_NFS_PNFS_H
  #define FS_NFS_PNFS_H
  
@@ -23317,14 +23215,10 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  };
  
  struct pnfs_layout_segment {
--	struct list_head pls_list;
--	struct pnfs_layout_range pls_range;
-+	struct list_head fi_list;
-+	struct pnfs_layout_range range;
+@@ -41,6 +43,18 @@ struct pnfs_layout_segment {
  	atomic_t pls_refcount;
  	unsigned long pls_flags;
--	struct pnfs_layout_hdr *pls_layout;
-+	struct pnfs_layout_hdr *layout;
+ 	struct pnfs_layout_hdr *pls_layout;
 +	u64 pls_notify_mask;
 +};
 +
@@ -23340,25 +23234,26 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  };
  
  #ifdef CONFIG_NFS_V4_1
-@@ -51,8 +65,15 @@ enum {
+@@ -51,20 +65,86 @@ enum {
  	NFS_LAYOUT_RO_FAILED = 0,	/* get ro layout failed stop trying */
  	NFS_LAYOUT_RW_FAILED,		/* get rw layout failed stop trying */
  	NFS_LAYOUT_BULK_RECALL,		/* bulk recall affecting layout */
 -	NFS_LAYOUT_ROC,			/* some lseg had roc bit set */
--	NFS_LAYOUT_DESTROYED,		/* no new use of layout allowed */
 +	NFS_LAYOUT_NEED_LCOMMIT,	/* LAYOUTCOMMIT needed */
-+};
-+
+ 	NFS_LAYOUT_DESTROYED,		/* no new use of layout allowed */
+ };
+ 
 +enum layoutdriver_policy_flags {
 +	/* Should the full nfs rpc cleanup code be used after io */
 +	PNFS_USE_RPC_CODE		= 1 << 0,
 +
 +	/* Should the pNFS client commit and return the layout upon a setattr */
 +	PNFS_LAYOUTRET_ON_SETATTR	= 1 << 1,
- };
- 
++};
++
  /* Per-layout driver specific registration structure */
-@@ -61,23 +82,88 @@ struct pnfs_layoutdriver_type {
+ struct pnfs_layoutdriver_type {
+ 	struct list_head pnfs_tblid;
  	const u32 id;
  	const char *name;
  	struct module *owner;
@@ -23428,31 +23323,26 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  };
  
  struct pnfs_layout_hdr {
- 	atomic_t		plh_refcount;
--	struct list_head	plh_layouts;   /* other client layouts */
-+	struct list_head	layouts;   /* other client layouts */
+@@ -72,11 +152,18 @@ struct pnfs_layout_hdr {
+ 	struct list_head	plh_layouts;   /* other client layouts */
  	struct list_head	plh_bulk_recall; /* clnt list of bulk recalls */
--	struct list_head	plh_segs;      /* layout segments list */
--	nfs4_stateid		plh_stateid;
-+	struct list_head	segs;      /* layout segments list */
+ 	struct list_head	plh_segs;      /* layout segments list */
 +	int			roc_iomode;/* return on close iomode, 0=none */
-+	nfs4_stateid		stateid;
+ 	nfs4_stateid		plh_stateid;
  	atomic_t		plh_outstanding; /* number of RPCs out */
  	unsigned long		plh_block_lgets; /* block LAYOUTGET if >0 */
  	u32			plh_barrier; /* ignore lower seqids */
  	unsigned long		plh_flags;
--	struct inode		*plh_inode;
 +	struct rpc_cred		*cred;     /* layoutcommit credential */
 +	/* DH: These vars keep track of the maximum write range
 +	 * so the values can be used for layoutcommit.
 +	 */
 +	loff_t			write_begin_pos;
 +	loff_t			write_end_pos;
-+	struct inode		*inode;
+ 	struct inode		*plh_inode;
  };
  
- struct pnfs_device {
-@@ -90,6 +176,23 @@ struct pnfs_device {
+@@ -90,6 +177,23 @@ struct pnfs_device {
  	unsigned int  pglen;
  };
  
@@ -23476,7 +23366,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  /*
   * Device ID RCU cache. A device ID is unique per client ID and layout type.
   */
-@@ -135,22 +238,55 @@ extern struct pnfs_deviceid_node *pnfs_a
+@@ -135,22 +239,55 @@ extern struct pnfs_deviceid_node *pnfs_a
  				struct pnfs_deviceid_node *);
  extern void pnfs_put_deviceid(struct pnfs_deviceid_cache *c,
  			      struct pnfs_deviceid_node *devid);
@@ -23534,7 +23424,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  int pnfs_layout_process(struct nfs4_layoutget *lgp);
  void pnfs_free_lseg_list(struct list_head *tmp_list);
  void pnfs_destroy_layout(struct nfs_inode *);
-@@ -162,14 +298,23 @@ void pnfs_set_layout_stateid(struct pnfs
+@@ -162,14 +299,23 @@ void pnfs_set_layout_stateid(struct pnfs
  int pnfs_choose_layoutget_stateid(nfs4_stateid *dst,
  				  struct pnfs_layout_hdr *lo,
  				  struct nfs4_state *open_state);
@@ -23565,7 +23455,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  
  static inline int lo_fail_bit(u32 iomode)
  {
-@@ -183,6 +328,125 @@ static inline int pnfs_enabled_sb(struct
+@@ -183,6 +329,125 @@ static inline int pnfs_enabled_sb(struct
  	return nfss->pnfs_curr_ld != NULL;
  }
  
@@ -23691,7 +23581,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  #else  /* CONFIG_NFS_V4_1 */
  
  static inline void pnfs_destroy_all_layouts(struct nfs_client *clp)
-@@ -193,36 +457,90 @@ static inline void pnfs_destroy_layout(s
+@@ -193,36 +458,90 @@ static inline void pnfs_destroy_layout(s
  {
  }
  
@@ -23790,7 +23680,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  {
  }
  
-@@ -230,6 +548,62 @@ static inline void unset_pnfs_layoutdriv
+@@ -230,6 +549,62 @@ static inline void unset_pnfs_layoutdriv
  {
  }
  
@@ -23855,7 +23745,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/pnfs.h.orig linux-2.6.37.noarch/fs/nfs/pnfs.
  #endif /* FS_NFS_PNFS_H */
 diff -up linux-2.6.37.noarch/fs/nfs/read.c.orig linux-2.6.37.noarch/fs/nfs/read.c
 --- linux-2.6.37.noarch/fs/nfs/read.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/read.c	2011-01-28 09:43:53.342771448 -0500
++++ linux-2.6.37.noarch/fs/nfs/read.c	2011-02-03 17:42:47.835620494 -0500
 @@ -18,14 +18,17 @@
  #include <linux/sunrpc/clnt.h>
  #include <linux/nfs_fs.h>
@@ -24050,7 +23940,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/read.c.orig linux-2.6.37.noarch/fs/nfs/read.
 -	new = nfs_create_request(desc->ctx, inode, page, 0, len);
 +	if (desc->pgio->pg_lseg) {
 +		loff_t pgoff = (loff_t)page->index << PAGE_CACHE_SHIFT;
-+		struct pnfs_layout_range *range = &desc->pgio->pg_lseg->range;
++		struct pnfs_layout_range *range = &desc->pgio->pg_lseg->pls_range;
 +
 +		/* retry later with the right lseg? */
 +		if (range->offset > pgoff + len ||
@@ -24083,8 +23973,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/read.c.orig linux-2.6.37.noarch/fs/nfs/read.
  	nfs_add_stats(inode, NFSIOS_READPAGES, npages);
  read_complete:
 diff -up linux-2.6.37.noarch/fs/nfs/super.c.orig linux-2.6.37.noarch/fs/nfs/super.c
---- linux-2.6.37.noarch/fs/nfs/super.c.orig	2011-01-28 09:37:32.551979635 -0500
-+++ linux-2.6.37.noarch/fs/nfs/super.c	2011-01-28 09:43:53.343771315 -0500
+--- linux-2.6.37.noarch/fs/nfs/super.c.orig	2011-02-03 17:38:17.349389756 -0500
++++ linux-2.6.37.noarch/fs/nfs/super.c	2011-02-03 17:42:47.837620731 -0500
 @@ -63,6 +63,7 @@
  #include "iostat.h"
  #include "internal.h"
@@ -24132,8 +24022,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/super.c.orig linux-2.6.37.noarch/fs/nfs/supe
  #endif
  
 diff -up linux-2.6.37.noarch/fs/nfs/unlink.c.orig linux-2.6.37.noarch/fs/nfs/unlink.c
---- linux-2.6.37.noarch/fs/nfs/unlink.c.orig	2011-01-28 09:37:32.552979600 -0500
-+++ linux-2.6.37.noarch/fs/nfs/unlink.c	2011-01-28 09:43:53.344771185 -0500
+--- linux-2.6.37.noarch/fs/nfs/unlink.c.orig	2011-02-03 17:38:17.350389776 -0500
++++ linux-2.6.37.noarch/fs/nfs/unlink.c	2011-02-03 17:42:47.838620853 -0500
 @@ -113,7 +113,7 @@ void nfs_unlink_prepare(struct rpc_task 
  	struct nfs_unlinkdata *data = calldata;
  	struct nfs_server *server = NFS_SERVER(data->dir);
@@ -24153,8 +24043,8 @@ diff -up linux-2.6.37.noarch/fs/nfs/unlink.c.orig linux-2.6.37.noarch/fs/nfs/unl
  		return;
  	rpc_call_start(task);
 diff -up linux-2.6.37.noarch/fs/nfs/write.c.orig linux-2.6.37.noarch/fs/nfs/write.c
---- linux-2.6.37.noarch/fs/nfs/write.c.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/fs/nfs/write.c	2011-01-28 09:43:53.345771055 -0500
+--- linux-2.6.37.noarch/fs/nfs/write.c.orig	2011-02-03 17:38:17.351389796 -0500
++++ linux-2.6.37.noarch/fs/nfs/write.c	2011-02-03 17:42:47.840621103 -0500
 @@ -28,6 +28,7 @@
  #include "iostat.h"
  #include "nfs4_fs.h"
@@ -24784,7 +24674,7 @@ diff -up linux-2.6.37.noarch/fs/nfs/write.c.orig linux-2.6.37.noarch/fs/nfs/writ
  /*
 diff -up linux-2.6.37.noarch/include/linux/exportfs.h.orig linux-2.6.37.noarch/include/linux/exportfs.h
 --- linux-2.6.37.noarch/include/linux/exportfs.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/exportfs.h	2011-01-28 09:43:53.375767416 -0500
++++ linux-2.6.37.noarch/include/linux/exportfs.h	2011-02-03 17:42:47.869625011 -0500
 @@ -2,6 +2,7 @@
  #define LINUX_EXPORTFS_H 1
  
@@ -24857,8 +24747,8 @@ diff -up linux-2.6.37.noarch/include/linux/exportfs.h.orig linux-2.6.37.noarch/i
 +#endif /* CONFIG_PNFSD */
  #endif /* LINUX_EXPORTFS_H */
 diff -up linux-2.6.37.noarch/include/linux/exp_xdr.h.orig linux-2.6.37.noarch/include/linux/exp_xdr.h
---- linux-2.6.37.noarch/include/linux/exp_xdr.h.orig	2011-01-28 09:43:53.373767706 -0500
-+++ linux-2.6.37.noarch/include/linux/exp_xdr.h	2011-01-28 09:43:53.374767561 -0500
+--- linux-2.6.37.noarch/include/linux/exp_xdr.h.orig	2011-02-03 17:42:47.868624874 -0500
++++ linux-2.6.37.noarch/include/linux/exp_xdr.h	2011-02-03 17:42:47.868624874 -0500
 @@ -0,0 +1,141 @@
 +#ifndef _LINUX_EXP_XDR_H
 +#define _LINUX_EXP_XDR_H
@@ -25002,8 +24892,8 @@ diff -up linux-2.6.37.noarch/include/linux/exp_xdr.h.orig linux-2.6.37.noarch/in
 +}
 +#endif /* _LINUX_EXP_XDR_H */
 diff -up linux-2.6.37.noarch/include/linux/fs.h.orig linux-2.6.37.noarch/include/linux/fs.h
---- linux-2.6.37.noarch/include/linux/fs.h.orig	2011-01-28 09:37:32.791971306 -0500
-+++ linux-2.6.37.noarch/include/linux/fs.h	2011-01-28 09:43:53.377767138 -0500
+--- linux-2.6.37.noarch/include/linux/fs.h.orig	2011-02-03 17:38:18.923420881 -0500
++++ linux-2.6.37.noarch/include/linux/fs.h	2011-02-03 17:42:47.871625284 -0500
 @@ -399,6 +399,7 @@ struct inodes_stat_t {
  #include <asm/byteorder.h>
  
@@ -25021,8 +24911,8 @@ diff -up linux-2.6.37.noarch/include/linux/fs.h.orig linux-2.6.37.noarch/include
  	unsigned long		s_magic;
  	struct dentry		*s_root;
 diff -up linux-2.6.37.noarch/include/linux/nfs4.h.orig linux-2.6.37.noarch/include/linux/nfs4.h
---- linux-2.6.37.noarch/include/linux/nfs4.h.orig	2011-01-28 09:37:32.862968843 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs4.h	2011-01-28 09:43:53.379766874 -0500
+--- linux-2.6.37.noarch/include/linux/nfs4.h.orig	2011-02-03 17:38:17.688396460 -0500
++++ linux-2.6.37.noarch/include/linux/nfs4.h	2011-02-03 17:42:47.873625557 -0500
 @@ -17,6 +17,7 @@
  
  #define NFS4_BITMAP_SIZE	2
@@ -25082,8 +24972,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfs4.h.orig linux-2.6.37.noarch/inclu
  
  /* used for both layout return and recall */
 diff -up linux-2.6.37.noarch/include/linux/nfsd4_block.h.orig linux-2.6.37.noarch/include/linux/nfsd4_block.h
---- linux-2.6.37.noarch/include/linux/nfsd4_block.h.orig	2011-01-28 09:43:53.392765435 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd4_block.h	2011-01-28 09:43:53.392765435 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd4_block.h.orig	2011-02-03 17:42:47.886627333 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd4_block.h	2011-02-03 17:42:47.886627333 -0500
 @@ -0,0 +1,101 @@
 +#ifndef NFSD4_BLOCK
 +#define NFSD4_BLOCK
@@ -25187,8 +25077,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd4_block.h.orig linux-2.6.37.noarc
 +#endif /* NFSD4_BLOCK */
 +
 diff -up linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h.orig linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h
---- linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h.orig	2011-01-28 09:43:53.394765249 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h	2011-01-28 09:43:53.394765249 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h.orig	2011-02-03 17:42:47.888627608 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h	2011-02-03 17:42:47.888627608 -0500
 @@ -0,0 +1,345 @@
 +/*
 + * include/linux/nfsd4_spnfs.h
@@ -25537,7 +25427,7 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd4_spnfs.h.orig linux-2.6.37.noarc
 +#endif /* NFS_SPNFS_H */
 diff -up linux-2.6.37.noarch/include/linux/nfsd/const.h.orig linux-2.6.37.noarch/include/linux/nfsd/const.h
 --- linux-2.6.37.noarch/include/linux/nfsd/const.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/const.h	2011-01-28 09:43:53.387765940 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/const.h	2011-02-03 17:42:47.881626650 -0500
 @@ -29,6 +29,7 @@
  #ifdef __KERNEL__
  
@@ -25548,7 +25438,7 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/const.h.orig linux-2.6.37.noarch
   * Largest number of bytes we need to allocate for an NFS
 diff -up linux-2.6.37.noarch/include/linux/nfsd/debug.h.orig linux-2.6.37.noarch/include/linux/nfsd/debug.h
 --- linux-2.6.37.noarch/include/linux/nfsd/debug.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/debug.h	2011-01-28 09:43:53.388765835 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/debug.h	2011-02-03 17:42:47.882626788 -0500
 @@ -32,6 +32,8 @@
  #define NFSDDBG_REPCACHE	0x0080
  #define NFSDDBG_XDR		0x0100
@@ -25559,8 +25449,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/debug.h.orig linux-2.6.37.noarch
  #define NFSDDBG_NOCHANGE	0xFFFF
  
 diff -up linux-2.6.37.noarch/include/linux/nfsd/export.h.orig linux-2.6.37.noarch/include/linux/nfsd/export.h
---- linux-2.6.37.noarch/include/linux/nfsd/export.h.orig	2011-01-28 09:37:32.865968740 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/export.h	2011-01-28 09:43:53.388765835 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd/export.h.orig	2011-02-03 17:38:17.691396519 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/export.h	2011-02-03 17:42:47.882626788 -0500
 @@ -79,6 +79,20 @@ struct nfsd4_fs_locations {
  };
  
@@ -25591,8 +25481,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/export.h.orig linux-2.6.37.noarc
  	struct nfsd4_fs_locations ex_fslocs;
  	int			ex_nflavors;
 diff -up linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h.orig linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h
---- linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h.orig	2011-01-28 09:43:53.389765732 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h	2011-01-28 09:43:53.389765732 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h.orig	2011-02-03 17:42:47.883626925 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h	2011-02-03 17:42:47.883626925 -0500
 @@ -0,0 +1,132 @@
 +/*
 + *  Copyright (c) 2006 The Regents of the University of Michigan.
@@ -25727,8 +25617,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/nfs4layoutxdr.h.orig linux-2.6.3
 +
 +#endif /* NFSD_NFS4LAYOUTXDR_H */
 diff -up linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h.orig linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h
---- linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h.orig	2011-01-28 09:43:53.389765732 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h	2011-01-28 09:43:53.389765732 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h.orig	2011-02-03 17:42:47.884627061 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h	2011-02-03 17:42:47.884627061 -0500
 @@ -0,0 +1,54 @@
 +/******************************************************************************
 + *
@@ -25785,8 +25675,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/nfs4pnfsdlm.h.orig linux-2.6.37.
 +
 +#endif /* CONFIG_PNFSD */
 diff -up linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h.orig linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h
---- linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h.orig	2011-01-28 09:43:53.390765631 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h	2011-01-28 09:43:53.390765631 -0500
+--- linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h.orig	2011-02-03 17:42:47.884627061 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h	2011-02-03 17:42:47.884627061 -0500
 @@ -0,0 +1,273 @@
 +/*
 + *  Copyright (c) 2006 The Regents of the University of Michigan.
@@ -26063,7 +25953,7 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/nfsd4_pnfs.h.orig linux-2.6.37.n
 +#endif /* _LINUX_NFSD_NFSD4_PNFS_H */
 diff -up linux-2.6.37.noarch/include/linux/nfsd/syscall.h.orig linux-2.6.37.noarch/include/linux/nfsd/syscall.h
 --- linux-2.6.37.noarch/include/linux/nfsd/syscall.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/nfsd/syscall.h	2011-01-28 09:43:53.391765532 -0500
++++ linux-2.6.37.noarch/include/linux/nfsd/syscall.h	2011-02-03 17:42:47.885627197 -0500
 @@ -29,6 +29,7 @@
  /*#define NFSCTL_GETFH		6	/ * get an fh by ino DISCARDED */
  #define NFSCTL_GETFD		7	/* get an fh by path (used by mountd) */
@@ -26101,8 +25991,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfsd/syscall.h.orig linux-2.6.37.noar
  
  union nfsctl_res {
 diff -up linux-2.6.37.noarch/include/linux/nfs_fs.h.orig linux-2.6.37.noarch/include/linux/nfs_fs.h
---- linux-2.6.37.noarch/include/linux/nfs_fs.h.orig	2011-01-28 09:37:32.863968809 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs_fs.h	2011-01-28 09:43:53.381766626 -0500
+--- linux-2.6.37.noarch/include/linux/nfs_fs.h.orig	2011-02-03 17:38:17.689396480 -0500
++++ linux-2.6.37.noarch/include/linux/nfs_fs.h	2011-02-03 17:42:47.875625831 -0500
 @@ -190,6 +190,8 @@ struct nfs_inode {
  	struct rw_semaphore	rwsem;
  
@@ -26128,8 +26018,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfs_fs.h.orig linux-2.6.37.noarch/inc
  
  /*
 diff -up linux-2.6.37.noarch/include/linux/nfs_fs_sb.h.orig linux-2.6.37.noarch/include/linux/nfs_fs_sb.h
---- linux-2.6.37.noarch/include/linux/nfs_fs_sb.h.orig	2011-01-28 09:37:32.863968809 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs_fs_sb.h	2011-01-28 09:43:53.382766505 -0500
+--- linux-2.6.37.noarch/include/linux/nfs_fs_sb.h.orig	2011-02-03 17:38:17.689396480 -0500
++++ linux-2.6.37.noarch/include/linux/nfs_fs_sb.h	2011-02-03 17:42:47.876625968 -0500
 @@ -79,6 +79,12 @@ struct nfs_client {
  	u32			cl_exchange_flags;
  	struct nfs4_session	*cl_session; 	/* sharred session */
@@ -26183,7 +26073,7 @@ diff -up linux-2.6.37.noarch/include/linux/nfs_fs_sb.h.orig linux-2.6.37.noarch/
  	struct rb_root		state_owners;
 diff -up linux-2.6.37.noarch/include/linux/nfs_iostat.h.orig linux-2.6.37.noarch/include/linux/nfs_iostat.h
 --- linux-2.6.37.noarch/include/linux/nfs_iostat.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs_iostat.h	2011-01-28 09:43:53.384766270 -0500
++++ linux-2.6.37.noarch/include/linux/nfs_iostat.h	2011-02-03 17:42:47.878626240 -0500
 @@ -113,6 +113,9 @@ enum nfs_stat_eventcounters {
  	NFSIOS_SHORTREAD,
  	NFSIOS_SHORTWRITE,
@@ -26196,7 +26086,7 @@ diff -up linux-2.6.37.noarch/include/linux/nfs_iostat.h.orig linux-2.6.37.noarch
  
 diff -up linux-2.6.37.noarch/include/linux/nfs_page.h.orig linux-2.6.37.noarch/include/linux/nfs_page.h
 --- linux-2.6.37.noarch/include/linux/nfs_page.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs_page.h	2011-01-28 09:43:53.385766158 -0500
++++ linux-2.6.37.noarch/include/linux/nfs_page.h	2011-02-03 17:42:47.879626376 -0500
 @@ -49,6 +49,7 @@ struct nfs_page {
  	struct kref		wb_kref;	/* reference count */
  	unsigned long		wb_flags;
@@ -26236,8 +26126,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfs_page.h.orig linux-2.6.37.noarch/i
  			     struct inode *inode,
  			     int (*doio)(struct inode *, struct list_head *, unsigned int, size_t, int),
 diff -up linux-2.6.37.noarch/include/linux/nfs_xdr.h.orig linux-2.6.37.noarch/include/linux/nfs_xdr.h
---- linux-2.6.37.noarch/include/linux/nfs_xdr.h.orig	2011-01-28 09:37:32.864968775 -0500
-+++ linux-2.6.37.noarch/include/linux/nfs_xdr.h	2011-01-28 09:43:53.387765940 -0500
+--- linux-2.6.37.noarch/include/linux/nfs_xdr.h.orig	2011-02-03 17:38:17.690396500 -0500
++++ linux-2.6.37.noarch/include/linux/nfs_xdr.h	2011-02-03 17:42:47.881626650 -0500
 @@ -3,6 +3,8 @@
  
  #include <linux/nfsacl.h>
@@ -26407,8 +26297,8 @@ diff -up linux-2.6.37.noarch/include/linux/nfs_xdr.h.orig linux-2.6.37.noarch/in
  };
  
 diff -up linux-2.6.37.noarch/include/linux/panfs_shim_api.h.orig linux-2.6.37.noarch/include/linux/panfs_shim_api.h
---- linux-2.6.37.noarch/include/linux/panfs_shim_api.h.orig	2011-01-28 09:43:53.395765159 -0500
-+++ linux-2.6.37.noarch/include/linux/panfs_shim_api.h	2011-01-28 09:43:53.395765159 -0500
+--- linux-2.6.37.noarch/include/linux/panfs_shim_api.h.orig	2011-02-03 17:42:47.889627745 -0500
++++ linux-2.6.37.noarch/include/linux/panfs_shim_api.h	2011-02-03 17:42:47.889627745 -0500
 @@ -0,0 +1,57 @@
 +#ifndef _PANFS_SHIM_API_H
 +#define _PANFS_SHIM_API_H
@@ -26468,8 +26358,8 @@ diff -up linux-2.6.37.noarch/include/linux/panfs_shim_api.h.orig linux-2.6.37.no
 +
 +#endif /* _PANFS_SHIM_API_H */
 diff -up linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h.orig linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h
---- linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h.orig	2011-01-28 09:43:53.397764982 -0500
-+++ linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h	2011-01-28 09:43:53.397764982 -0500
+--- linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h.orig	2011-02-03 17:42:47.890627881 -0500
++++ linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h	2011-02-03 17:42:47.891628018 -0500
 @@ -0,0 +1,439 @@
 +/*
 + *  pnfs_osd_xdr.h
@@ -26911,8 +26801,8 @@ diff -up linux-2.6.37.noarch/include/linux/pnfs_osd_xdr.h.orig linux-2.6.37.noar
 +
 +#endif /* __PNFS_OSD_XDR_H__ */
 diff -up linux-2.6.37.noarch/include/linux/posix_acl.h.orig linux-2.6.37.noarch/include/linux/posix_acl.h
---- linux-2.6.37.noarch/include/linux/posix_acl.h.orig	2011-01-28 09:37:32.880968218 -0500
-+++ linux-2.6.37.noarch/include/linux/posix_acl.h	2011-01-28 09:43:53.398764895 -0500
+--- linux-2.6.37.noarch/include/linux/posix_acl.h.orig	2011-02-03 17:38:17.707396836 -0500
++++ linux-2.6.37.noarch/include/linux/posix_acl.h	2011-02-03 17:42:47.892628155 -0500
 @@ -8,6 +8,7 @@
  #ifndef __LINUX_POSIX_ACL_H
  #define __LINUX_POSIX_ACL_H
@@ -26923,7 +26813,7 @@ diff -up linux-2.6.37.noarch/include/linux/posix_acl.h.orig linux-2.6.37.noarch/
  #define ACL_UNDEFINED_ID	(-1)
 diff -up linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h.orig linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h
 --- linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h	2011-01-28 09:43:53.399764812 -0500
++++ linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h	2011-02-03 17:42:47.893628291 -0500
 @@ -14,6 +14,8 @@
  /* size of an XDR encoding unit in bytes, i.e. 32bit */
  #define XDR_UNIT	(4)
@@ -26935,7 +26825,7 @@ diff -up linux-2.6.37.noarch/include/linux/sunrpc/msg_prot.h.orig linux-2.6.37.n
  
 diff -up linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h.orig linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h
 --- linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h	2011-01-28 09:43:53.399764812 -0500
++++ linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h	2011-02-03 17:42:47.893628291 -0500
 @@ -3,6 +3,7 @@
  
  #ifdef __KERNEL__
@@ -26956,8 +26846,8 @@ diff -up linux-2.6.37.noarch/include/linux/sunrpc/rpc_pipe_fs.h.orig linux-2.6.3
  
  struct rpc_pipe_ops {
 diff -up linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h.orig linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h
---- linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h.orig	2011-01-28 09:43:53.400764729 -0500
-+++ linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h	2011-01-28 09:43:53.400764729 -0500
+--- linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h.orig	2011-02-03 17:42:47.894628428 -0500
++++ linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h	2011-02-03 17:42:47.894628428 -0500
 @@ -0,0 +1,105 @@
 +/*
 + *  Copyright (c) 2008 The Regents of the University of Michigan.
@@ -27065,9 +26955,9 @@ diff -up linux-2.6.37.noarch/include/linux/sunrpc/simple_rpc_pipefs.h.orig linux
 +
 +#endif /* _SIMPLE_RPC_PIPEFS_H_ */
 diff -up linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h.orig linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h
---- linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h.orig	2011-01-28 09:37:32.915967004 -0500
-+++ linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h	2011-01-28 09:43:53.400764729 -0500
-@@ -205,4 +205,41 @@ static inline char *__svc_print_addr(con
+--- linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h.orig	2011-02-03 17:38:17.742397528 -0500
++++ linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h	2011-02-03 17:42:47.894628428 -0500
+@@ -204,4 +204,41 @@ static inline char *__svc_print_addr(con
  
  	return buf;
  }
@@ -27110,8 +27000,8 @@ diff -up linux-2.6.37.noarch/include/linux/sunrpc/svc_xprt.h.orig linux-2.6.37.n
 +}
  #endif /* SUNRPC_SVC_XPRT_H */
 diff -up linux-2.6.37.noarch/include/linux/sunrpc/xdr.h.orig linux-2.6.37.noarch/include/linux/sunrpc/xdr.h
---- linux-2.6.37.noarch/include/linux/sunrpc/xdr.h.orig	2011-01-28 09:37:32.916966969 -0500
-+++ linux-2.6.37.noarch/include/linux/sunrpc/xdr.h	2011-01-28 09:43:53.401764649 -0500
+--- linux-2.6.37.noarch/include/linux/sunrpc/xdr.h.orig	2011-02-03 17:38:17.743397548 -0500
++++ linux-2.6.37.noarch/include/linux/sunrpc/xdr.h	2011-02-03 17:42:47.895628565 -0500
 @@ -213,6 +213,7 @@ typedef int	(*kxdrdproc_t)(void *rqstp, 
  
  extern void xdr_init_encode(struct xdr_stream *xdr, struct xdr_buf *buf, __be32 *p);
@@ -27122,7 +27012,7 @@ diff -up linux-2.6.37.noarch/include/linux/sunrpc/xdr.h.orig linux-2.6.37.noarch
  extern void xdr_init_decode(struct xdr_stream *xdr, struct xdr_buf *buf, __be32 *p);
 diff -up linux-2.6.37.noarch/net/sunrpc/Makefile.orig linux-2.6.37.noarch/net/sunrpc/Makefile
 --- linux-2.6.37.noarch/net/sunrpc/Makefile.orig	2011-01-04 19:50:19.000000000 -0500
-+++ linux-2.6.37.noarch/net/sunrpc/Makefile	2011-01-28 09:43:53.402764570 -0500
++++ linux-2.6.37.noarch/net/sunrpc/Makefile	2011-02-03 17:42:47.896628701 -0500
 @@ -12,7 +12,7 @@ sunrpc-y := clnt.o xprt.o socklib.o xprt
  	    svc.o svcsock.o svcauth.o svcauth_unix.o \
  	    addr.o rpcb_clnt.o timer.o xdr.o \
@@ -27133,8 +27023,8 @@ diff -up linux-2.6.37.noarch/net/sunrpc/Makefile.orig linux-2.6.37.noarch/net/su
  sunrpc-$(CONFIG_PROC_FS) += stats.o
  sunrpc-$(CONFIG_SYSCTL) += sysctl.o
 diff -up linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c.orig linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c
---- linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c.orig	2011-01-28 09:43:53.403764492 -0500
-+++ linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c	2011-01-28 09:43:53.403764492 -0500
+--- linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c.orig	2011-02-03 17:42:47.897628838 -0500
++++ linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c	2011-02-03 17:42:47.897628838 -0500
 @@ -0,0 +1,423 @@
 +/*
 + *  net/sunrpc/simple_rpc_pipefs.c
@@ -27560,8 +27450,8 @@ diff -up linux-2.6.37.noarch/net/sunrpc/simple_rpc_pipefs.c.orig linux-2.6.37.no
 +}
 +EXPORT_SYMBOL(pipefs_generic_destroy_msg);
 diff -up linux-2.6.37.noarch/net/sunrpc/xdr.c.orig linux-2.6.37.noarch/net/sunrpc/xdr.c
---- linux-2.6.37.noarch/net/sunrpc/xdr.c.orig	2011-01-28 09:37:33.428949202 -0500
-+++ linux-2.6.37.noarch/net/sunrpc/xdr.c	2011-01-28 09:43:53.404764414 -0500
+--- linux-2.6.37.noarch/net/sunrpc/xdr.c.orig	2011-02-03 17:38:18.337409294 -0500
++++ linux-2.6.37.noarch/net/sunrpc/xdr.c	2011-02-03 17:42:47.898628975 -0500
 @@ -518,6 +518,27 @@ __be32 * xdr_reserve_space(struct xdr_st
  EXPORT_SYMBOL_GPL(xdr_reserve_space);
  
