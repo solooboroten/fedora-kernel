@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 1
+%global baserelease 2
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -83,7 +83,7 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 3
+%define rcrev 4
 # The git snapshot level
 %define gitrev 0
 # Set rpm version accordingly
@@ -737,13 +737,7 @@ Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
-Patch12430: can-softing-depend-on-iomem.patch
-
-# rhbz#673857
-Patch12432: hfsplus-01-dont-leak-buffer.patch
-Patch12433: hfsplus-02-fill-super-skip-cleanup.patch
-Patch12434: hfsplus-03-zero-vhdr-on-free.patch
-Patch12435: hfsplus-04-check-for-vhdr.patch
+Patch12438: ath5k-fix-fast-channel-change.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1366,15 +1360,8 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
-# Fix build failure on s390
-# accepted upstream
-ApplyPatch can-softing-depend-on-iomem.patch
-
-# rhbz#673857
-ApplyPatch hfsplus-01-dont-leak-buffer.patch
-ApplyPatch hfsplus-02-fill-super-skip-cleanup.patch
-ApplyPatch hfsplus-03-zero-vhdr-on-free.patch
-ApplyPatch hfsplus-04-check-for-vhdr.patch
+# rhbz#672778
+ApplyPatch ath5k-fix-fast-channel-change.patch
 
 # Xen patches
 ApplyPatch xen.next-2.6.38.patch
@@ -1994,10 +1981,33 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.6.38-0.rc4.git0.2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Mon Feb 07 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc4.git0.1
+- Linux 2.6.38-rc4
+
+* Fri Feb 04 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc3.git4.1
+- Linux 2.6.38-rc3-git4
+
+* Thu Feb 03 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc3-git3
+- Enable Advansys SCSI driver on x86_64 (#589115)
+
+* Thu Feb 03 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc3.git2.1
+- Linux 2.6.38-rc3-git2 snapshot
+- [sgruszka] ath5k: fix fast channel change (#672778)
+
+* Wed Feb 02 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc3.git1.1
+- Linux 2.6.38-rc3-git1 snapshot.
+
+* Wed Feb 02 2011 Chuck Ebbert <cebbert@redhat.com>
+- Fix autoload of atl1c driver for latest hardware (#607499)
+
 * Tue Feb 02 2011 Michael Young <m.a.young@durham.ac.uk>
 - Update xen.next-2.6.38 and xen.pvhvm.fixes patches
 
-* Mon Feb 01 2011 Chuck Ebbert <cebbert@redhat.com>
+* Tue Feb 01 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc3.git0.1
 - Linux 2.6.38-rc3
 - Try to fix some obvious bugs in hfsplus mount failure handling (#673857)
 
