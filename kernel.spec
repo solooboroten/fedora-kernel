@@ -1981,6 +1981,9 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Wed Feb 09 2011 Michael Young <m.a.young@durham.ac.uk>
+- Update xen.next-2.6.38 to get updated net backend code
+
 * Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.6.38-0.rc4.git0.2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
