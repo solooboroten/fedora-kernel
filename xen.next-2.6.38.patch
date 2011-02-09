@@ -39455,7 +39455,7 @@ index 82b8e7e..7aaf322 100644
  	struct mmuext_op *op;
  	struct multicall_space mcs;
  
-+	trace_xen_mmu_flush_tlb_single(addr);
++	trace_xen_mmu_flush_tlb(0);
 +
  	preempt_disable();
  
@@ -39464,7 +39464,7 @@ index 82b8e7e..7aaf322 100644
  	struct mmuext_op *op;
  	struct multicall_space mcs;
  
-+	trace_xen_mmu_flush_tlb(0);
++	trace_xen_mmu_flush_tlb_single(addr);
 +
  	preempt_disable();
  
