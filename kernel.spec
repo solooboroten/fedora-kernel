@@ -52,7 +52,7 @@ Summary: The Linux kernel
 # For non-released -rc kernels, this will be prepended with "0.", so
 # for example a 3 here will become 0.3
 #
-%global baserelease 2
+%global baserelease 1
 %global fedora_build %{baserelease}
 
 # base_sublevel is the kernel version we're starting with and patching
@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 4
 # The git snapshot level
-%define gitrev 0
+%define gitrev 3
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -1981,6 +1981,9 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Thu Feb 10 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc4.git3.1
+- Linux 2.6.38-rc4-git3
+
 * Wed Feb 09 2011 Michael Young <m.a.young@durham.ac.uk>
 - Update xen.next-2.6.38 to get updated net backend code
 
