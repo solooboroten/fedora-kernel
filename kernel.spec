@@ -741,12 +741,13 @@ Patch12438: ath5k-fix-fast-channel-change.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
-Patch20000: xen.next-2.6.38.patch
+#Patch20000: xen.next-2.6.38.patch
 #Patch20001: xen.upstream.core.patch
 # git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git branches
 #Patch20005: xen.pcifront.fixes.patch
+Patch20006: xen.pcifront.next-2.6.38.patch
 # git://xenbits.xen.org/people/sstabellini/linux-pvhvm branches
-Patch20010: xen.pvhvm.fixes.patch
+#Patch20010: xen.pvhvm.fixes.patch
 
 %endif
 
@@ -1364,10 +1365,11 @@ ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 ApplyPatch ath5k-fix-fast-channel-change.patch
 
 # Xen patches
-ApplyPatch xen.next-2.6.38.patch
+#ApplyPatch xen.next-2.6.38.patch
 #ApplyPatch xen.upstream.core.patch
 #ApplyPatch xen.pcifront.fixes.patch
-ApplyPatch xen.pvhvm.fixes.patch
+ApplyPatch xen.pcifront.next-2.6.38.patch
+#ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
 
@@ -1981,6 +1983,11 @@ fi
 #                 ||----w |
 #                 ||     ||
 %changelog
+* Fri Feb 11 2011 Michael Young <m.a.young@durham.ac.uk>
+- Try Konrad's devel/next-2.6.38 instead of Jeremy's xen/next-2.6.38
+  which didn't boot last time
+- Set options added by the switch XEN_DEBUG=n and XEN_GRANT_DEV_ALLOC=m
+
 * Thu Feb 10 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc4.git3.1
 - Linux 2.6.38-rc4-git3
 
