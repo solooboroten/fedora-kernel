@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 4
+%define rcrev 5
 # The git snapshot level
-%define gitrev 3
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -739,6 +739,14 @@ Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
 Patch12438: ath5k-fix-fast-channel-change.patch
 
+Patch12440: bridge-fix-mglist-corruption-that-leads-to-memory-corruption.patch
+
+# rhbz#676860
+Patch12441: usb-sierra-add-airprime-direct-ip.patch
+
+# rhbz#672265
+Patch12442: revert-block-check-bdev-readonly.patch
+
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
 #Patch20000: xen.next-2.6.38.patch
@@ -1364,6 +1372,14 @@ ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 # rhbz#672778
 ApplyPatch ath5k-fix-fast-channel-change.patch
 
+ApplyPatch bridge-fix-mglist-corruption-that-leads-to-memory-corruption.patch
+
+# rhbz#676860
+ApplyPatch usb-sierra-add-airprime-direct-ip.patch
+
+# rhbz#672265
+ApplyPatch revert-block-check-bdev-readonly.patch
+
 # Xen patches
 #ApplyPatch xen.next-2.6.38.patch
 #ApplyPatch xen.upstream.core.patch
@@ -1973,16 +1989,22 @@ fi
 # plz don't put in a version string unless you're going to tag
 # and build.
 
-#  ___________________________________________________________
-# / This branch is for Fedora 15. You probably want to commit \
-# \ to the F-14 branch instead, or in addition to this one.   /
-#  -----------------------------------------------------------
-#         \   ^__^
-#          \  (@@)\_______
-#             (__)\       )\/\
-#                 ||----w |
-#                 ||     ||
 %changelog
+* Wed Feb 16 2011 Chuck Ebbert <cebbert@redhat.com>
+- Add support for Airprime/Sierra USB IP modem (#676860)
+- Make virtio_console built-in on x86_64 (#677713)
+- Revert check for read-only block device added in .38 (#672265)
+
+* Tue Feb 15 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc5.git0.1
+- Linux 2.6.38-rc5 (81 minutes later...)
+
+* Sun Feb 13 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc4.git7.1
+- Linux 2.6.38-rc4-git7
+
+* Sat Feb 12 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc4.git6.1
+- Linux 2.6.38-rc4-git6
+- Fix memory corruption caused by bug in bridge code.
+
 * Fri Feb 11 2011 Michael Young <m.a.young@durham.ac.uk>
 - Try Konrad's devel/next-2.6.38 instead of Jeremy's xen/next-2.6.38
   which didn't boot last time
