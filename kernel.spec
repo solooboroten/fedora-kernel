@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 5
 # The git snapshot level
-%define gitrev 0
+%define gitrev 5
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -739,13 +739,8 @@ Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 
 Patch12438: ath5k-fix-fast-channel-change.patch
 
-Patch12440: bridge-fix-mglist-corruption-that-leads-to-memory-corruption.patch
-
 # rhbz#676860
 Patch12441: usb-sierra-add-airprime-direct-ip.patch
-
-# rhbz#672265
-Patch12442: revert-block-check-bdev-readonly.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1372,13 +1367,8 @@ ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 # rhbz#672778
 ApplyPatch ath5k-fix-fast-channel-change.patch
 
-ApplyPatch bridge-fix-mglist-corruption-that-leads-to-memory-corruption.patch
-
 # rhbz#676860
 ApplyPatch usb-sierra-add-airprime-direct-ip.patch
-
-# rhbz#672265
-ApplyPatch revert-block-check-bdev-readonly.patch
 
 # Xen patches
 #ApplyPatch xen.next-2.6.38.patch
@@ -1990,7 +1980,11 @@ fi
 # and build.
 
 %changelog
-* Wed Feb 16 2011 Chuck Ebbert <cebbert@redhat.com>
+* Sat Feb 19 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc5.git5.1
+- Linux 2.6.38-rc5-git5
+
+* Wed Feb 16 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc5.git1.1
+- Linux 2.6.38-rc5-git1
 - Add support for Airprime/Sierra USB IP modem (#676860)
 - Make virtio_console built-in on x86_64 (#677713)
 - Revert check for read-only block device added in .38 (#672265)
