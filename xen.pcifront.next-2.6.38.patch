@@ -1,7 +1,7 @@
 From 1e13f505ecbc011465783283ebfa05a42f7ce18f Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ijc@hellion.org.uk>
 Date: Thu, 3 Dec 2009 22:04:06 +0000
-Subject: [PATCH 001/161] xen: export xen_gsi_from_irq, it is required by modular pciback
+Subject: [PATCH 001/217] xen: export xen_gsi_from_irq, it is required by modular pciback
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -30,7 +30,7 @@ index 97612f5..a04da4b 100644
 From f0885b9401a859bc7bed849925a703c03d00119b Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Nov 2010 14:13:35 -0500
-Subject: [PATCH 002/161] xen/pci: Add xen_[find|register|unregister]_device_domain_owner functions.
+Subject: [PATCH 002/217] xen/pci: Add xen_[find|register|unregister]_device_domain_owner functions.
 
 Xen PCI backend performs ownership (MSI/MSI-X) changes on the behalf of
 the guest. This means we need some mechanism to find, set and unset
@@ -161,7 +161,7 @@ index 117f5b8..6d2a986 100644
 From da24916fdf04d7b4a32c5b9d2c09e47775496e1d Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Nov 2010 14:23:17 -0500
-Subject: [PATCH 003/161] xen: Check if the PCI device is owned by a domain different than DOMID_SELF.
+Subject: [PATCH 003/217] xen: Check if the PCI device is owned by a domain different than DOMID_SELF.
 
 We check if there is a domain owner for the PCI device. In case of failure
 (meaning no domain has registered for this device) we make
@@ -248,7 +248,7 @@ index a04da4b..96c93e7 100644
 From 30fecb8166bdd163bdaab795b573cf988f60fbbe Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Nov 2010 14:26:36 -0500
-Subject: [PATCH 004/161] xen: Add support to check if IRQ line is shared with other domains.
+Subject: [PATCH 004/217] xen: Add support to check if IRQ line is shared with other domains.
 
 We do this via the PHYSDEVOP_irq_status_query support hypervisor call.
 We will get a positive value if another domain has binded its
@@ -304,7 +304,7 @@ index 646dd17..553c664 100644
 From 909e45104de4414897cefce2f6bbed07fc4de4b3 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:50 -0800
-Subject: [PATCH 005/161] xen: implement bind_interdomain_evtchn_to_irqhandler for backend drivers
+Subject: [PATCH 005/217] xen: implement bind_interdomain_evtchn_to_irqhandler for backend drivers
 
 Impact: new Xen-internal API
 
@@ -395,7 +395,7 @@ index 553c664..2fe1644 100644
 From b4f664c8de09ab8537e1cd194df29056f803062e Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Nov 2010 14:46:33 -0500
-Subject: [PATCH 006/161] pci/xen: Make xen_[find|register|unregister]_domain_owner be _GPL
+Subject: [PATCH 006/217] pci/xen: Make xen_[find|register|unregister]_domain_owner be _GPL
 
 EXPORT_SYMBOL -> EXPORT_SYMBOL_GPL.
 
@@ -439,7 +439,7 @@ index 6d2a986..0fa23c8 100644
 From 443b2aafbdb509f218fcb8f4665f063e3a5e1a92 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:20 -0400
-Subject: [PATCH 007/161] xen-pciback: Initial copy from linux-2.6.18.hg off pciback driver.
+Subject: [PATCH 007/217] xen-pciback: Initial copy from linux-2.6.18.hg off pciback driver.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5344,7 +5344,7 @@ index 0000000..4d56c45
 From cf2a64556286b762ce6a3a9b408ba7ecdcaea03a Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:22 -0400
-Subject: [PATCH 008/161] xen-pciback: Fix include header name change (evtchn.h is now events.h)
+Subject: [PATCH 008/217] xen-pciback: Fix include header name change (evtchn.h is now events.h)
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5400,7 +5400,7 @@ index 4d56c45..bbca3fe 100644
 From f6222ae41f2fee3f67983f833ee8dcba2c7a1362 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:24 -0400
-Subject: [PATCH 009/161] xen-pciback: Use pci_is_enabled() instead of is_enabled.
+Subject: [PATCH 009/217] xen-pciback: Use pci_is_enabled() instead of is_enabled.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5449,7 +5449,7 @@ index 58d09eb..2d570e7 100644
 From 0d379d03a3284e4b4d890b7e1b8163d485cc72e6 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:25 -0400
-Subject: [PATCH 010/161] xen-pciback: Fix usage of INIT_WORK.
+Subject: [PATCH 010/217] xen-pciback: Fix usage of INIT_WORK.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5528,7 +5528,7 @@ index bbca3fe..bd52289 100644
 From 57f6c49d0f428f96cca49147d68b0bb6156613a6 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:26 -0400
-Subject: [PATCH 011/161] xen-pciback: Update the calling mechanism for xenbus_[map|unmap]_ring_valloc functions.
+Subject: [PATCH 011/217] xen-pciback: Update the calling mechanism for xenbus_[map|unmap]_ring_valloc functions.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5616,7 +5616,7 @@ index bd52289..5be1350 100644
 From 6e86fcb926e41fb55f512972603e5aaf77e2efb8 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:30 -0400
-Subject: [PATCH 012/161] xen-pciback: Add check to load only under priviliged domain.
+Subject: [PATCH 012/217] xen-pciback: Add check to load only under priviliged domain.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5668,7 +5668,7 @@ index 5be1350..a85c413 100644
 From c1139f912c1336538e51966d56e5905954052cba Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:31 -0400
-Subject: [PATCH 013/161] xen-pciback: Remove usage of pci_restore_bars() as Linux handles the power-up states correctly now.
+Subject: [PATCH 013/217] xen-pciback: Remove usage of pci_restore_bars() as Linux handles the power-up states correctly now.
 
 Originally this code was pulled from the upstream kernel, and stuck
 in the linux-2.6-sparse tree. At that point of time, the Linux tree (2.6.16?)
@@ -5712,7 +5712,7 @@ index e2f99c7..e1d3af4 100644
 From 721657d92623cfcf2f6f68c14abf97eb40fa6b20 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 13 Oct 2009 17:22:32 -0400
-Subject: [PATCH 014/161] xen-pciback: Enable Xen-PCI-back to be compiled.
+Subject: [PATCH 014/217] xen-pciback: Enable Xen-PCI-back to be compiled.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -5816,7 +5816,7 @@ index eb8a78d..3737dee 100644
 From c164cd8577017d1c4e001b475fadddc7d2ff5c78 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 5 Nov 2009 15:25:43 -0500
-Subject: [PATCH 015/161] xen-pciback: Return the physical IRQ number instead of the allocated IRQ number to pcifront.
+Subject: [PATCH 015/217] xen-pciback: Return the physical IRQ number instead of the allocated IRQ number to pcifront.
 
 The allocation of IRQ numbers in Linux privileged domains is based
 on finding the first unbound IRQ number. After the allocation is done
@@ -5894,7 +5894,7 @@ index 762e396..7fb5371 100644
 From b0b035f1de3282aa96a6dc28007d513e8fce793d Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 5 Nov 2009 15:25:44 -0500
-Subject: [PATCH 016/161] xen-pciback: Fix checkpatch warnings and errors for pciback/ directory.
+Subject: [PATCH 016/217] xen-pciback: Fix checkpatch warnings and errors for pciback/ directory.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -7358,7 +7358,7 @@ index a85c413..efec585 100644
 From ca1ee0c25b425d9739b1a24cf911de2e041a2514 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Mar 2010 18:39:15 -0500
-Subject: [PATCH 017/161] xen-pciback: remove driver_data direct access to struct device
+Subject: [PATCH 017/217] xen-pciback: remove driver_data direct access to struct device
 
 The driver core is going to not allow direct access to the
 driver_data pointer in struct device.  Instead, the functions
@@ -7416,7 +7416,7 @@ index efec585..af6c25a 100644
 From 585f088e6aec3e4514ac2563852961f71c74e47e Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 8 Mar 2010 18:47:55 -0500
-Subject: [PATCH 018/161] xen-pciback: Fix compile error: 'TASK_NORMAL' undeclared.
+Subject: [PATCH 018/217] xen-pciback: Fix compile error: 'TASK_NORMAL' undeclared.
 
 Both files were missing the #include <linux/sched.h>
 
@@ -7457,7 +7457,7 @@ index bf83dca..2b9a93e 100644
 From 03dd111c81bad8e69cdb8b5d67381702adb24593 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 9 Dec 2009 17:43:16 -0500
-Subject: [PATCH 019/161] xen-pciback: Remove the vestiges of CONFIG_PCI_GUESTDEV.
+Subject: [PATCH 019/217] xen-pciback: Remove the vestiges of CONFIG_PCI_GUESTDEV.
 
 The same functionality for this (that used to be called
 pci_is_guestdev) is now via: "pci=resource_alignment="
@@ -7497,7 +7497,7 @@ index 6fc0b6e..d30aa7c 100644
 From 30acb3491495a43b59a64612ad92a7a290c59e82 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 9 Dec 2009 17:43:17 -0500
-Subject: [PATCH 020/161] xen-pciback: Remove deprecated routine to find domain owner of PCI device.
+Subject: [PATCH 020/217] xen-pciback: Remove deprecated routine to find domain owner of PCI device.
 
 In linux-2.6.18.hg tree the mechanism to find the domain owner was
 for the MSI driver (msi-xen.c) to call in this function to retrieve
@@ -7560,7 +7560,7 @@ index d30aa7c..30e7b59 100644
 From da36c7662d9738ce44c37b4f1f41c045c64d6914 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 22 Dec 2009 13:53:41 -0500
-Subject: [PATCH 021/161] xen-pciback: Fix compiler warning in pci_stub.c.
+Subject: [PATCH 021/217] xen-pciback: Fix compiler warning in pci_stub.c.
 
 warning: the frame size of 1036 bytes is larger than 1024 bytes
 
@@ -7601,7 +7601,7 @@ index 30e7b59..0b5a16b 100644
 From 83484f34b2cc42807c71514fbabbd40e281ec094 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 22 Dec 2009 13:53:42 -0500
-Subject: [PATCH 022/161] xen-pciback: Fix compile warning in vpci.c
+Subject: [PATCH 022/217] xen-pciback: Fix compile warning in vpci.c
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -7634,7 +7634,7 @@ index 721b81b..2857ab8 100644
 From 5612e6358835700c49d8be5671823614ace30c94 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ijc@hellion.org.uk>
 Date: Thu, 3 Dec 2009 21:56:20 +0000
-Subject: [PATCH 023/161] xen: rename pciback module to xen-pciback.
+Subject: [PATCH 023/217] xen: rename pciback module to xen-pciback.
 
 pciback is rather generic for a modular distro style kernel.
 
@@ -7686,7 +7686,7 @@ index 106dae7..38bc123 100644
 From 245a9ec5ef1f9c8a6bc6b5c0ac1bb616c3c8c979 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 9 Dec 2009 17:43:15 -0500
-Subject: [PATCH 024/161] xen-pciback: Register the owner (domain) of the PCI device.
+Subject: [PATCH 024/217] xen-pciback: Register the owner (domain) of the PCI device.
 
 When the front-end and back-end start negotiating we register
 the domain that will use the PCI device. Furthermore during shutdown
@@ -7758,7 +7758,7 @@ index af6c25a..d448bf5 100644
 From cb6c976606d16119e8608c8bcc1ef9265881dd7f Mon Sep 17 00:00:00 2001
 From: Zhao, Yu <yu.zhao@intel.com>
 Date: Wed, 3 Mar 2010 13:27:55 -0500
-Subject: [PATCH 025/161] xen-pciback: guest SR-IOV support for PV guest
+Subject: [PATCH 025/217] xen-pciback: guest SR-IOV support for PV guest
 
 These changes are for PV guest to use Virtual Function. Because the VF's
 vendor, device registers in cfg space are 0xffff, which are invalid and
@@ -7889,7 +7889,7 @@ index 3ae7da1..1f4f86e 100644
 From 1d77305c7900f3b6ec5d403d9aba6f0034b0112e Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 3 Mar 2010 13:38:43 -0500
-Subject: [PATCH 026/161] xen-pciback: Disable MSI/MSI-X when reseting device
+Subject: [PATCH 026/217] xen-pciback: Disable MSI/MSI-X when reseting device
 
 In cases where the guest is abruptly killed and has not disabled
 MSI/MSI-X interrupts we want to do that.
@@ -7928,7 +7928,7 @@ index 2b9a93e..011db67 100644
 From c89edb63b60166fe354493dd465cf5662b2c077d Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 12 Apr 2010 11:46:00 -0400
-Subject: [PATCH 027/161] xen-pciback: Allocate IRQ handler for device that is shared with guest.
+Subject: [PATCH 027/217] xen-pciback: Allocate IRQ handler for device that is shared with guest.
 
 If the pciback module is loaded with fake_irq_handler=1 we install
 for all devices that are to be passed to the guest domain a IRQ handler.
@@ -8164,7 +8164,7 @@ index 011db67..cb54893 100644
 From 29a451f41647deedc2fa535520e648c76755568c Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 12 Apr 2010 11:47:15 -0400
-Subject: [PATCH 028/161] xen-pciback: Add SysFS instrumentation for the fake IRQ handler.
+Subject: [PATCH 028/217] xen-pciback: Add SysFS instrumentation for the fake IRQ handler.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
@@ -8278,7 +8278,7 @@ index 45bbe99..ee2cd68 100644
 From 6c7c36d411eeab67192fe0ed96ac1e048b4a1755 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 19 Apr 2010 14:39:10 -0400
-Subject: [PATCH 029/161] xen-pciback: When device transitions to MSI/MSI-X stop ACK-ing on the
+Subject: [PATCH 029/217] xen-pciback: When device transitions to MSI/MSI-X stop ACK-ing on the
  legacy interrupt.
 
 But don't remove the irq handler from the legacy interrupt. The device
@@ -8363,7 +8363,7 @@ index b70ea8b..a236e2d 100644
 From c1cc36c68f096f2b1e796ba84d9c583009939d91 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 19 Apr 2010 14:40:38 -0400
-Subject: [PATCH 030/161] xen-pciback: Enable interrupt handler when device is enabled.
+Subject: [PATCH 030/217] xen-pciback: Enable interrupt handler when device is enabled.
 
 And also request it to be disabled when the device has been
 disabled.
@@ -8411,7 +8411,7 @@ index 1f4f86e..cb450f4 100644
 From a732e3d6ed4831c460586bd7a16ef7f6b7d28936 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 19 Apr 2010 16:23:06 -0400
-Subject: [PATCH 031/161] xen-pciback: Probe the IRQ line to check if it is not shared.
+Subject: [PATCH 031/217] xen-pciback: Probe the IRQ line to check if it is not shared.
 
 If it is not shared, we stop ACK-ing the IRQ line as there is
 no need for this irq handler to return IRQ_HANDLED.
@@ -8488,7 +8488,7 @@ index cb54893..5543881 100644
 From 3312c11c3f9c857b2457c293e6b6e15928a32f32 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 20 Apr 2010 20:22:40 -0400
-Subject: [PATCH 032/161] xen-pciback: Add debug statements for the MSI/MSI-X configuration module.
+Subject: [PATCH 032/217] xen-pciback: Add debug statements for the MSI/MSI-X configuration module.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
@@ -8552,7 +8552,7 @@ index a236e2d..b15131e 100644
 From 52257d7ad18bd91fd614df5ef960a88af3ed5200 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Fri, 23 Jul 2010 14:35:47 -0400
-Subject: [PATCH 033/161] xen-pciback: Redo spinlock usage.
+Subject: [PATCH 033/217] xen-pciback: Redo spinlock usage.
 
 We were using coarse spinlocks that could end up with a deadlock.
 This patch fixes that and makes the spinlocks much more fine-grained.
@@ -8702,7 +8702,7 @@ index d448bf5..f0d5426 100644
 From a9e0cfab0577730e74787b701edc727756a52b11 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 28 Jul 2010 13:28:34 -0400
-Subject: [PATCH 034/161] xen-pciback: Remove spinlock for be->watching state.
+Subject: [PATCH 034/217] xen-pciback: Remove spinlock for be->watching state.
 
 There is no need to guard this with a spinlock. It
 is already guarded by the xenwatch_thread against multiple
@@ -8747,7 +8747,7 @@ index f0d5426..993b659 100644
 From c0cae0b36c43e75d4d69c60f5319e6ba802b2233 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 13 Dec 2010 11:06:36 -0500
-Subject: [PATCH 035/161] xen/pciback: Fix checkpatch warnings and errors.
+Subject: [PATCH 035/217] xen/pciback: Fix checkpatch warnings and errors.
 
 Checkpatch found some extra warnings and errors. This mega
 patch fixes all of them in one swoop.
@@ -9114,7 +9114,7 @@ index 993b659..70030c4 100644
 From 83d24d8dbd9e52a7ac94deae2d9fff6681ce8761 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 13 Dec 2010 11:30:29 -0500
-Subject: [PATCH 036/161] xen/xen-pciback: Swap over to DEFINE_PCI_DEVICE_TABLE
+Subject: [PATCH 036/217] xen/xen-pciback: Swap over to DEFINE_PCI_DEVICE_TABLE
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
@@ -9141,7 +9141,7 @@ index c8f6f29..09dd60c 100644
 From 03c4949992e2b7e84b7cdeb156d803db3f848b6c Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:52 -0800
-Subject: [PATCH 037/161] xen: netback: Initial import of linux-2.6.18-xen.hg netback driver.
+Subject: [PATCH 037/217] xen: netback: Initial import of linux-2.6.18-xen.hg netback driver.
 
 This corresponds to 774:107e10e0e07c in that tree.
 
@@ -11875,7 +11875,7 @@ index 0000000..d7faeb6
 From 5b30803bf5f58ee980edd8d88a2d73dda995ee93 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Mon, 9 Feb 2009 12:05:52 -0800
-Subject: [PATCH 038/161] xen: netback: first cut at porting to upstream and cleaning up
+Subject: [PATCH 038/217] xen: netback: first cut at porting to upstream and cleaning up
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -12862,7 +12862,7 @@ index d7faeb6..ed7c006 100644
 From a41a2ab9e1ac4ef8320f69f2719e973e25faff5c Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 Date: Mon, 9 Feb 2009 16:39:01 -0800
-Subject: [PATCH 039/161] xen: netback: don't include xen/evtchn.h
+Subject: [PATCH 039/217] xen: netback: don't include xen/evtchn.h
 
 Its a usermode header for users of /dev/evtchn
 
@@ -12890,7 +12890,7 @@ index 65b88f4..5665ed1 100644
 From f28a7c6148bb979acf99c0cbe3b441d0fb0853d9 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 18 Feb 2009 15:55:18 -0800
-Subject: [PATCH 040/161] xen: netback: use mod_timer
+Subject: [PATCH 040/217] xen: netback: use mod_timer
 
 __mod_timer is no longer a public API.
 
@@ -12928,7 +12928,7 @@ index c959075..e920703 100644
 From 52f97ad360f28762c785343ba5c9f8abb83536f3 Mon Sep 17 00:00:00 2001
 From: Jan Beulich <jbeulich@novell.com>
 Date: Fri, 6 Mar 2009 08:29:31 +0000
-Subject: [PATCH 041/161] xen: netback: unmap tx ring gref when mapping of rx ring gref failed
+Subject: [PATCH 041/217] xen: netback: unmap tx ring gref when mapping of rx ring gref failed
 
 [ijc-ported from linux-2.6.18-xen.hg 782:51decc39e5e7]
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
@@ -12961,7 +12961,7 @@ index d184ad7..f3d9ea1 100644
 From f9b63790f1404eb03ac824147b2294a46e485643 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@citrix.com>
 Date: Fri, 6 Mar 2009 08:29:32 +0000
-Subject: [PATCH 042/161] xen: netback: add ethtool stat to track copied skbs.
+Subject: [PATCH 042/217] xen: netback: add ethtool stat to track copied skbs.
 
 Copied skbs should be rare but we have no way of verifying that.
 
@@ -13078,7 +13078,7 @@ index e920703..f59fadb 100644
 From c41d8da3d853d4e89ba38693b90c1fe512095704 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@citrix.com>
 Date: Fri, 6 Mar 2009 08:29:33 +0000
-Subject: [PATCH 043/161] xen: netback: make queue length parameter writeable in sysfs
+Subject: [PATCH 043/217] xen: netback: make queue length parameter writeable in sysfs
 
 Any changes will only take effect for newly created VIFs.
 
@@ -13132,7 +13132,7 @@ index ed7c006..dc7b367 100644
 From f204d7567ab11ddb1ff3208ab5ed8921b575af5d Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@citrix.com>
 Date: Mon, 16 Mar 2009 22:05:16 +0000
-Subject: [PATCH 044/161] xen: netback: parent sysfs device should be set before registering.
+Subject: [PATCH 044/217] xen: netback: parent sysfs device should be set before registering.
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -13203,7 +13203,7 @@ index dc7b367..749931e 100644
 From bb606178665ea78b505cb54864899478b6020584 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 12:42:36 -0700
-Subject: [PATCH 045/161] xen: netback: use NET_SKB_PAD rather than "16"
+Subject: [PATCH 045/217] xen: netback: use NET_SKB_PAD rather than "16"
 
 There's a constant for the default skb headroom.
 
@@ -13250,7 +13250,7 @@ index f59fadb..400f398 100644
 From fe41ab031dfa0c6f9821c2667ce821e7f4f635ed Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 13:31:26 -0700
-Subject: [PATCH 046/161] xen: netback: completely drop flip support
+Subject: [PATCH 046/217] xen: netback: completely drop flip support
 
 Nobody uses it?
 
@@ -13633,7 +13633,7 @@ index 749931e..a492288 100644
 From 17d465234118873ab4f5a7992feb4ce7b5537cf7 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 15:19:39 -0700
-Subject: [PATCH 047/161] xen: netback: demacro MASK_PEND_IDX
+Subject: [PATCH 047/217] xen: netback: demacro MASK_PEND_IDX
 
 Replace it with a more meaningful inline: pending_index().
 
@@ -13730,7 +13730,7 @@ index 36bea2b..4095622 100644
 From d47af34f87b2d365c75aa3579ad512619ef3d579 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 15:29:30 -0700
-Subject: [PATCH 048/161] xen: netback: convert PEND_RING_IDX into a proper typedef name
+Subject: [PATCH 048/217] xen: netback: convert PEND_RING_IDX into a proper typedef name
 
 Rename PEND_RING_IDX to pending_ring_idx_t.  Its not used that much,
 the extra typing won't kill anyone.
@@ -13793,7 +13793,7 @@ index 4095622..8292e96 100644
 From 56727a43f329d50c2a00fed0316ffd87d6c23ebd Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 15:31:32 -0700
-Subject: [PATCH 049/161] xen: netback: rename NR_PENDING_REQS to nr_pending_reqs()
+Subject: [PATCH 049/217] xen: netback: rename NR_PENDING_REQS to nr_pending_reqs()
 
 Use function syntax to show its actually computing a value, rather than
 a constant.
@@ -13845,7 +13845,7 @@ index 8292e96..5410a68 100644
 From 55b360614f1bd44d0b1395b4aabf41d8f1f13f17 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 15:45:45 -0700
-Subject: [PATCH 050/161] xen: netback: pre-initialize list and spinlocks; use empty list to indicate not on list
+Subject: [PATCH 050/217] xen: netback: pre-initialize list and spinlocks; use empty list to indicate not on list
 
 Statically pre-initialize net_schedule_list head and lock.
 
@@ -13920,7 +13920,7 @@ index 5410a68..cbd4b03 100644
 From e12cf57de7a6c20e4c8900ce7bf4e6924a12f49e Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 15:48:10 -0700
-Subject: [PATCH 051/161] xen: netback: remove CONFIG_XEN_NETDEV_PIPELINED_TRANSMITTER
+Subject: [PATCH 051/217] xen: netback: remove CONFIG_XEN_NETDEV_PIPELINED_TRANSMITTER
 
 Keir says:
 > > Does CONFIG_XEN_NETDEV_PIPELINED_TRANSMITTER need to be a config
@@ -13984,7 +13984,7 @@ index cbd4b03..f00e405 100644
 From adf542f9c714e3b7c76fcf9e44e0a89cae21a341 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 22:28:52 -0700
-Subject: [PATCH 052/161] xen: netback: make netif_get/put inlines
+Subject: [PATCH 052/217] xen: netback: make netif_get/put inlines
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -14025,7 +14025,7 @@ index 06f04c1..9056be0 100644
 From f06459a199f953a68f001f06e54dde54e1e16c87 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 19 Mar 2009 22:30:24 -0700
-Subject: [PATCH 053/161] xen: netback: move code around
+Subject: [PATCH 053/217] xen: netback: move code around
 
 net_tx_action() into several functions; move variables into
 their innermost scopes; rename "i" to "idx".
@@ -14302,7 +14302,7 @@ index f00e405..4d63ff3 100644
 From cec84ff81d9f6ca882908572b984215529b4117b Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 20 Mar 2009 23:18:12 -0700
-Subject: [PATCH 054/161] xen: netback: document PKT_PROT_LEN
+Subject: [PATCH 054/217] xen: netback: document PKT_PROT_LEN
 
 Document the rationale for the existence and value of PKT_PROT_LEN.
 
@@ -14338,7 +14338,7 @@ index 4d63ff3..80b424f 100644
 From a9402ee935757e8facebc6e886f9912c2c523da7 Mon Sep 17 00:00:00 2001
 From: Christophe Saout <chtephan@leto.intern.saout.de>
 Date: Sun, 12 Apr 2009 13:40:27 +0200
-Subject: [PATCH 055/161] xen: netback: use dev_name() instead of removed ->bus_id.
+Subject: [PATCH 055/217] xen: netback: use dev_name() instead of removed ->bus_id.
 
 Signed-off-by: Christophe Saout <chtephan@leto.intern.saout.de>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -14366,7 +14366,7 @@ index dc4fb53..3bb5c20 100644
 From 35de1701fca19d693e9722bffbe7609caf1d5ac6 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 29 Jun 2009 14:04:23 -0700
-Subject: [PATCH 056/161] xen: netback: convert to net_device_ops
+Subject: [PATCH 056/217] xen: netback: convert to net_device_ops
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -14415,7 +14415,7 @@ index 3bb5c20..21c1f95 100644
 From c6f3885ef05e96489025e1c1c7299aac7cf43d87 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 4 Sep 2009 14:55:43 -0700
-Subject: [PATCH 057/161] xen: netback: reinstate missing code
+Subject: [PATCH 057/217] xen: netback: reinstate missing code
 
 Change c3219dc868fe3e84070d6da2d0759a834b6f7251, "Completely drop flip
 support" was a bit too aggressive in removing code, and removed a chunk
@@ -14543,7 +14543,7 @@ index 80b424f..7c0f05b 100644
 From 2e290d790877df4368691180f76206ad27a42505 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Wed, 9 Sep 2009 15:19:15 -0700
-Subject: [PATCH 058/161] xen: netback: remove debug noise
+Subject: [PATCH 058/217] xen: netback: remove debug noise
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -14570,7 +14570,7 @@ index 7c0f05b..d7d738e 100644
 From 3ba3bb7d563704c3050de6116aa0a761a5791428 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 8 Oct 2009 13:23:09 -0400
-Subject: [PATCH 059/161] Fix compile warnings: ignoring return value of 'xenbus_register_backend' ..
+Subject: [PATCH 059/217] Fix compile warnings: ignoring return value of 'xenbus_register_backend' ..
 
 We neglect to check the return value of xenbus_register_backend
 and take actions when that fails. This patch fixes that and adds
@@ -14656,7 +14656,7 @@ index a492288..c46b235 100644
 From 4bc919e07d5dc48cb95b22cc6e90c6110c229343 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 27 Oct 2009 12:37:50 -0700
-Subject: [PATCH 060/161] xen: netback: don't screw around with packet gso state
+Subject: [PATCH 060/217] xen: netback: don't screw around with packet gso state
 
 These lines were reverted from 2.6.18 netback as the network stack
 was modified to deal with packets shorter than the gso size, so there's
@@ -14693,7 +14693,7 @@ index 860c61e..9a14976 100644
 From f2b947783c47a721497e5d325c736234f71501e7 Mon Sep 17 00:00:00 2001
 From: Steven Smith <ssmith@weybridge.uk.xensource.com>
 Date: Fri, 30 Oct 2009 13:55:23 -0700
-Subject: [PATCH 061/161] xen: netback: make sure that pg->mapping is never NULL for a page mapped from a foreign domain.
+Subject: [PATCH 061/217] xen: netback: make sure that pg->mapping is never NULL for a page mapped from a foreign domain.
 
 Otherwise, the foreign maps tracking infrastructure gets confused, and
 thinks that the foreign page is local.  This means that you can't
@@ -14732,7 +14732,7 @@ index 9a14976..111fec7 100644
 From df8b27ea0fb2695842104e06caaecb55780577a7 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ijc@hellion.org.uk>
 Date: Thu, 3 Dec 2009 21:56:19 +0000
-Subject: [PATCH 062/161] xen: rename netbk module xen-netback.
+Subject: [PATCH 062/217] xen: rename netbk module xen-netback.
 
 netbk is rather generic for a modular distro style kernel.
 
@@ -14760,7 +14760,7 @@ index a01a1a3..e346e81 100644
 From 279097395ad64ae4df15e206a487cd5fd3be39a8 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 16 Feb 2010 14:40:37 -0800
-Subject: [PATCH 063/161] xen: netback: use dev_get/set_drvdata() inteface
+Subject: [PATCH 063/217] xen: netback: use dev_get/set_drvdata() inteface
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -14823,7 +14823,7 @@ index c46b235..79e6fb0 100644
 From 31d0b5f5763faf607e32f3b5a0f6b37a34bbbf09 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Tue, 16 Feb 2010 14:41:12 -0800
-Subject: [PATCH 064/161] xen: netback: include linux/sched.h for TASK_* definitions
+Subject: [PATCH 064/217] xen: netback: include linux/sched.h for TASK_* definitions
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -14850,7 +14850,7 @@ index 0675946..d8653d3 100644
 From cdefc88924b3cdfcac64be737a00a4ec5593cfd5 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 23 Feb 2010 11:52:27 +0000
-Subject: [PATCH 065/161] xen: netback: remove unused xen_network_done code
+Subject: [PATCH 065/217] xen: netback: remove unused xen_network_done code
 
 It has been disabled effectively forever.
 
@@ -14907,7 +14907,7 @@ index 111fec7..4b24893 100644
 From 994be068dd9947cedcee69a7185e54738cda33d4 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 23 Feb 2010 11:58:26 +0000
-Subject: [PATCH 066/161] xen: netback: factor disconnect from backend into new function.
+Subject: [PATCH 066/217] xen: netback: factor disconnect from backend into new function.
 
 Makes subsequent patches cleaner.
 
@@ -14958,7 +14958,7 @@ index 79e6fb0..1f36b4d4 100644
 From 9dcb4c18e5b29d8862cd7783d5b0040913010563 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 23 Feb 2010 12:10:24 +0000
-Subject: [PATCH 067/161] xen: netback: wait for hotplug scripts to complete before signalling connected to frontend
+Subject: [PATCH 067/217] xen: netback: wait for hotplug scripts to complete before signalling connected to frontend
 
 Avoid the situation where the frontend is sending packets but the
 domain 0 bridging (or whatever) is not yet configured (because the
@@ -15077,7 +15077,7 @@ index 1f36b4d4..d2407cc 100644
 From 509cc7f20f866277a8f5d5895bb266b5b68aac6d Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 23 Feb 2010 12:11:51 +0000
-Subject: [PATCH 068/161] xen: netback: Always pull through PKT_PROT_LEN bytes into the linear part of an skb.
+Subject: [PATCH 068/217] xen: netback: Always pull through PKT_PROT_LEN bytes into the linear part of an skb.
 
 Previously PKT_PROT_LEN would only have an effect on the first fragment.
 
@@ -15114,7 +15114,7 @@ index 4b24893..d4a7a56 100644
 From 673c82b5110cfffafe1e1978bc07d6d10d111d50 Mon Sep 17 00:00:00 2001
 From: Steven Smith <ssmith@xensource.com>
 Date: Tue, 23 Feb 2010 11:49:26 +0000
-Subject: [PATCH 069/161] xen: netback: try to pull a minimum of 72 bytes into the skb data area
+Subject: [PATCH 069/217] xen: netback: try to pull a minimum of 72 bytes into the skb data area
  when receiving a packet into netback.
 
 The previous number, 64, tended to place a fragment boundary in the middle of
@@ -15155,7 +15155,7 @@ index d4a7a56..44357d7 100644
 From c83bd213efd3ebf700189249c30d987b1cb14d7e Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 23 Feb 2010 11:54:30 +0000
-Subject: [PATCH 070/161] xen: netback: Allow setting of large MTU before rings have connected.
+Subject: [PATCH 070/217] xen: netback: Allow setting of large MTU before rings have connected.
 
 This allows large MTU to be configured by the VIF hotplug
 script. Previously this would fail because at the point the hotplug
@@ -15227,7 +15227,7 @@ index d2407cc..fcd3c34 100644
 From e5cd35b00cb63f3a3fa1651260a58d59bbc134b7 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Fri, 19 Mar 2010 13:09:16 -0700
-Subject: [PATCH 071/161] xen: netback: use get_sset_count rather than obsolete get_stats_count
+Subject: [PATCH 071/217] xen: netback: use get_sset_count rather than obsolete get_stats_count
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 ---
@@ -15271,7 +15271,7 @@ index b23b14d..086d939 100644
 From 0c34835ee66ad641f01a8077a973b7ec1bfdcd86 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 11 May 2010 09:33:42 +0100
-Subject: [PATCH 072/161] xen: netback: correctly setup skb->ip_summed on receive
+Subject: [PATCH 072/217] xen: netback: correctly setup skb->ip_summed on receive
 
 In 2.6.18 CHECKSUM_PARTIAL and CHECKSUM_UNNECESSARY were both synonyms for
 CHECKSUM_HW. This is no longer the case and we need to select the correct one.
@@ -15318,7 +15318,7 @@ index 44357d7..725da0f 100644
 From 094944631cc5a9d6e623302c987f78117c0bf7ac Mon Sep 17 00:00:00 2001
 From: Dongxiao Xu <dongxiao.xu@intel.com>
 Date: Wed, 19 May 2010 16:58:56 -0700
-Subject: [PATCH 073/161] xen: netback: Move global/static variables into struct xen_netbk.
+Subject: [PATCH 073/217] xen: netback: Move global/static variables into struct xen_netbk.
 
 Bundle a lot of discrete variables into a single structure.
 
@@ -16239,7 +16239,7 @@ index 725da0f..417f497 100644
 From c099c22d8b1c12fc7d68998982eb4ccd4918e813 Mon Sep 17 00:00:00 2001
 From: Dongxiao Xu <dongxiao.xu@intel.com>
 Date: Wed, 19 May 2010 16:58:57 -0700
-Subject: [PATCH 074/161] xen: netback: Introduce a new struct type page_ext.
+Subject: [PATCH 074/217] xen: netback: Introduce a new struct type page_ext.
 
 struct page_ext is used to store the group and idx information by
 which a specified page could be identified.
@@ -16344,7 +16344,7 @@ index 417f497..71ec999 100644
 From 9534985c5b9cc3f6238d6cb8bba7d376e82039d3 Mon Sep 17 00:00:00 2001
 From: Dongxiao Xu <dongxiao.xu@intel.com>
 Date: Wed, 19 May 2010 17:08:21 -0700
-Subject: [PATCH 075/161] xen: netback: Multiple tasklets support.
+Subject: [PATCH 075/217] xen: netback: Multiple tasklets support.
 
 Now netback uses one pair of tasklets for Tx/Rx data transaction.
 Netback tasklet could only run at one CPU at a time, and it is
@@ -17092,7 +17092,7 @@ index 71ec999..feefb14 100644
 From e7317b70c0436c109b605bb377939cb2eaff6a6f Mon Sep 17 00:00:00 2001
 From: Dongxiao Xu <dongxiao.xu@intel.com>
 Date: Wed, 19 May 2010 17:08:22 -0700
-Subject: [PATCH 076/161] xen: netback: Use Kernel thread to replace the tasklet.
+Subject: [PATCH 076/217] xen: netback: Use Kernel thread to replace the tasklet.
 
 Kernel thread has more control over QoS, and could improve dom0's
 userspace responseness. This option is defaultly off currently.
@@ -17326,7 +17326,7 @@ index feefb14..547dcaa 100644
 From 6359d5939c5d1f59b794cd02e8cdbd36b9f3434d Mon Sep 17 00:00:00 2001
 From: James Harper <james.harper@bendigoit.com.au>
 Date: Fri, 28 May 2010 23:12:56 -0700
-Subject: [PATCH 077/161] xen: netback: avoid null-pointer access in netback_uevent
+Subject: [PATCH 077/217] xen: netback: avoid null-pointer access in netback_uevent
 
 Check if drvdata has been set up yet and return if it hasn't.
 
@@ -17367,7 +17367,7 @@ index fcd3c34..e30b0c7 100644
 From 4a818daa044d9d499412e8f6e2e3086c0521e7b3 Mon Sep 17 00:00:00 2001
 From: Keir Fraser <keir.fraser@citrix.com>
 Date: Fri, 11 Jun 2010 11:48:30 +0100
-Subject: [PATCH 078/161] xen: netback: Fixes for delayed copy of tx network packets.
+Subject: [PATCH 078/217] xen: netback: Fixes for delayed copy of tx network packets.
 
  - Should call net_tx_action_dealloc() even when dealloc ring is
    empty, as there may in any case be work to do on the
@@ -17443,7 +17443,7 @@ index 547dcaa..58dfbd2 100644
 From 48fa1af97e6c9d304c04f70a75de1340e7d79e18 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 11 Jun 2010 10:51:01 +0100
-Subject: [PATCH 079/161] xen: netback: handle NET_SKBUFF_DATA_USES_OFFSET correctly
+Subject: [PATCH 079/217] xen: netback: handle NET_SKBUFF_DATA_USES_OFFSET correctly
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 Cc: Jan Beulich <JBeulich@novell.com>
@@ -17474,7 +17474,7 @@ index 58dfbd2..aa094af 100644
 From 7d3e6e42251f179e407fa5236f613e5500b3a3ea Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 11 Jun 2010 10:51:01 +0100
-Subject: [PATCH 080/161] xen: netback: drop frag member from struct netbk_rx_meta
+Subject: [PATCH 080/217] xen: netback: drop frag member from struct netbk_rx_meta
 
 It has been unused since c3219dc "xen/netback: completely drop flip
 support", as has netbk_free_pages().
@@ -17527,7 +17527,7 @@ index aa094af..9f7e489 100644
 From 1ced27150d0092c40ebbbbb3896192003d433c0e Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 11 Jun 2010 10:51:01 +0100
-Subject: [PATCH 081/161] xen: netback: linearise SKBs as we copy them into guest memory on guest-RX.
+Subject: [PATCH 081/217] xen: netback: linearise SKBs as we copy them into guest memory on guest-RX.
 
 There's no point in sending lots of little packets to a copying
 receiver if we can instead arrange to copy them all into a single RX
@@ -18034,7 +18034,7 @@ index 9f7e489..d53d88e 100644
 From 96069b28e612232fb739ef48d9c2c5178b19f562 Mon Sep 17 00:00:00 2001
 From: Dongxiao Xu <dongxiao.xu@intel.com>
 Date: Thu, 10 Jun 2010 19:03:15 +0800
-Subject: [PATCH 082/161] xen: netback: Set allocated memory to zero from vmalloc.
+Subject: [PATCH 082/217] xen: netback: Set allocated memory to zero from vmalloc.
 
 This should fix the windows/linux pv driver issue.
 
@@ -18063,7 +18063,7 @@ index d53d88e..c7024d4 100644
 From 109a748d1c11b7eeaaacedb08c48bc65640b0bb8 Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Mon, 14 Jun 2010 13:23:33 +0100
-Subject: [PATCH 083/161] xen: netback: minor code formatting fixup
+Subject: [PATCH 083/217] xen: netback: minor code formatting fixup
 
 Don't include redundant casts from allocation.
 
@@ -18093,7 +18093,7 @@ index c7024d4..58e920a 100644
 From 2424b59d68ee6ccdb7e52ab68bdba3a8b742513d Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 30 Jun 2010 10:12:49 +0100
-Subject: [PATCH 084/161] xen: netback: drop more relics of flipping mode
+Subject: [PATCH 084/217] xen: netback: drop more relics of flipping mode
 
 The mmu_update and gnttab_transfer arrays were only used by flipping
 mode. With those gone the multicall now consists of a single call to
@@ -18223,7 +18223,7 @@ index 58e920a..ca65840 100644
 From 673a19d9e2d78939c6dc9c49e7e35ee54b54c8c7 Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Fri, 2 Jul 2010 10:28:11 +0100
-Subject: [PATCH 085/161] xen: netback: Fix basic indentation issue
+Subject: [PATCH 085/217] xen: netback: Fix basic indentation issue
 
 Signed-off-by: Paul Durrant <paul.durrant@citrix.com>
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -18260,7 +18260,7 @@ index ca65840..848503e 100644
 From d08b2d1f2ff4723b335d0fb5b91ffd6cb6a005d3 Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Mon, 5 Jul 2010 11:45:29 +0100
-Subject: [PATCH 086/161] xen: netback: Add a new style of passing GSO packets to frontends.
+Subject: [PATCH 086/217] xen: netback: Add a new style of passing GSO packets to frontends.
 
 feature-gso-tcpv4-prefix uses precedes the packet data passed to
 the frontend with a ring entry that contains the necessary
@@ -18431,7 +18431,7 @@ index 518481c..8309344 100644
 From bd910979612331d60a629c16a49ebeb5efa0f035 Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Fri, 2 Jul 2010 10:28:13 +0100
-Subject: [PATCH 087/161] xen: netback: Make frontend features distinct from netback feature flags.
+Subject: [PATCH 087/217] xen: netback: Make frontend features distinct from netback feature flags.
 
 Make sure that if a feature flag is disabled by ethtool on netback
 that we do not gratuitously re-enabled it when we check the frontend
@@ -18705,7 +18705,7 @@ index cda987f..17ff5cf 100644
 From cf8c20169427de5829e3ec723712b77de52e64ac Mon Sep 17 00:00:00 2001
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Date: Thu, 15 Jul 2010 10:46:50 -0700
-Subject: [PATCH 088/161] xen: netback: only initialize for PV domains
+Subject: [PATCH 088/217] xen: netback: only initialize for PV domains
 
 HVM domains don't support netback
 
@@ -18731,10 +18731,103 @@ index 63a771e..911c85b 100644
 1.7.4
 
 
+From dfa4906cfade8541573814c34be82ba02c348317 Mon Sep 17 00:00:00 2001
+From: Owen Smith <owen.smith@citrix.com>
+Date: Wed, 22 Dec 2010 15:05:00 +0000
+Subject: [PATCH 089/217] Union the blkif_request request specific fields
+
+Prepare for extending the block device ring to allow request
+specific fields, by moving the request specific fields for
+reads, writes and barrier requests to a union member
+
+Signed-off-by: Owen Smith <owen.smith@citrix.com>
+---
+ drivers/block/xen-blkfront.c     |    8 ++++----
+ include/xen/interface/io/blkif.h |   16 +++++++++++-----
+ 2 files changed, 15 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index d7aa39e..cc4514c 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -281,7 +281,7 @@ static int blkif_queue_request(struct request *req)
+ 	info->shadow[id].request = req;
+ 
+ 	ring_req->id = id;
+-	ring_req->sector_number = (blkif_sector_t)blk_rq_pos(req);
++	ring_req->u.rw.sector_number = (blkif_sector_t)blk_rq_pos(req);
+ 	ring_req->handle = info->handle;
+ 
+ 	ring_req->operation = rq_data_dir(req) ?
+@@ -317,7 +317,7 @@ static int blkif_queue_request(struct request *req)
+ 				rq_data_dir(req) );
+ 
+ 		info->shadow[id].frame[i] = mfn_to_pfn(buffer_mfn);
+-		ring_req->seg[i] =
++		ring_req->u.rw.seg[i] =
+ 				(struct blkif_request_segment) {
+ 					.gref       = ref,
+ 					.first_sect = fsect,
+@@ -615,7 +615,7 @@ static void blkif_completion(struct blk_shadow *s)
+ {
+ 	int i;
+ 	for (i = 0; i < s->req.nr_segments; i++)
+-		gnttab_end_foreign_access(s->req.seg[i].gref, 0, 0UL);
++		gnttab_end_foreign_access(s->req.u.rw.seg[i].gref, 0, 0UL);
+ }
+ 
+ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
+@@ -932,7 +932,7 @@ static int blkif_recover(struct blkfront_info *info)
+ 		/* Rewrite any grant references invalidated by susp/resume. */
+ 		for (j = 0; j < req->nr_segments; j++)
+ 			gnttab_grant_foreign_access_ref(
+-				req->seg[j].gref,
++				req->u.rw.seg[j].gref,
+ 				info->xbdev->otherend_id,
+ 				pfn_to_mfn(info->shadow[req->id].frame[j]),
+ 				rq_data_dir(info->shadow[req->id].request));
+diff --git a/include/xen/interface/io/blkif.h b/include/xen/interface/io/blkif.h
+index c2d1fa4..e4f743c 100644
+--- a/include/xen/interface/io/blkif.h
++++ b/include/xen/interface/io/blkif.h
+@@ -51,11 +51,7 @@ typedef uint64_t blkif_sector_t;
+  */
+ #define BLKIF_MAX_SEGMENTS_PER_REQUEST 11
+ 
+-struct blkif_request {
+-	uint8_t        operation;    /* BLKIF_OP_???                         */
+-	uint8_t        nr_segments;  /* number of segments                   */
+-	blkif_vdev_t   handle;       /* only for read/write requests         */
+-	uint64_t       id;           /* private guest value, echoed in resp  */
++struct blkif_request_rw {
+ 	blkif_sector_t sector_number;/* start sector idx on disk (r/w only)  */
+ 	struct blkif_request_segment {
+ 		grant_ref_t gref;        /* reference to I/O buffer frame        */
+@@ -65,6 +61,16 @@ struct blkif_request {
+ 	} seg[BLKIF_MAX_SEGMENTS_PER_REQUEST];
+ };
+ 
++struct blkif_request {
++	uint8_t        operation;    /* BLKIF_OP_???                         */
++	uint8_t        nr_segments;  /* number of segments                   */
++	blkif_vdev_t   handle;       /* only for read/write requests         */
++	uint64_t       id;           /* private guest value, echoed in resp  */
++	union {
++		struct blkif_request_rw rw;
++	} u;
++};
++
+ struct blkif_response {
+ 	uint64_t        id;              /* copied from request */
+ 	uint8_t         operation;       /* copied from request */
+-- 
+1.7.4
+
+
 From e8bc588ab4c297e3f3d8f61f205b2d2db258907b Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 18 Jan 2011 20:09:41 -0500
-Subject: [PATCH 089/161] xen: Mark all initial reserved pages for the balloon as INVALID_P2M_ENTRY.
+Subject: [PATCH 090/217] xen: Mark all initial reserved pages for the balloon as INVALID_P2M_ENTRY.
 
 With this patch, we diligently set regions that will be used by the
 balloon driver to be INVALID_P2M_ENTRY and under the ownership
@@ -18864,7 +18957,7 @@ index 43f9f02..b1661cd 100644
 From f9820a46dd7888b05a36e81166fb1abcc47dcc3f Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 29 Nov 2010 13:52:18 -0500
-Subject: [PATCH 090/161] ttm: Introduce a placeholder for DMA (bus) addresses.
+Subject: [PATCH 091/217] ttm: Introduce a placeholder for DMA (bus) addresses.
 
 This is right now limited to only non-pool constructs.
 
@@ -19022,7 +19115,7 @@ index 1168214..8062890 100644
 From 69a07f0b117a40fcc1a479358d8e1f41793617f2 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 29 Nov 2010 14:03:30 -0500
-Subject: [PATCH 091/161] ttm: Utilize the DMA API for pages that have TTM_PAGE_FLAG_DMA32 set.
+Subject: [PATCH 092/217] ttm: Utilize the DMA API for pages that have TTM_PAGE_FLAG_DMA32 set.
 
 For pages that have the TTM_PAGE_FLAG_DMA32 flag set we
 use the DMA API. We save the bus address in our array which we
@@ -19111,7 +19204,7 @@ index 9d9d929..737a2a2 100644
 From 27e8b237944af967e0a808580278d432cb028455 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 2 Dec 2010 10:24:13 -0500
-Subject: [PATCH 092/161] ttm: Expand (*populate) to support an array of DMA addresses.
+Subject: [PATCH 093/217] ttm: Expand (*populate) to support an array of DMA addresses.
 
 We pass in the array of ttm pages to be populated in the GART/MM
 of the card (or AGP). Patch titled: "ttm: Utilize the DMA API for
@@ -19234,7 +19327,7 @@ index 6dc4fcc..ebcd3dd 100644
 From f980a401a5bfb858c804a739f5cad82971b83276 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 2 Dec 2010 11:04:29 -0500
-Subject: [PATCH 093/161] radeon/ttm/PCIe: Use dma_addr if TTM has set it.
+Subject: [PATCH 094/217] radeon/ttm/PCIe: Use dma_addr if TTM has set it.
 
 If the TTM layer has used the DMA API to setup pages that are
 TTM_PAGE_FLAG_DMA32 (look at patch titled: "ttm: Utilize the dma_addr_t
@@ -19400,7 +19493,7 @@ index 6f156e9..ca04505 100644
 From 7c36cc7fbfd58a2fae9fe6ab60572fb53f1194b0 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 2 Dec 2010 11:36:24 -0500
-Subject: [PATCH 094/161] nouveau/ttm/PCIe: Use dma_addr if TTM has set it.
+Subject: [PATCH 095/217] nouveau/ttm/PCIe: Use dma_addr if TTM has set it.
 
 If the TTM layer has used the DMA API to setup pages that are
 TTM_PAGE_FLAG_DMA32 (look at patch titled: "ttm: Utilize the
@@ -19488,7 +19581,7 @@ index edc140a..bbdd982 100644
 From 7b2fc719094440d3eacacd95fa6a1f5ac495396b Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 18 Jan 2011 20:15:21 -0500
-Subject: [PATCH 095/161] xen/mmu: Add the notion of identity (1-1) mapping.
+Subject: [PATCH 096/217] xen/mmu: Add the notion of identity (1-1) mapping.
 
 Our P2M tree structure is a three-level. On the leaf nodes
 we set the Machine Frame Number (MFN) of the PFN. What this means
@@ -19847,7 +19940,7 @@ index df4e367..dd30ec8 100644
 From 57fafbb798ffde486606244c3392ed6f63050222 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 5 Jan 2011 15:46:31 -0500
-Subject: [PATCH 096/161] xen/mmu: Set _PAGE_IOMAP if PFN is an identity PFN.
+Subject: [PATCH 097/217] xen/mmu: Set _PAGE_IOMAP if PFN is an identity PFN.
 
 If we find that the PFN is within the P2M as an identity
 PFN make sure to tack on the _PAGE_IOMAP flag.
@@ -19903,7 +19996,7 @@ index 0180ae8..9c9e076 100644
 From e6f1e7aabca9f9f99ef4fc1c752497b3efa7896c Mon Sep 17 00:00:00 2001
 From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 Date: Mon, 31 Jan 2011 15:18:10 +0000
-Subject: [PATCH 097/161] x86/mm/init: respect memblock reserved regions when destroying mappings
+Subject: [PATCH 098/217] x86/mm/init: respect memblock reserved regions when destroying mappings
 
 x86/mm/init: respect memblock reserved regions when destroying mappings
 
@@ -19969,7 +20062,7 @@ index 947f42a..66637bd 100644
 From f653d10acc37ee1b09c849640f8c0214b4f1d483 Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 12:18:59 -0500
-Subject: [PATCH 099/161] xen-gntdev: Change page limit to be global instead of per-open
+Subject: [PATCH 100/217] xen-gntdev: Change page limit to be global instead of per-open
 
 Because there is no limitation on how many times a user can open a
 given device file, an per-file-description limit on the number of
@@ -20123,7 +20216,7 @@ index 1e31cdc..23d208a 100644
 From 0e32bc443544fd0783a56f29c27e233e226f6e6b Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 12:19:00 -0500
-Subject: [PATCH 100/161] xen-gntdev: Use find_vma rather than iterating our vma list manually
+Subject: [PATCH 101/217] xen-gntdev: Use find_vma rather than iterating our vma list manually
 
 This should be faster if many mappings exist, and also removes
 the only user of map->vma not related to PTE modification.
@@ -20199,7 +20292,7 @@ index 23d208a..ce8c37c 100644
 From 95cf9d619532475076ef07402ea296f3384ea513 Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 12:19:01 -0500
-Subject: [PATCH 101/161] xen-gntdev: Add reference counting to maps
+Subject: [PATCH 102/217] xen-gntdev: Add reference counting to maps
 
 This allows userspace to perform mmap() on the gntdev device and then
 immediately close the filehandle or remove the mapping using the
@@ -20374,7 +20467,7 @@ index ce8c37c..256162b 100644
 From b6266e99c7947b151bff4b0f2b89d526405caa02 Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 12:19:02 -0500
-Subject: [PATCH 102/161] xen-gntdev: Support mapping in HVM domains
+Subject: [PATCH 103/217] xen-gntdev: Support mapping in HVM domains
 
 HVM does not allow direct PTE modification, so instead we request
 that Xen change its internal p2m mappings on the allocated pages and
@@ -20656,7 +20749,7 @@ index 9ef54eb..9428ced 100644
 From 67824c47b7137bc306b933c8772b8abfd0c09641 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Mon, 7 Feb 2011 17:23:05 -0500
-Subject: [PATCH 103/161] xen-gntalloc: Userspace grant allocation driver
+Subject: [PATCH 104/217] xen-gntalloc: Userspace grant allocation driver
 
 This allows a userspace application to allocate a shared page for
 implementing inter-domain communication or device drivers. These
@@ -21266,7 +21359,7 @@ index 0000000..bc3b85e
 From 2cda98cf69ced86dd7c7840a96651ac6b84cfeef Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 12:19:04 -0500
-Subject: [PATCH 104/161] xen/gntalloc,gntdev: Add unmap notify ioctl
+Subject: [PATCH 105/217] xen/gntalloc,gntdev: Add unmap notify ioctl
 
 This ioctl allows the users of a shared page to be notified when
 the other end exits abnormally.
@@ -21590,7 +21683,7 @@ index eb23f41..5d9b9b4 100644
 From 10aec564458881d30dc0e3b67083ec4849c3ab3a Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Thu, 3 Feb 2011 14:16:54 -0500
-Subject: [PATCH 105/161] xen-gntdev: Fix memory leak when mmap fails
+Subject: [PATCH 106/217] xen-gntdev: Fix memory leak when mmap fails
 
 Fix for a memory leak introduced in patch 3. Doesn't merge cleanly across
 patch 4; I can post a corrected version of both patches if that would be
@@ -21655,7 +21748,7 @@ index 9694a1a..2aa8316 100644
 From 203b40c0915fc78e9ca1524c887623e7dc86422d Mon Sep 17 00:00:00 2001
 From: Bastian Blank <waldi@debian.org>
 Date: Thu, 29 Jul 2010 17:30:18 +0200
-Subject: [PATCH 106/161] xen: netback: Fix null-pointer access in netback_uevent
+Subject: [PATCH 107/217] xen: netback: Fix null-pointer access in netback_uevent
 
 The uevent method of Xen netback does not check if the the network
 device is already setup and tries to dereference a null-pointer if not.
@@ -21705,7 +21798,7 @@ index 17ff5cf..1fec65a 100644
 From bee16269e5ba79706bdae554013cd14285b4f1ad Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 30 Jul 2010 15:16:47 +0100
-Subject: [PATCH 107/161] xen: netback: check if foreign pages are actually netback-created foreign pages.
+Subject: [PATCH 108/217] xen: netback: check if foreign pages are actually netback-created foreign pages.
 
 020ba906 "xen/netback: Multiple tasklets support." changed
 netbk_gop_frag_copy to attempt to lookup a pending_tx_info for any
@@ -21833,7 +21926,7 @@ index 911c85b..95df223 100644
 From 3f33055e8af9d74e35670c52438e190d54ac5f9e Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 30 Jul 2010 15:16:46 +0100
-Subject: [PATCH 108/161] xen: netback: do not unleash netback threads until initialisation is complete
+Subject: [PATCH 109/217] xen: netback: do not unleash netback threads until initialisation is complete
 
 Otherwise netbk_action_thread can reference &netbk->net_schedule_list
 (via tx_work_todo) before it is initialised. Until now it was zeroed
@@ -21877,7 +21970,7 @@ index 95df223..2646383 100644
 From 329a17f3dbb9c127d431d09df0ed63ec28b8c702 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ijc@hellion.org.uk>
 Date: Thu, 2 Sep 2010 14:36:40 +0100
-Subject: [PATCH 109/161] xen: netback: save interrupt state in add_to_net_schedule_list_tail
+Subject: [PATCH 110/217] xen: netback: save interrupt state in add_to_net_schedule_list_tail
 
 add_to_net_schedule_list_tail is called from both hard interrupt context
 (add_to_net_schedule_list_tail) and soft interrupt/process context
@@ -21953,7 +22046,7 @@ index 2646383..1d080f6 100644
 From 7edc1ededaaa953877d2a052886db4ea2f69effe Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 8 Oct 2010 17:11:51 +0100
-Subject: [PATCH 110/161] xen: netback: increase size of rx_meta array.
+Subject: [PATCH 111/217] xen: netback: increase size of rx_meta array.
 
 We can end up needing as many of these as we need grant copy operations so
 increase the array size for the same reason.
@@ -22007,7 +22100,7 @@ index a5f3759..ce0041a 100644
 From 4fbb266d319fcb3349eff2f9c42cdee51c5fcb5f Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 15 Oct 2010 13:41:44 +0100
-Subject: [PATCH 111/161] xen: netback: take net_schedule_list_lock when removing entry from net_schedule_list
+Subject: [PATCH 112/217] xen: netback: take net_schedule_list_lock when removing entry from net_schedule_list
 
 There is a race in net_tx_build_mops between checking if
 net_schedule_list is empty and actually dequeuing the first entry on
@@ -22132,7 +22225,7 @@ index 1d080f6..3b03435 100644
 From d58a964195f593879cc0160ac0c6f31bc95cdc6e Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Wed, 15 Dec 2010 09:48:12 +0000
-Subject: [PATCH 112/161] xen: netback: Re-define PKT_PROT_LEN to be bigger.
+Subject: [PATCH 113/217] xen: netback: Re-define PKT_PROT_LEN to be bigger.
 
 Re-define PKT_PROT_LEN to be big enough to handle maximal IPv4 and TCP options and phrase
 the definition so that it's reasonably obvious that's what it's for.
@@ -22184,7 +22277,7 @@ index 3b03435..9bbd230 100644
 From 7120999e00f068383bc16d03cceae8d6d511c43a Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Tue, 14 Dec 2010 20:35:19 +0000
-Subject: [PATCH 113/161] xen: netback: Don't count packets we don't actually receive.
+Subject: [PATCH 114/217] xen: netback: Don't count packets we don't actually receive.
 
 Make sure we only bump rx_packets when we're definitely going to call netif_rx_ni().
 
@@ -22225,7 +22318,7 @@ index 9bbd230..78d3509 100644
 From 3c1f462cb05ad5eb5bb8e65cf6feb9a4e4363ebf Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Tue, 14 Dec 2010 20:35:20 +0000
-Subject: [PATCH 114/161] xen: netback: Remove the 500ms timeout to restart the netif queue.
+Subject: [PATCH 115/217] xen: netback: Remove the 500ms timeout to restart the netif queue.
 
 It is generally unhelpful as it results in a massive tail-drop should a guest become
 unresponsive for a relatively short period of time and no back-pressure (other than
@@ -22283,7 +22376,7 @@ index 78d3509..2caa5f8 100644
 From d70d4906c2736dadc5c287caa36c5880947f8688 Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Tue, 14 Dec 2010 20:35:21 +0000
-Subject: [PATCH 115/161] xen: netback: Add a missing test to tx_work_todo.
+Subject: [PATCH 116/217] xen: netback: Add a missing test to tx_work_todo.
 
 Adda test so that, when netback is using worker threads, net_tx_action()
 gets called in a timely manner when the pending_inuse list is populated.
@@ -22316,7 +22409,7 @@ index 2caa5f8..dd52d01 100644
 From 8811a0cf07ccd1b9f40eaae76de3aa2792c9fd28 Mon Sep 17 00:00:00 2001
 From: Paul Durrant <paul.durrant@citrix.com>
 Date: Tue, 14 Dec 2010 20:35:22 +0000
-Subject: [PATCH 116/161] xen: netback: Re-factor net_tx_action_dealloc() slightly.
+Subject: [PATCH 117/217] xen: netback: Re-factor net_tx_action_dealloc() slightly.
 
 There is no need for processing of the pending_inuse list to be within the dealloc_prod/cons
 loop.
@@ -22379,7 +22472,7 @@ index dd52d01..53b3a0e 100644
 From 9481475c92f00d15100d0a5083ef338f1b528506 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 5 Jan 2011 09:57:37 +0000
-Subject: [PATCH 117/161] xen: netback: Drop GSO SKBs which do not have csum_blank.
+Subject: [PATCH 118/217] xen: netback: Drop GSO SKBs which do not have csum_blank.
 
 The Linux network stack expects all GSO SKBs to have ip_summed ==
 CHECKSUM_PARTIAL (which implies that the frame contains a partial
@@ -22417,7 +22510,7 @@ index 53b3a0e..2766b93 100644
 From a45f9a0889210fba5c73994ec2fa1c36f82a435f Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 19 Jan 2011 12:43:38 +0000
-Subject: [PATCH 118/161] xen: netback: completely remove tx_queue_timer
+Subject: [PATCH 119/217] xen: netback: completely remove tx_queue_timer
 
 "xen: netback: Remove the 500ms timeout to restart the netif queue." missed
 removing the timer initialisation.
@@ -22491,7 +22584,7 @@ index 2e8508a..efdc21c 100644
 From 2794a483aeafab1c0765a0478b760978b361bad9 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 28 Jan 2011 13:11:45 +0000
-Subject: [PATCH 119/161] Revert "xen: netback: Drop GSO SKBs which do not have csum_blank."
+Subject: [PATCH 120/217] Revert "xen: netback: Drop GSO SKBs which do not have csum_blank."
 
 This reverts commit 082386b4a581b2ba5a125cc8944a57ceb33ff37c.
 
@@ -22526,7 +22619,7 @@ index 2766b93..53b3a0e 100644
 From 01cd16474ee82db4d958c9cf8e481be897fa4ca6 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 27 Jan 2011 15:43:46 +0000
-Subject: [PATCH 120/161] xen: netback: handle incoming GSO SKBs which are not CHECKSUM_PARTIAL
+Subject: [PATCH 121/217] xen: netback: handle incoming GSO SKBs which are not CHECKSUM_PARTIAL
 
 The Linux network stack expects all GSO SKBs to have ip_summed ==
 CHECKSUM_PARTIAL (which implies that the frame contains a partial
@@ -22667,7 +22760,7 @@ index 53b3a0e..8189199 100644
 From 929c2cd7541a48c9ab64af1b25b3e53ed396e0c5 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 18 Jan 2011 11:37:12 +0000
-Subject: [PATCH 121/161] xen: netback: rationalise types used in count_skb_slots
+Subject: [PATCH 122/217] xen: netback: rationalise types used in count_skb_slots
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -22703,7 +22796,7 @@ index 8189199..22c1fa5 100644
 From 0ded854cc2e58205d857df3d96ef6f9a108a4a66 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 18 Jan 2011 11:21:35 +0000
-Subject: [PATCH 122/161] xen: netback: refactor logic for moving to a new receive buffer.
+Subject: [PATCH 123/217] xen: netback: refactor logic for moving to a new receive buffer.
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -22822,7 +22915,7 @@ index 22c1fa5..909e0ef 100644
 From 9e79b27c9369d25ca86abf66611a700783ce1ef2 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 2 Feb 2011 11:12:39 +0000
-Subject: [PATCH 123/161] xen: netback: refactor code to get next rx buffer into own function.
+Subject: [PATCH 124/217] xen: netback: refactor code to get next rx buffer into own function.
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -22891,7 +22984,7 @@ index 909e0ef..a8ee1c2 100644
 From e02c96928e165eb351ded4cc78cce4c615778be3 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 2 Feb 2011 11:14:17 +0000
-Subject: [PATCH 124/161] xen: netback: simplify use of netbk_add_frag_responses
+Subject: [PATCH 125/217] xen: netback: simplify use of netbk_add_frag_responses
 
 Move all the logic into the function instead of having some in the caller.
 
@@ -22939,7 +23032,7 @@ index a8ee1c2..cfe7931 100644
 From 9304651128c7fdc2ffdf36e9fd589a13d5aca35d Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 24 Dec 2010 13:37:04 +0000
-Subject: [PATCH 125/161] xen: netback: cleanup coding style
+Subject: [PATCH 126/217] xen: netback: cleanup coding style
 
 Fix checkpatch.pl errors plus manual sweep.
 
@@ -23496,7 +23589,7 @@ index 1fec65a..dd44341 100644
 From 7ab35b88fd3b452d8b9aec972ab7d3e9de710894 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 19 Jan 2011 10:51:45 +0000
-Subject: [PATCH 126/161] xen: netback: drop private ?PRINTK macros in favour of pr_*
+Subject: [PATCH 127/217] xen: netback: drop private ?PRINTK macros in favour of pr_*
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -23795,7 +23888,7 @@ index dd44341..867dc25 100644
 From 34db20ebe74e4ffacda2d42eb9cd92ae9b770970 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 18 Jan 2011 12:54:12 +0000
-Subject: [PATCH 127/161] xen: netback: move under drivers/net/xen-netback/
+Subject: [PATCH 128/217] xen: netback: move under drivers/net/xen-netback/
 
 From the kernel's PoV netback is just another network device driver.
 
@@ -30292,7 +30385,7 @@ index 867dc25..0000000
 From 932240f6f2a1ee52e330e281069efd2f728ff7ed Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 13:02:14 +0000
-Subject: [PATCH 128/161] xen: netback: remove queue_length module option
+Subject: [PATCH 129/217] xen: netback: remove queue_length module option
 
 This setting can be controlled via sysfs.
 
@@ -30337,7 +30430,7 @@ index b429f8c..249f010 100644
 From 96568c3f81c7ba4d4fea43be791e4a773331ed7c Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 14:16:52 +0000
-Subject: [PATCH 129/161] xen: netback: correct error return from ethtool hooks.
+Subject: [PATCH 130/217] xen: netback: correct error return from ethtool hooks.
 
 Should be -EOPNOTSUPP not -ENOSYS.
 
@@ -30384,7 +30477,7 @@ index 249f010..c41d93e 100644
 From 12a5b4f364888f291bcd8e38a146f30fcceb9588 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 14:20:04 +0000
-Subject: [PATCH 130/161] xen: netback: avoid leading _ in function parameter names.
+Subject: [PATCH 131/217] xen: netback: avoid leading _ in function parameter names.
 
 It is usually used to distinguish lower-level functions or to avoid naming
 conflicts in macros.
@@ -30425,7 +30518,7 @@ index b290525..cd2af15 100644
 From a789731f0ed97fc762835a568f2fefbf0d490ccf Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 14:21:24 +0000
-Subject: [PATCH 131/161] xen: netback: drop unused debug interrupt handler.
+Subject: [PATCH 132/217] xen: netback: drop unused debug interrupt handler.
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -30521,7 +30614,7 @@ index cd2af15..a7646f3 100644
 From 056508bc941b3715c72a5fa00a6b38a006979dd9 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 16:42:27 +0000
-Subject: [PATCH 132/161] xen: netif: properly namespace the Xen netif protocol header.
+Subject: [PATCH 133/217] xen: netif: properly namespace the Xen netif protocol header.
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -30916,7 +31009,7 @@ index 8309344..cb94668 100644
 From 16d8ace0b7af72fb9e355eee165251e1f9b511e1 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 1 Feb 2011 16:50:24 +0000
-Subject: [PATCH 133/161] xen: netif: improve Kconfig help text for front- and backend drivers.
+Subject: [PATCH 134/217] xen: netif: improve Kconfig help text for front- and backend drivers.
 
 Signed-off-by: Ian Campell <ian.campbell@citrix.com>
 ---
@@ -30981,7 +31074,7 @@ index 5b088f5..1c77e183 100644
 From 54f3edcf01cab556198efc7d576d9feb4b836569 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 19 Jan 2011 14:41:55 +0000
-Subject: [PATCH 134/161] xen: netback: drop ethtool drvinfo callback
+Subject: [PATCH 135/217] xen: netback: drop ethtool drvinfo callback
 
 The default provided by the network core is sufficient for our needs.
 
@@ -31024,7 +31117,7 @@ index c41d93e..28b0832 100644
 From 02f5acfcf4ad6c982c7eb0c6fd361749ad9140cd Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 16:24:28 +0000
-Subject: [PATCH 135/161] xen: netback: use xen_netbk prefix where appropriate
+Subject: [PATCH 136/217] xen: netback: use xen_netbk prefix where appropriate
 
 Do not use net_ of netif_ since these belong to the network core.
 
@@ -31338,7 +31431,7 @@ index 69b4535..6ed4459 100644
 From 0feb757d74b864a7d8d00fb57a8c523bd3081d42 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 17:00:54 +0000
-Subject: [PATCH 136/161] xen: netback: refactor to make all xen_netbk knowledge internal to netback.c
+Subject: [PATCH 137/217] xen: netback: refactor to make all xen_netbk knowledge internal to netback.c
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -31635,7 +31728,7 @@ index 6ed4459..d10ddbc 100644
 From 651ae17d2aaedb2adca37c7b7c9eda195c3cad6b Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Thu, 20 Jan 2011 17:08:23 +0000
-Subject: [PATCH 137/161] xen: netback: use xenvif_ prefix where appropriate
+Subject: [PATCH 138/217] xen: netback: use xenvif_ prefix where appropriate
 
 Avoids use of netif_ prefix which belongs to the networking core.
 
@@ -33524,7 +33617,7 @@ index 867dc25..a6ad259 100644
 From ffb0eb7c4e5115ac17621cb83cf614ba026975df Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 21 Jan 2011 09:42:35 +0000
-Subject: [PATCH 138/161] xen: netback: add reference from xenvif to xen_netbk
+Subject: [PATCH 139/217] xen: netback: add reference from xenvif to xen_netbk
 
 Rather than storing the group id simply store a pointer (opaque to xenvif).
 
@@ -33666,7 +33759,7 @@ index f2f9c6f..4f04d2d 100644
 From 0cf3cc23560821e8e0b95a1400374a7ff1248e52 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 21 Jan 2011 10:45:25 +0000
-Subject: [PATCH 139/161] xen: netback: refactor to separate network device from worker pools
+Subject: [PATCH 140/217] xen: netback: refactor to separate network device from worker pools
 
 The netback worker pool code is in netback.c and uses "struct xen_netbk" and
 xen_netbk_*.
@@ -34534,7 +34627,7 @@ index a6ad259..e854420 100644
 From f1c011ec476d1ee2c36afb9df40024ffca087b08 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Fri, 21 Jan 2011 11:10:22 +0000
-Subject: [PATCH 140/161] xen: netback: switch to kthread mode and drop tasklet mode
+Subject: [PATCH 141/217] xen: netback: switch to kthread mode and drop tasklet mode
 
 Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
 ---
@@ -34779,7 +34872,7 @@ index 1b7005c..73e35fd 100644
 From e564d36cd3368e17218052148932322f7fe324bf Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 2 Feb 2011 17:25:26 +0000
-Subject: [PATCH 141/161] xen: netback: handle frames whose head crosses a page boundary
+Subject: [PATCH 142/217] xen: netback: handle frames whose head crosses a page boundary
 
 Previoulsy we copied any skb whose head crossed a page boundary before
 forwarding to the guest. However dealing with these skbs is relatively straight
@@ -35035,7 +35128,7 @@ index 73e35fd..79b8c30 100644
 From 64702558e140c916ac2aca9bf0ec50521de105ca Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Sat, 11 Dec 2010 10:15:50 +0000
-Subject: [PATCH 142/161] xen: netback: Make dependency on PageForeign conditional
+Subject: [PATCH 143/217] xen: netback: Make dependency on PageForeign conditional
 
 When PageForeign is not available we fallback to a copying TX mode.
 
@@ -35800,7 +35893,7 @@ index e854420..d56b1ee 100644
 From 33bf93e7541633b7667bf9390107cf8b2b67968a Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Wed, 19 Jan 2011 09:43:44 +0000
-Subject: [PATCH 143/161] xen: netback: completely drop foreign page support
+Subject: [PATCH 144/217] xen: netback: completely drop foreign page support
 
 for i in drivers/net/xen-netback/*.[ch] ; do
 	echo $i
@@ -36623,7 +36716,7 @@ index 0d4005d8..d6bfb89 100644
 From bb70b10fcebc2a02591a1da53e8d6873582b421e Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 18 Jan 2011 20:17:10 -0500
-Subject: [PATCH 145/161] xen/mmu: WARN_ON when racing to swap middle leaf.
+Subject: [PATCH 147/217] xen/mmu: WARN_ON when racing to swap middle leaf.
 
 The initial bootup code uses set_phys_to_machine quite a lot, and after
 bootup it would be used by the balloon driver. The balloon driver does have
@@ -36662,7 +36755,7 @@ index dd30ec8..851da14 100644
 From da60f4ccf61268444fd83d5e266ffe26d5ce366d Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Tue, 1 Feb 2011 17:15:30 -0500
-Subject: [PATCH 146/161] xen/setup: Set identity mapping for non-RAM E820 and E820 gaps.
+Subject: [PATCH 148/217] xen/setup: Set identity mapping for non-RAM E820 and E820 gaps.
 
 We walk the E820 region and start at 0 (for PV guests we start
 at ISA_END_ADDRESS) and skip any E820 RAM regions. For all other
@@ -36786,7 +36879,7 @@ index 7201800..54d9379 100644
 From 4f5d3a046949c958338ca780145dae21647c8d58 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Wed, 22 Dec 2010 08:57:30 -0500
-Subject: [PATCH 147/161] xen/debugfs: Add 'p2m' file for printing out the P2M layout.
+Subject: [PATCH 149/217] xen/debugfs: Add 'p2m' file for printing out the P2M layout.
 
 We walk over the whole P2M tree and construct a simplified view of
 which PFN regions belong to what level and what type they are.
@@ -36957,7 +37050,7 @@ index 851da14..ea613d0 100644
 From 84f847d2e878b4d15e7552e86f20251a2d0d4522 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 23 Dec 2010 16:25:29 -0500
-Subject: [PATCH 148/161] xen/debug: WARN_ON when identity PFN has no _PAGE_IOMAP flag set.
+Subject: [PATCH 150/217] xen/debug: WARN_ON when identity PFN has no _PAGE_IOMAP flag set.
 
 Only enabled if XEN_DEBUG is enabled. We print a warning
 when:
@@ -37056,7 +37149,7 @@ index b13b6ca..0c376a2 100644
 From 5c560d90ed68b399d5020692d38e6cc77db4f6d0 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Fri, 14 Jan 2011 17:55:44 -0500
-Subject: [PATCH 149/161] xen/m2p: No need to catch exceptions when we know that there is no RAM
+Subject: [PATCH 151/217] xen/m2p: No need to catch exceptions when we know that there is no RAM
 
 .. beyound what we think is the end of memory. However there might
 be more System RAM - but assigned to a guest. Hence jump to the
@@ -37091,14 +37184,14 @@ index 78ebbeb..1957070 100644
  	/*
  	 * If this appears to be a foreign mfn (because the pfn
  	 * doesn't map back to the mfn), then check the local override
---
+-- 
 1.7.4
 
 
 From ba114b8b8112f1fa4b14c929a85ebf51c9c1a749 Mon Sep 17 00:00:00 2001
 From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 Date: Wed, 2 Feb 2011 18:32:59 +0000
-Subject: [PATCH 150/161] xen/m2p: Check whether the MFN has IDENTITY_FRAME bit set..
+Subject: [PATCH 152/217] xen/m2p: Check whether the MFN has IDENTITY_FRAME bit set..
 
 If there is no proper PFN value in the M2P for the MFN
 (so we get 0xFFFFF.. or 0x55555, or 0x0), we should
@@ -37183,7 +37276,7 @@ index 1957070..c61934f 100644
 From d9141a4387f0037ebb68dafb065d4b5bb12a4e96 Mon Sep 17 00:00:00 2001
 From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
 Date: Tue, 8 Feb 2011 09:14:06 -0500
-Subject: [PATCH 151/161] xen-gntdev: Fix unmap notify on PV domains
+Subject: [PATCH 153/217] xen-gntdev: Fix unmap notify on PV domains
 
 In paravirtualized guests, the struct page* for mappings is only a
 placeholder, and cannot be used to access the granted memory. Use the
@@ -37230,7 +37323,7 @@ index 2aa8316..75f8037 100644
 From d0783a02ef1bf28650f789b5b37ec1df42b53821 Mon Sep 17 00:00:00 2001
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Date: Thu, 9 Dec 2010 15:01:11 -0500
-Subject: [PATCH 152/161] xen/irq: Don't fall over when nr_irqs_gsi > nr_irqs.
+Subject: [PATCH 154/217] xen/irq: Don't fall over when nr_irqs_gsi > nr_irqs.
 
 This scenario where the nr_irq_gsi is greater than nr_irqs
 is rather strange but lets still try to survive. Make sure
@@ -37278,7 +37371,7 @@ index 7468147..6de2d76 100644
 From 4ab08528537b78a1b9696e9b2757d0e818d157a0 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 11 Jan 2011 17:20:13 +0000
-Subject: [PATCH 153/161] xen: handled remapped IRQs when enabling a pcifront PCI device.
+Subject: [PATCH 155/217] xen: handled remapped IRQs when enabling a pcifront PCI device.
 
 This happens to not be an issue currently because we take pains to try
 to ensure that the GSI-IRQ mapping is 1-1 in a PV guest and that
@@ -37340,7 +37433,7 @@ index 25cd4a0..2a12f3d 100644
 From 449913e7b40a40602cdc080ef3958736077d2914 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 11 Jan 2011 17:20:14 +0000
-Subject: [PATCH 154/161] xen:events: move find_unbound_irq inside CONFIG_PCI_MSI
+Subject: [PATCH 156/217] xen:events: move find_unbound_irq inside CONFIG_PCI_MSI
 
 The only caller is xen_allocate_pirq_msi which is also under this
 ifdef so this fixes:
@@ -37414,7 +37507,7 @@ index 6de2d76..8e28c01 100644
 From 5a61eb864cdd63b8db29da707aa8e33b8dd54578 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 11 Jan 2011 17:20:15 +0000
-Subject: [PATCH 155/161] xen: events: add xen_allocate_irq_{dynamic, gsi} and xen_free_irq
+Subject: [PATCH 157/217] xen: events: add xen_allocate_irq_{dynamic, gsi} and xen_free_irq
 
 This is neater than open-coded calls to irq_alloc_desc_at and
 irq_free_desc.
@@ -37583,7 +37676,7 @@ index 8e28c01..e74bdcf 100644
 From 026c9d2d0d75ec51b251aac4ca8855f4fae6af23 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <ian.campbell@citrix.com>
 Date: Tue, 11 Jan 2011 17:20:16 +0000
-Subject: [PATCH 156/161] xen: events: allocate GSIs and dynamic IRQs from separate IRQ ranges.
+Subject: [PATCH 158/217] xen: events: allocate GSIs and dynamic IRQs from separate IRQ ranges.
 
 There are three cases which we need to care about, PV guest, PV domain
 0 and HVM guest.
@@ -37736,7 +37829,7 @@ index e74bdcf..06f2e61 100644
 From d042c4b63ab93fb3089f2cc9f6628ab91b7b4073 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@eu.citrix.com>
 Date: Thu, 3 Feb 2011 09:49:35 +0000
-Subject: [PATCH 157/161] xen: events: do not free legacy IRQs
+Subject: [PATCH 159/217] xen: events: do not free legacy IRQs
 
 c514d00c8057 "xen: events: add xen_allocate_irq_{dynamic, gsi} and
 xen_free_irq" correctly avoids reallocating legacy IRQs (which are
@@ -37771,7 +37864,7 @@ index 06f2e61..accb37a 100644
 From 6e435118ec43bbd781df48ceef101d8f1a48e699 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 5 Feb 2011 20:08:52 +0000
-Subject: [PATCH 158/161] xen: Remove stale irq_chip.end
+Subject: [PATCH 160/217] xen: Remove stale irq_chip.end
 
 irq_chip.end got obsolete with the removal of __do_IRQ()
 
@@ -37825,7 +37918,7 @@ index accb37a..c8826b5 100644
 From ab1d37664458dd36cbf7e8a81cc4199b25937142 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 5 Feb 2011 20:08:54 +0000
-Subject: [PATCH 159/161] xen: Switch to new irq_chip functions
+Subject: [PATCH 161/217] xen: Switch to new irq_chip functions
 
 Convert Xen to the new irq_chip functions. Brings us closer to enable
 CONFIG_GENERIC_HARDIRQS_NO_DEPRECATED
@@ -38055,7 +38148,7 @@ index c8826b5..cf1712f 100644
 From ce9a77f4c22a658f4348683c932bb804af263f67 Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@citrix.com>
 Date: Mon, 7 Feb 2011 11:08:39 +0000
-Subject: [PATCH 160/161] xen: Fix compile error introduced by "switch to new irq_chip functions"
+Subject: [PATCH 162/217] xen: Fix compile error introduced by "switch to new irq_chip functions"
 
 drivers/xen/events.c: In function 'ack_pirq':
 drivers/xen/events.c:568: error: implicit declaration of function 'irq_move_irq'
@@ -38086,7 +38179,7 @@ index cf1712f..5aa422a 100644
 From bacc3572cf3cceb464a61f71301d6733059d733a Mon Sep 17 00:00:00 2001
 From: Ian Campbell <Ian.Campbell@citrix.com>
 Date: Tue, 8 Feb 2011 14:03:31 +0000
-Subject: [PATCH 161/161] xen/timer: Missing IRQF_NO_SUSPEND in timer code broke suspend.
+Subject: [PATCH 163/217] xen/timer: Missing IRQF_NO_SUSPEND in timer code broke suspend.
 
 The patches missed an indirect use of IRQF_NO_SUSPEND pulled in via
 IRQF_TIMER. The following patch fixes the issue.
@@ -38115,6 +38208,2050 @@ index 067759e..2e2d370 100644
  				      name, NULL);
  
  	evt = &per_cpu(xen_clock_events, cpu);
+-- 
+1.7.4
+
+
+From e22ff7614860bc282ba1eb25440d8fc56975e357 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 9 Feb 2011 10:48:48 +0100
+Subject: [PATCH 165/217] xen: Interrupt cleanups
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index d5ed94d..739f8a5 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -63,6 +63,7 @@ config X86
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_TEXT_POKE_SMP
+ 	select HAVE_GENERIC_HARDIRQS
++	select GENERIC_HARDIRQS_NO_DEPRECATED
+ 	select HAVE_SPARSE_IRQ
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PENDING_IRQ if SMP
+-- 
+1.7.4
+
+
+From 4ed563fef5bbdca310f75136f770576d97dfe78b Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 5 Feb 2011 20:08:59 +0000
+Subject: [PATCH 166/217] xen: Use IRQF_FORCE_RESUME
+
+Mark the IRQF_NO_SUSPEND interrupts IRQF_FORCE_RESUME and remove the extra
+walk through the interrupt descriptors.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |   20 +-------------------
+ 1 files changed, 1 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 5aa422a..975e90f 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -977,7 +977,7 @@ int bind_ipi_to_irqhandler(enum ipi_vector ipi,
+ 	if (irq < 0)
+ 		return irq;
+ 
+-	irqflags |= IRQF_NO_SUSPEND;
++	irqflags |= IRQF_NO_SUSPEND | IRQF_FORCE_RESUME;
+ 	retval = request_irq(irq, handler, irqflags, devname, dev_id);
+ 	if (retval != 0) {
+ 		unbind_from_irq(irq);
+@@ -1433,7 +1433,6 @@ void xen_poll_irq(int irq)
+ void xen_irq_resume(void)
+ {
+ 	unsigned int cpu, irq, evtchn;
+-	struct irq_desc *desc;
+ 
+ 	init_evtchn_cpu_bindings();
+ 
+@@ -1453,23 +1452,6 @@ void xen_irq_resume(void)
+ 		restore_cpu_ipis(cpu);
+ 	}
+ 
+-	/*
+-	 * Unmask any IRQF_NO_SUSPEND IRQs which are enabled. These
+-	 * are not handled by the IRQ core.
+-	 */
+-	for_each_irq_desc(irq, desc) {
+-		if (!desc->action || !(desc->action->flags & IRQF_NO_SUSPEND))
+-			continue;
+-		if (desc->status & IRQ_DISABLED)
+-			continue;
+-
+-		evtchn = evtchn_from_irq(irq);
+-		if (evtchn == -1)
+-			continue;
+-
+-		unmask_evtchn(evtchn);
+-	}
+-
+ 	restore_cpu_pirqs();
+ }
+ 
+-- 
+1.7.4
+
+
+From c7a6422a4c6a24b5c0add036394c842b9de125d3 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Wed, 9 Feb 2011 15:11:59 -0500
+Subject: [PATCH 175/217] xen-gntdev: Use map->vma for checking map validity
+
+The is_mapped flag used to be set at the completion of the map operation,
+but was not checked in all error paths. Use map->vma instead, which will
+now be cleared if the initial grant mapping fails.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/gntdev.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 75f8037..4ca4262 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -77,7 +77,6 @@ struct grant_map {
+ 	int index;
+ 	int count;
+ 	int flags;
+-	int is_mapped;
+ 	atomic_t users;
+ 	struct unmap_notify notify;
+ 	struct ioctl_gntdev_grant_ref *grants;
+@@ -322,7 +321,6 @@ static void gntdev_vma_close(struct vm_area_struct *vma)
+ 	struct grant_map *map = vma->vm_private_data;
+ 
+ 	pr_debug("close %p\n", vma);
+-	map->is_mapped = 0;
+ 	map->vma = NULL;
+ 	vma->vm_private_data = NULL;
+ 	gntdev_put_map(map);
+@@ -347,8 +345,6 @@ static void mn_invl_range_start(struct mmu_notifier *mn,
+ 	list_for_each_entry(map, &priv->maps, next) {
+ 		if (!map->vma)
+ 			continue;
+-		if (!map->is_mapped)
+-			continue;
+ 		if (map->vma->vm_start >= end)
+ 			continue;
+ 		if (map->vma->vm_end <= start)
+@@ -663,8 +659,6 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 	if (err)
+ 		goto out_put_map;
+ 
+-	map->is_mapped = 1;
+-
+ 	if (!use_ptemod) {
+ 		for (i = 0; i < count; i++) {
+ 			err = vm_insert_page(vma, vma->vm_start + i*PAGE_SIZE,
+@@ -681,6 +675,8 @@ unlock_out:
+ 	return err;
+ 
+ out_put_map:
++	if (use_ptemod)
++		map->vma = NULL;
+ 	gntdev_put_map(map);
+ 	return err;
+ }
+-- 
+1.7.4
+
+
+From 0957c607f4de1e65c54ee88ac63fdfef4eebce54 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Wed, 9 Feb 2011 15:12:00 -0500
+Subject: [PATCH 176/217] xen-gntdev: Avoid unmapping ranges twice
+
+In paravirtualized domains, mn_invl_page or mn_invl_range_start can
+unmap a segment of a mapped region without unmapping all pages. When
+the region is later released, the pages will be unmapped twice, leading
+to an incorrect -EINVAL return.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/gntdev.c |   33 +++++++++++++++++++++++++++++++--
+ 1 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 4ca4262..4687cd5 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -282,7 +282,7 @@ static int map_grant_pages(struct grant_map *map)
+ 	return err;
+ }
+ 
+-static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
++static int __unmap_grant_pages(struct grant_map *map, int offset, int pages)
+ {
+ 	int i, err = 0;
+ 
+@@ -301,7 +301,6 @@ static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
+ 		}
+ 	}
+ 
+-	pr_debug("map %d+%d [%d+%d]\n", map->index, map->count, offset, pages);
+ 	err = gnttab_unmap_refs(map->unmap_ops + offset, map->pages + offset, pages);
+ 	if (err)
+ 		return err;
+@@ -314,6 +313,36 @@ static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
+ 	return err;
+ }
+ 
++static int unmap_grant_pages(struct grant_map *map, int offset, int pages)
++{
++	int range, err = 0;
++
++	pr_debug("unmap %d+%d [%d+%d]\n", map->index, map->count, offset, pages);
++
++	/* It is possible the requested range will have a "hole" where we
++	 * already unmapped some of the grants. Only unmap valid ranges.
++	 */
++	while (pages && !err) {
++		while (pages && !map->unmap_ops[offset].handle) {
++			offset++;
++			pages--;
++		}
++		range = 0;
++		while (range < pages) {
++			if (!map->unmap_ops[offset+range].handle) {
++				range--;
++				break;
++			}
++			range++;
++		}
++		err = __unmap_grant_pages(map, offset, range);
++		offset += range;
++		pages -= range;
++	}
++
++	return err;
++}
++
+ /* ------------------------------------------------------------------ */
+ 
+ static void gntdev_vma_close(struct vm_area_struct *vma)
+-- 
+1.7.4
+
+
+From e61e3fbbbc209d5b6a10752beb6b67860f8694c4 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Wed, 9 Feb 2011 16:11:32 -0500
+Subject: [PATCH 178/217] xen-gntdev: Avoid double-mapping memory
+
+If an already-mapped area of the device was mapped into userspace a
+second time, a hypercall was incorrectly made to remap the memory
+again. Avoid the hypercall on later mmap calls, and fail the mmap call
+if a writable mapping is attempted on a read-only range.
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/gntdev.c |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 3fde99d..ad544a5 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -258,6 +258,9 @@ static int map_grant_pages(struct grant_map *map)
+ 	phys_addr_t addr;
+ 
+ 	if (!use_ptemod) {
++		/* Note: it could already be mapped */
++		if (map->map_ops[0].handle)
++			return 0;
+ 		for (i = 0; i < map->count; i++) {
+ 			addr = (phys_addr_t)
+ 				pfn_to_kaddr(page_to_pfn(map->pages[i]));
+@@ -674,9 +677,15 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 	if (use_ptemod)
+ 		map->vma = vma;
+ 
+-	map->flags = GNTMAP_host_map;
+-	if (!(vma->vm_flags & VM_WRITE))
+-		map->flags |= GNTMAP_readonly;
++	if (map->flags) {
++		if ((vma->vm_flags & VM_WRITE) &&
++				(map->flags & GNTMAP_readonly))
++			return -EINVAL;
++	} else {
++		map->flags = GNTMAP_host_map;
++		if (!(vma->vm_flags & VM_WRITE))
++			map->flags |= GNTMAP_readonly;
++	}
+ 
+ 	spin_unlock(&priv->lock);
+ 
+-- 
+1.7.4
+
+
+From 5602b1a8adabd58ef2d1545380591bee238da313 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Thu, 10 Feb 2011 10:30:14 -0500
+Subject: [PATCH 180/217] Revert "xen: Interrupt cleanups"
+
+This reverts commit e22ff7614860bc282ba1eb25440d8fc56975e357.
+---
+ arch/x86/Kconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 739f8a5..d5ed94d 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -63,7 +63,6 @@ config X86
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_TEXT_POKE_SMP
+ 	select HAVE_GENERIC_HARDIRQS
+-	select GENERIC_HARDIRQS_NO_DEPRECATED
+ 	select HAVE_SPARSE_IRQ
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PENDING_IRQ if SMP
+-- 
+1.7.4
+
+
+From 4c283ce67281d06df373880ed260d87c7e2538ef Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Fri, 11 Feb 2011 15:23:56 +0000
+Subject: [PATCH 182/217] xen: events: mark cpu_evtchn_mask_p as __refdata
+
+This variable starts out pointing at init_evtchn_mask which is marked
+__initdata but is set to point to a non-init data region in xen_init_IRQ
+which is itself an __init function so this is safe.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Tested-and-acked-by: Andrew Jones <drjones@redhat.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 7468147..a313890 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -114,7 +114,7 @@ struct cpu_evtchn_s {
+ static __initdata struct cpu_evtchn_s init_evtchn_mask = {
+ 	.bits[0 ... (NR_EVENT_CHANNELS/BITS_PER_LONG)-1] = ~0ul,
+ };
+-static struct cpu_evtchn_s *cpu_evtchn_mask_p = &init_evtchn_mask;
++static struct cpu_evtchn_s __refdata *cpu_evtchn_mask_p = &init_evtchn_mask;
+ 
+ static inline unsigned long *cpu_evtchn_mask(int cpu)
+ {
+-- 
+1.7.4
+
+
+From 49cbdb55f69f602a8e3f4049c37886d2325375b5 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <ian.campbell@citrix.com>
+Date: Fri, 11 Feb 2011 15:23:58 +0000
+Subject: [PATCH 184/217] xen p2m: annotate variable which appears unused
+
+ CC      arch/x86/xen/p2m.o
+arch/x86/xen/p2m.c: In function 'm2p_remove_override':
+arch/x86/xen/p2m.c:460: warning: 'address' may be used uninitialized in this function
+arch/x86/xen/p2m.c: In function 'm2p_add_override':
+arch/x86/xen/p2m.c:426: warning: 'address' may be used uninitialized in this function
+
+In actual fact address is inialised in one "if (!PageHighMem(page))"
+statement and used in a second and so is always initialised before
+use.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/xen/p2m.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/xen/p2m.c b/arch/x86/xen/p2m.c
+index 53fe9fc..3720efa 100644
+--- a/arch/x86/xen/p2m.c
++++ b/arch/x86/xen/p2m.c
+@@ -421,7 +421,7 @@ int m2p_add_override(unsigned long mfn, struct page *page)
+ {
+ 	unsigned long flags;
+ 	unsigned long pfn;
+-	unsigned long address;
++	unsigned long uninitialized_var(address);
+ 	unsigned level;
+ 	pte_t *ptep = NULL;
+ 
+@@ -455,7 +455,7 @@ int m2p_remove_override(struct page *page)
+ 	unsigned long flags;
+ 	unsigned long mfn;
+ 	unsigned long pfn;
+-	unsigned long address;
++	unsigned long uninitialized_var(address);
+ 	unsigned level;
+ 	pte_t *ptep = NULL;
+ 
+-- 
+1.7.4
+
+
+From 44b46c3ef805793ab3a7730dc71c72d0f258ea8e Mon Sep 17 00:00:00 2001
+From: Ian Campbell <Ian.Campbell@eu.citrix.com>
+Date: Fri, 11 Feb 2011 16:37:41 +0000
+Subject: [PATCH 187/217] xen: annotate functions which only call into __init at start of day
+
+Both xen_hvm_init_shared_info and xen_build_mfn_list_list can be
+called at resume time as well as at start of day but only reference
+__init functions (extend_brk) at start of day. Hence annotate with
+__ref.
+
+    WARNING: arch/x86/built-in.o(.text+0x4f1): Section mismatch in reference
+        from the function xen_hvm_init_shared_info() to the function
+        .init.text:extend_brk()
+    The function xen_hvm_init_shared_info() references
+    the function __init extend_brk().
+    This is often because xen_hvm_init_shared_info lacks a __init
+    annotation or the annotation of extend_brk is wrong.
+
+xen_hvm_init_shared_info calls extend_brk() iff !shared_info_page and
+initialises shared_info_page with the result. This happens at start of
+day only.
+
+    WARNING: arch/x86/built-in.o(.text+0x599b): Section mismatch in reference
+        from the function xen_build_mfn_list_list() to the function
+        .init.text:extend_brk()
+    The function xen_build_mfn_list_list() references
+    the function __init extend_brk().
+    This is often because xen_build_mfn_list_list lacks a __init
+    annotation or the annotation of extend_brk is wrong.
+
+(this warning occurs multiple times)
+
+xen_build_mfn_list_list only calls extend_brk() at boot time, while
+building the initial mfn list list
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/xen/enlighten.c |    2 +-
+ arch/x86/xen/p2m.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 50542ef..28e6d42 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -1292,7 +1292,7 @@ static int init_hvm_pv_info(int *major, int *minor)
+ 	return 0;
+ }
+ 
+-void xen_hvm_init_shared_info(void)
++void __ref xen_hvm_init_shared_info(void)
+ {
+ 	int cpu;
+ 	struct xen_add_to_physmap xatp;
+diff --git a/arch/x86/xen/p2m.c b/arch/x86/xen/p2m.c
+index 89342e5..05cfc6a 100644
+--- a/arch/x86/xen/p2m.c
++++ b/arch/x86/xen/p2m.c
+@@ -136,7 +136,7 @@ static void p2m_init(unsigned long *p2m)
+  * - After resume we're called from within stop_machine, but the mfn
+  *   tree should alreay be completely allocated.
+  */
+-void xen_build_mfn_list_list(void)
++void __ref xen_build_mfn_list_list(void)
+ {
+ 	unsigned long pfn;
+ 
+-- 
+1.7.4
+
+
+From 9960be970cea52c1cb7d7c747ff6da367e1c01b5 Mon Sep 17 00:00:00 2001
+From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Date: Wed, 9 Feb 2011 18:15:50 -0500
+Subject: [PATCH 199/217] xen-gntdev: prevent using UNMAP_NOTIFY_CLEAR_BYTE on read-only mappings
+
+Signed-off-by: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/gntdev.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 2c4cc94..2a4733c 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -294,7 +294,9 @@ static int __unmap_grant_pages(struct grant_map *map, int offset, int pages)
+ 		if (pgno >= offset && pgno < offset + pages && use_ptemod) {
+ 			void __user *tmp;
+ 			tmp = map->vma->vm_start + map->notify.addr;
+-			copy_to_user(tmp, &err, 1);
++			err = copy_to_user(tmp, &err, 1);
++			if (err)
++				return err;
+ 			map->notify.flags &= ~UNMAP_NOTIFY_CLEAR_BYTE;
+ 		} else if (pgno >= offset && pgno < offset + pages) {
+ 			uint8_t *tmp = kmap(map->pages[pgno]);
+@@ -599,6 +601,12 @@ static long gntdev_ioctl_notify(struct gntdev_priv *priv, void __user *u)
+ 	goto unlock_out;
+ 
+  found:
++	if ((op.action & UNMAP_NOTIFY_CLEAR_BYTE) &&
++			(map->flags & GNTMAP_readonly)) {
++		rc = -EINVAL;
++		goto unlock_out;
++	}
++
+ 	map->notify.flags = op.action;
+ 	map->notify.addr = op.index - (map->index << PAGE_SHIFT);
+ 	map->notify.event = op.event_channel_port;
+-- 
+1.7.4
+
+
+From 56fc689ba6765e1f26e85bf2522011a2f8a56451 Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Mon, 26 Apr 2010 19:03:05 -0700
+Subject: [PATCH 201/217] x86: Convert untested clocksources to clocksource_register_hz/khz
+
+This converts the remaining x86 clocksources to use
+clocksource_register_hz/khz. I was not able to test them, so
+any extra assistance to make sure time functions properly with
+the clocksources changeed here would be appreciated!
+
+CC: jacob.jun.pan@intel.com
+CC: Glauber Costa <glommer@redhat.com>
+CC: Dimitri Sivanich <sivanich@sgi.com>
+CC: Rusty Russell <rusty@rustcorp.com.au>
+CC: Jeremy Fitzhardinge <jeremy@xensource.com>
+CC: Chris McDermott <lcm@us.ibm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+---
+ arch/x86/kernel/apb_timer.c    |   10 +---------
+ arch/x86/kernel/i8253.c        |    6 +-----
+ arch/x86/kernel/kvmclock.c     |    6 +-----
+ arch/x86/lguest/boot.c         |    4 +---
+ arch/x86/platform/uv/uv_time.c |    6 +-----
+ arch/x86/xen/time.c            |    6 +-----
+ drivers/clocksource/cyclone.c  |   10 ++--------
+ 7 files changed, 8 insertions(+), 40 deletions(-)
+
+diff --git a/arch/x86/kernel/apb_timer.c b/arch/x86/kernel/apb_timer.c
+index 51ef31a..29ebf5a 100644
+--- a/arch/x86/kernel/apb_timer.c
++++ b/arch/x86/kernel/apb_timer.c
+@@ -177,7 +177,6 @@ static struct clocksource clocksource_apbt = {
+ 	.rating		= APBT_CLOCKSOURCE_RATING,
+ 	.read		= apbt_read_clocksource,
+ 	.mask		= APBT_MASK,
+-	.shift		= APBT_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ 	.resume		= apbt_restart_clocksource,
+ };
+@@ -595,14 +594,7 @@ static int apbt_clocksource_register(void)
+ 	if (t1 == apbt_read_clocksource(&clocksource_apbt))
+ 		panic("APBT counter not counting. APBT disabled\n");
+ 
+-	/*
+-	 * initialize and register APBT clocksource
+-	 * convert that to ns/clock cycle
+-	 * mult = (ns/c) * 2^APBT_SHIFT
+-	 */
+-	clocksource_apbt.mult = div_sc(MSEC_PER_SEC,
+-				       (unsigned long) apbt_freq, APBT_SHIFT);
+-	clocksource_register(&clocksource_apbt);
++	clocksource_register_khz(&clocksource_apbt, (u32)apbt_freq*1000);
+ 
+ 	return 0;
+ }
+diff --git a/arch/x86/kernel/i8253.c b/arch/x86/kernel/i8253.c
+index 2dfd315..212fe65 100644
+--- a/arch/x86/kernel/i8253.c
++++ b/arch/x86/kernel/i8253.c
+@@ -188,8 +188,6 @@ static struct clocksource pit_cs = {
+ 	.rating		= 110,
+ 	.read		= pit_read,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.mult		= 0,
+-	.shift		= 20,
+ };
+ 
+ static int __init init_pit_clocksource(void)
+@@ -205,9 +203,7 @@ static int __init init_pit_clocksource(void)
+ 	    pit_ce.mode != CLOCK_EVT_MODE_PERIODIC)
+ 		return 0;
+ 
+-	pit_cs.mult = clocksource_hz2mult(CLOCK_TICK_RATE, pit_cs.shift);
+-
+-	return clocksource_register(&pit_cs);
++	return clocksource_register_hz(&pit_cs, CLOCK_TICK_RATE);
+ }
+ arch_initcall(init_pit_clocksource);
+ 
+diff --git a/arch/x86/kernel/kvmclock.c b/arch/x86/kernel/kvmclock.c
+index f98d3ea..6389a6b 100644
+--- a/arch/x86/kernel/kvmclock.c
++++ b/arch/x86/kernel/kvmclock.c
+@@ -26,8 +26,6 @@
+ #include <asm/x86_init.h>
+ #include <asm/reboot.h>
+ 
+-#define KVM_SCALE 22
+-
+ static int kvmclock = 1;
+ static int msr_kvm_system_time = MSR_KVM_SYSTEM_TIME;
+ static int msr_kvm_wall_clock = MSR_KVM_WALL_CLOCK;
+@@ -120,8 +118,6 @@ static struct clocksource kvm_clock = {
+ 	.read = kvm_clock_get_cycles,
+ 	.rating = 400,
+ 	.mask = CLOCKSOURCE_MASK(64),
+-	.mult = 1 << KVM_SCALE,
+-	.shift = KVM_SCALE,
+ 	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -203,7 +199,7 @@ void __init kvmclock_init(void)
+ 	machine_ops.crash_shutdown  = kvm_crash_shutdown;
+ #endif
+ 	kvm_get_preset_lpj();
+-	clocksource_register(&kvm_clock);
++	clocksource_register_hz(&kvm_clock, NSEC_PER_SEC);
+ 	pv_info.paravirt_enabled = 1;
+ 	pv_info.name = "KVM";
+ 
+diff --git a/arch/x86/lguest/boot.c b/arch/x86/lguest/boot.c
+index eba687f0..5b96fd9 100644
+--- a/arch/x86/lguest/boot.c
++++ b/arch/x86/lguest/boot.c
+@@ -913,8 +913,6 @@ static struct clocksource lguest_clock = {
+ 	.rating		= 200,
+ 	.read		= lguest_clock_read,
+ 	.mask		= CLOCKSOURCE_MASK(64),
+-	.mult		= 1 << 22,
+-	.shift		= 22,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -997,7 +995,7 @@ static void lguest_time_init(void)
+ 	/* Set up the timer interrupt (0) to go to our simple timer routine */
+ 	set_irq_handler(0, lguest_time_irq);
+ 
+-	clocksource_register(&lguest_clock);
++	clocksource_register_hz(&lguest_clock, NSEC_PER_SEC);
+ 
+ 	/* We can't set cpumask in the initializer: damn C limitations!  Set it
+ 	 * here and register our timer device. */
+diff --git a/arch/x86/platform/uv/uv_time.c b/arch/x86/platform/uv/uv_time.c
+index 9daf5d1..0eb9018 100644
+--- a/arch/x86/platform/uv/uv_time.c
++++ b/arch/x86/platform/uv/uv_time.c
+@@ -40,7 +40,6 @@ static struct clocksource clocksource_uv = {
+ 	.rating		= 400,
+ 	.read		= uv_read_rtc,
+ 	.mask		= (cycle_t)UVH_RTC_REAL_TIME_CLOCK_MASK,
+-	.shift		= 10,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -372,14 +371,11 @@ static __init int uv_rtc_setup_clock(void)
+ 	if (!is_uv_system())
+ 		return -ENODEV;
+ 
+-	clocksource_uv.mult = clocksource_hz2mult(sn_rtc_cycles_per_second,
+-				clocksource_uv.shift);
+-
+ 	/* If single blade, prefer tsc */
+ 	if (uv_num_possible_blades() == 1)
+ 		clocksource_uv.rating = 250;
+ 
+-	rc = clocksource_register(&clocksource_uv);
++	rc = clocksource_register_hz(&clocksource_uv, sn_rtc_cycles_per_second);
+ 	if (rc)
+ 		printk(KERN_INFO "UV RTC clocksource failed rc %d\n", rc);
+ 	else
+diff --git a/arch/x86/xen/time.c b/arch/x86/xen/time.c
+index 067759e..04e1159 100644
+--- a/arch/x86/xen/time.c
++++ b/arch/x86/xen/time.c
+@@ -26,8 +26,6 @@
+ 
+ #include "xen-ops.h"
+ 
+-#define XEN_SHIFT 22
+-
+ /* Xen may fire a timer up to this many ns early */
+ #define TIMER_SLOP	100000
+ #define NS_PER_TICK	(1000000000LL / HZ)
+@@ -211,8 +209,6 @@ static struct clocksource xen_clocksource __read_mostly = {
+ 	.rating = 400,
+ 	.read = xen_clocksource_get_cycles,
+ 	.mask = ~0,
+-	.mult = 1<<XEN_SHIFT,		/* time directly in nanoseconds */
+-	.shift = XEN_SHIFT,
+ 	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -446,7 +442,7 @@ static __init void xen_time_init(void)
+ 	int cpu = smp_processor_id();
+ 	struct timespec tp;
+ 
+-	clocksource_register(&xen_clocksource);
++	clocksource_register_hz(&xen_clocksource, NSEC_PER_SEC);
+ 
+ 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, cpu, NULL) == 0) {
+ 		/* Successfully turned off 100Hz tick, so we have the
+diff --git a/drivers/clocksource/cyclone.c b/drivers/clocksource/cyclone.c
+index 64e528e..72f811f 100644
+--- a/drivers/clocksource/cyclone.c
++++ b/drivers/clocksource/cyclone.c
+@@ -29,8 +29,6 @@ static struct clocksource clocksource_cyclone = {
+ 	.rating		= 250,
+ 	.read		= read_cyclone,
+ 	.mask		= CYCLONE_TIMER_MASK,
+-	.mult		= 10,
+-	.shift		= 0,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -108,12 +106,8 @@ static int __init init_cyclone_clocksource(void)
+ 	}
+ 	cyclone_ptr = cyclone_timer;
+ 
+-	/* sort out mult/shift values: */
+-	clocksource_cyclone.shift = 22;
+-	clocksource_cyclone.mult = clocksource_hz2mult(CYCLONE_TIMER_FREQ,
+-						clocksource_cyclone.shift);
+-
+-	return clocksource_register(&clocksource_cyclone);
++	return clocksource_register_hz(&clocksource_cyclone,
++					CYCLONE_TIMER_FREQ);
+ }
+ 
+ arch_initcall(init_cyclone_clocksource);
+-- 
+1.7.4
+
+
+From 146ad55c02a3afc46ad0dca147a7ac909d39f123 Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Mon, 26 Apr 2010 20:20:47 -0700
+Subject: [PATCH 202/217] ia64: convert to clocksource_register_hz/khz
+
+This converts the ia64 clocksources to use clocksource_register_hz/khz
+
+This is untested, so any assistance in testing would be appreciated!
+
+CC: Tony Luck <tony.luck@intel.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+---
+ arch/ia64/kernel/cyclone.c      |    6 +-----
+ arch/ia64/kernel/time.c         |    9 ++-------
+ arch/ia64/sn/kernel/sn2/timer.c |    6 +-----
+ drivers/char/hpet.c             |    6 +-----
+ 4 files changed, 5 insertions(+), 22 deletions(-)
+
+diff --git a/arch/ia64/kernel/cyclone.c b/arch/ia64/kernel/cyclone.c
+index d52f1f7..f64097b 100644
+--- a/arch/ia64/kernel/cyclone.c
++++ b/arch/ia64/kernel/cyclone.c
+@@ -31,8 +31,6 @@ static struct clocksource clocksource_cyclone = {
+         .rating         = 300,
+         .read           = read_cyclone,
+         .mask           = (1LL << 40) - 1,
+-        .mult           = 0, /*to be caluclated*/
+-        .shift          = 16,
+         .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -118,9 +116,7 @@ int __init init_cyclone_clock(void)
+ 	/* initialize last tick */
+ 	cyclone_mc = cyclone_timer;
+ 	clocksource_cyclone.fsys_mmio = cyclone_timer;
+-	clocksource_cyclone.mult = clocksource_hz2mult(CYCLONE_TIMER_FREQ,
+-						clocksource_cyclone.shift);
+-	clocksource_register(&clocksource_cyclone);
++	clocksource_register_hz(&clocksource_cyclone, CYCLONE_TIMER_FREQ);
+ 
+ 	return 0;
+ }
+diff --git a/arch/ia64/kernel/time.c b/arch/ia64/kernel/time.c
+index 9702fa9..41c40f0 100644
+--- a/arch/ia64/kernel/time.c
++++ b/arch/ia64/kernel/time.c
+@@ -73,8 +73,6 @@ static struct clocksource clocksource_itc = {
+ 	.rating         = 350,
+ 	.read           = itc_get_cycles,
+ 	.mask           = CLOCKSOURCE_MASK(64),
+-	.mult           = 0, /*to be calculated*/
+-	.shift          = 16,
+ 	.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+ #ifdef CONFIG_PARAVIRT
+ 	.resume		= paravirt_clocksource_resume,
+@@ -374,11 +372,8 @@ ia64_init_itm (void)
+ 	ia64_cpu_local_tick();
+ 
+ 	if (!itc_clocksource) {
+-		/* Sort out mult/shift values: */
+-		clocksource_itc.mult =
+-			clocksource_hz2mult(local_cpu_data->itc_freq,
+-						clocksource_itc.shift);
+-		clocksource_register(&clocksource_itc);
++		clocksource_register_hz(&clocksource_itc,
++						local_cpu_data->itc_freq);
+ 		itc_clocksource = &clocksource_itc;
+ 	}
+ }
+diff --git a/arch/ia64/sn/kernel/sn2/timer.c b/arch/ia64/sn/kernel/sn2/timer.c
+index 21d6f09..c34efda 100644
+--- a/arch/ia64/sn/kernel/sn2/timer.c
++++ b/arch/ia64/sn/kernel/sn2/timer.c
+@@ -33,8 +33,6 @@ static struct clocksource clocksource_sn2 = {
+         .rating         = 450,
+         .read           = read_sn2,
+         .mask           = (1LL << 55) - 1,
+-        .mult           = 0,
+-        .shift          = 10,
+         .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -57,9 +55,7 @@ ia64_sn_udelay (unsigned long usecs)
+ void __init sn_timer_init(void)
+ {
+ 	clocksource_sn2.fsys_mmio = RTC_COUNTER_ADDR;
+-	clocksource_sn2.mult = clocksource_hz2mult(sn_rtc_cycles_per_second,
+-							clocksource_sn2.shift);
+-	clocksource_register(&clocksource_sn2);
++	clocksource_register_hz(&clocksource_sn2, sn_rtc_cycles_per_second);
+ 
+ 	ia64_udelay = &ia64_sn_udelay;
+ }
+diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
+index 7066e80..051474c 100644
+--- a/drivers/char/hpet.c
++++ b/drivers/char/hpet.c
+@@ -84,8 +84,6 @@ static struct clocksource clocksource_hpet = {
+ 	.rating		= 250,
+ 	.read		= read_hpet,
+ 	.mask		= CLOCKSOURCE_MASK(64),
+-	.mult		= 0,		/* to be calculated */
+-	.shift		= 10,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ static struct clocksource *hpet_clocksource;
+@@ -934,9 +932,7 @@ int hpet_alloc(struct hpet_data *hdp)
+ 	if (!hpet_clocksource) {
+ 		hpet_mctr = (void __iomem *)&hpetp->hp_hpet->hpet_mc;
+ 		CLKSRC_FSYS_MMIO_SET(clocksource_hpet.fsys_mmio, hpet_mctr);
+-		clocksource_hpet.mult = clocksource_hz2mult(hpetp->hp_tick_freq,
+-						clocksource_hpet.shift);
+-		clocksource_register(&clocksource_hpet);
++		clocksource_register_hz(&clocksource_hpet, hpetp->hp_tick_freq);
+ 		hpetp->hp_clocksource = &clocksource_hpet;
+ 		hpet_clocksource = &clocksource_hpet;
+ 	}
+-- 
+1.7.4
+
+
+From 0ee7bd91c8ecf0372ea34dcc27042bd6b0b5c74f Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Tue, 19 Oct 2010 17:49:07 -0700
+Subject: [PATCH 203/217] alpha: convert to clocksource_register_hz
+
+Converts alpha to use clocksource_register_hz.
+
+Patch is untested, so help from maintainers would be appreciated.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+CC: Richard Henderson <rth@twiddle.net>
+CC: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+CC: Matt Turner <mattst88@gmail.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/alpha/kernel/time.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/arch/alpha/kernel/time.c b/arch/alpha/kernel/time.c
+index c1f3e7c..33b8110 100644
+--- a/arch/alpha/kernel/time.c
++++ b/arch/alpha/kernel/time.c
+@@ -378,8 +378,7 @@ static struct clocksource clocksource_rpcc = {
+ 
+ static inline void register_rpcc_clocksource(long cycle_freq)
+ {
+-	clocksource_calc_mult_shift(&clocksource_rpcc, cycle_freq, 4);
+-	clocksource_register(&clocksource_rpcc);
++	clocksource_register_hz(&clocksource_rpcc, cycle_freq);
+ }
+ #else /* !CONFIG_SMP */
+ static inline void register_rpcc_clocksource(long cycle_freq)
+-- 
+1.7.4
+
+
+From 18438061418b7217258db996508a41df43cf59ee Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Mon, 26 Apr 2010 20:24:37 -0700
+Subject: [PATCH 204/217] sparc: convert to clocksource_register_hz/khz
+
+This converts the sparc clocksources to use clocksource_register_hz/khz
+
+This is untested, so any assistance in testing would be appreciated!
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+---
+ arch/sparc/kernel/time_64.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 3bc9c99..58aa27b 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -816,14 +816,12 @@ void __init time_init(void)
+ 		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
+ 
+ 	clocksource_tick.name = tick_ops->name;
+-	clocksource_calc_mult_shift(&clocksource_tick, freq, 4);
+ 	clocksource_tick.read = clocksource_tick_read;
+ 
++	clocksource_register_hz(&clocksource_tick, freq);
+ 	printk("clocksource: mult[%x] shift[%d]\n",
+ 	       clocksource_tick.mult, clocksource_tick.shift);
+ 
+-	clocksource_register(&clocksource_tick);
+-
+ 	sparc64_clockevent.name = tick_ops->name;
+ 	clockevents_calc_mult_shift(&sparc64_clockevent, freq, 4);
+ 
+-- 
+1.7.4
+
+
+From 8b96e146d09d3b9743f5e9c590893bc4770a2923 Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Mon, 26 Apr 2010 20:23:11 -0700
+Subject: [PATCH 205/217] mips: convert to clocksource_register_hz/khz
+
+This converts the mips clocksources to use clocksource_register_hz/khz
+
+This is untested, so any assistance in testing would be appreciated!
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+CC: Ralf Baechle <ralf@linux-mips.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/mips/alchemy/common/time.c                 |    3 +-
+ arch/mips/cavium-octeon/csrc-octeon.c           |    3 +-
+ arch/mips/include/asm/time.h                    |    6 ----
+ arch/mips/jz4740/time.c                         |    3 +-
+ arch/mips/kernel/cevt-txx9.c                    |    3 +-
+ arch/mips/kernel/csrc-bcm1480.c                 |    3 +-
+ arch/mips/kernel/csrc-ioasic.c                  |    4 +--
+ arch/mips/kernel/csrc-powertv.c                 |   35 ++---------------------
+ arch/mips/kernel/csrc-r4k.c                     |    4 +--
+ arch/mips/kernel/csrc-sb1250.c                  |    3 +-
+ arch/mips/kernel/i8253.c                        |    5 +--
+ arch/mips/loongson/common/cs5536/cs5536_mfgpt.c |    5 +--
+ arch/mips/sgi-ip27/ip27-timer.c                 |    3 +-
+ 13 files changed, 14 insertions(+), 66 deletions(-)
+
+diff --git a/arch/mips/alchemy/common/time.c b/arch/mips/alchemy/common/time.c
+index 2aecb2f..d5da6ad 100644
+--- a/arch/mips/alchemy/common/time.c
++++ b/arch/mips/alchemy/common/time.c
+@@ -141,8 +141,7 @@ static int __init alchemy_time_init(unsigned int m2int)
+ 		goto cntr_err;
+ 
+ 	/* register counter1 clocksource and event device */
+-	clocksource_set_clock(&au1x_counter1_clocksource, 32768);
+-	clocksource_register(&au1x_counter1_clocksource);
++	clocksource_register_hz(&au1x_counter1_clocksource, 32768);
+ 
+ 	cd->shift = 32;
+ 	cd->mult = div_sc(32768, NSEC_PER_SEC, cd->shift);
+diff --git a/arch/mips/cavium-octeon/csrc-octeon.c b/arch/mips/cavium-octeon/csrc-octeon.c
+index 26bf711..29d56af 100644
+--- a/arch/mips/cavium-octeon/csrc-octeon.c
++++ b/arch/mips/cavium-octeon/csrc-octeon.c
+@@ -105,8 +105,7 @@ unsigned long long notrace sched_clock(void)
+ void __init plat_time_init(void)
+ {
+ 	clocksource_mips.rating = 300;
+-	clocksource_set_clock(&clocksource_mips, octeon_get_clock_rate());
+-	clocksource_register(&clocksource_mips);
++	clocksource_register_hz(&clocksource_mips, octeon_get_clock_rate());
+ }
+ 
+ static u64 octeon_udelay_factor;
+diff --git a/arch/mips/include/asm/time.h b/arch/mips/include/asm/time.h
+index c7f1bfe..bc14447 100644
+--- a/arch/mips/include/asm/time.h
++++ b/arch/mips/include/asm/time.h
+@@ -84,12 +84,6 @@ static inline int init_mips_clocksource(void)
+ #endif
+ }
+ 
+-static inline void clocksource_set_clock(struct clocksource *cs,
+-					 unsigned int clock)
+-{
+-	clocksource_calc_mult_shift(cs, clock, 4);
+-}
+-
+ static inline void clockevent_set_clock(struct clock_event_device *cd,
+ 					unsigned int clock)
+ {
+diff --git a/arch/mips/jz4740/time.c b/arch/mips/jz4740/time.c
+index fe01678..03dfd4e 100644
+--- a/arch/mips/jz4740/time.c
++++ b/arch/mips/jz4740/time.c
+@@ -121,8 +121,7 @@ void __init plat_time_init(void)
+ 
+ 	clockevents_register_device(&jz4740_clockevent);
+ 
+-	clocksource_set_clock(&jz4740_clocksource, clk_rate);
+-	ret = clocksource_register(&jz4740_clocksource);
++	ret = clocksource_register_hz(&jz4740_clocksource, clk_rate);
+ 
+ 	if (ret)
+ 		printk(KERN_ERR "Failed to register clocksource: %d\n", ret);
+diff --git a/arch/mips/kernel/cevt-txx9.c b/arch/mips/kernel/cevt-txx9.c
+index 0b73773..f0ab92a 100644
+--- a/arch/mips/kernel/cevt-txx9.c
++++ b/arch/mips/kernel/cevt-txx9.c
+@@ -51,8 +51,7 @@ void __init txx9_clocksource_init(unsigned long baseaddr,
+ {
+ 	struct txx9_tmr_reg __iomem *tmrptr;
+ 
+-	clocksource_set_clock(&txx9_clocksource.cs, TIMER_CLK(imbusclk));
+-	clocksource_register(&txx9_clocksource.cs);
++	clocksource_register_hz(&txx9_clocksource.cs, TIMER_CLK(imbusclk));
+ 
+ 	tmrptr = ioremap(baseaddr, sizeof(struct txx9_tmr_reg));
+ 	__raw_writel(TCR_BASE, &tmrptr->tcr);
+diff --git a/arch/mips/kernel/csrc-bcm1480.c b/arch/mips/kernel/csrc-bcm1480.c
+index 51489f8..f96f99c 100644
+--- a/arch/mips/kernel/csrc-bcm1480.c
++++ b/arch/mips/kernel/csrc-bcm1480.c
+@@ -49,6 +49,5 @@ void __init sb1480_clocksource_init(void)
+ 
+ 	plldiv = G_BCM1480_SYS_PLL_DIV(__raw_readq(IOADDR(A_SCD_SYSTEM_CFG)));
+ 	zbbus = ((plldiv >> 1) * 50000000) + ((plldiv & 1) * 25000000);
+-	clocksource_set_clock(cs, zbbus);
+-	clocksource_register(cs);
++	clocksource_register_hz(cs, zbbus);
+ }
+diff --git a/arch/mips/kernel/csrc-ioasic.c b/arch/mips/kernel/csrc-ioasic.c
+index 23da108..46bd7fa 100644
+--- a/arch/mips/kernel/csrc-ioasic.c
++++ b/arch/mips/kernel/csrc-ioasic.c
+@@ -59,7 +59,5 @@ void __init dec_ioasic_clocksource_init(void)
+ 	printk(KERN_INFO "I/O ASIC clock frequency %dHz\n", freq);
+ 
+ 	clocksource_dec.rating = 200 + freq / 10000000;
+-	clocksource_set_clock(&clocksource_dec, freq);
+-
+-	clocksource_register(&clocksource_dec);
++	clocksource_register_hz(&clocksource_dec, freq);
+ }
+diff --git a/arch/mips/kernel/csrc-powertv.c b/arch/mips/kernel/csrc-powertv.c
+index a27c16c..2e7c523 100644
+--- a/arch/mips/kernel/csrc-powertv.c
++++ b/arch/mips/kernel/csrc-powertv.c
+@@ -78,9 +78,7 @@ static void __init powertv_c0_hpt_clocksource_init(void)
+ 
+ 	clocksource_mips.rating = 200 + mips_hpt_frequency / 10000000;
+ 
+-	clocksource_set_clock(&clocksource_mips, mips_hpt_frequency);
+-
+-	clocksource_register(&clocksource_mips);
++	clocksource_register_hz(&clocksource_mips, mips_hpt_frequency);
+ }
+ 
+ /**
+@@ -130,43 +128,16 @@ static struct clocksource clocksource_tim_c = {
+ /**
+  * powertv_tim_c_clocksource_init - set up a clock source for the TIM_C clock
+  *
+- * The hard part here is coming up with a constant k and shift s such that
+- * the 48-bit TIM_C value multiplied by k doesn't overflow and that value,
+- * when shifted right by s, yields the corresponding number of nanoseconds.
+  * We know that TIM_C counts at 27 MHz/8, so each cycle corresponds to
+- * 1 / (27,000,000/8) seconds. Multiply that by a billion and you get the
+- * number of nanoseconds. Since the TIM_C value has 48 bits and the math is
+- * done in 64 bits, avoiding an overflow means that k must be less than
+- * 64 - 48 = 16 bits.
++ * 1 / (27,000,000/8) seconds.
+  */
+ static void __init powertv_tim_c_clocksource_init(void)
+ {
+-	int			prescale;
+-	unsigned long		dividend;
+-	unsigned long		k;
+-	int			s;
+-	const int		max_k_bits = (64 - 48) - 1;
+-	const unsigned long	billion = 1000000000;
+ 	const unsigned long	counts_per_second = 27000000 / 8;
+ 
+-	prescale = BITS_PER_LONG - ilog2(billion) - 1;
+-	dividend = billion << prescale;
+-	k = dividend / counts_per_second;
+-	s = ilog2(k) - max_k_bits;
+-
+-	if (s < 0)
+-		s = prescale;
+-
+-	else {
+-		k >>= s;
+-		s += prescale;
+-	}
+-
+-	clocksource_tim_c.mult = k;
+-	clocksource_tim_c.shift = s;
+ 	clocksource_tim_c.rating = 200;
+ 
+-	clocksource_register(&clocksource_tim_c);
++	clocksource_register_hz(&clocksource_tim_c, counts_per_second);
+ 	tim_c = (struct tim_c *) asic_reg_addr(tim_ch);
+ }
+ 
+diff --git a/arch/mips/kernel/csrc-r4k.c b/arch/mips/kernel/csrc-r4k.c
+index e95a3cd..decd1fa 100644
+--- a/arch/mips/kernel/csrc-r4k.c
++++ b/arch/mips/kernel/csrc-r4k.c
+@@ -30,9 +30,7 @@ int __init init_r4k_clocksource(void)
+ 	/* Calculate a somewhat reasonable rating value */
+ 	clocksource_mips.rating = 200 + mips_hpt_frequency / 10000000;
+ 
+-	clocksource_set_clock(&clocksource_mips, mips_hpt_frequency);
+-
+-	clocksource_register(&clocksource_mips);
++	clocksource_register_hz(&clocksource_mips, mips_hpt_frequency);
+ 
+ 	return 0;
+ }
+diff --git a/arch/mips/kernel/csrc-sb1250.c b/arch/mips/kernel/csrc-sb1250.c
+index d14d3d1..e9606d9 100644
+--- a/arch/mips/kernel/csrc-sb1250.c
++++ b/arch/mips/kernel/csrc-sb1250.c
+@@ -65,6 +65,5 @@ void __init sb1250_clocksource_init(void)
+ 		     IOADDR(A_SCD_TIMER_REGISTER(SB1250_HPT_NUM,
+ 						 R_SCD_TIMER_CFG)));
+ 
+-	clocksource_set_clock(cs, V_SCD_TIMER_FREQ);
+-	clocksource_register(cs);
++	clocksource_register_hz(cs, V_SCD_TIMER_FREQ);
+ }
+diff --git a/arch/mips/kernel/i8253.c b/arch/mips/kernel/i8253.c
+index 2392a7a2..9fadd17 100644
+--- a/arch/mips/kernel/i8253.c
++++ b/arch/mips/kernel/i8253.c
+@@ -196,8 +196,6 @@ static struct clocksource clocksource_pit = {
+ 	.rating = 110,
+ 	.read	= pit_read,
+ 	.mask	= CLOCKSOURCE_MASK(32),
+-	.mult	= 0,
+-	.shift	= 20,
+ };
+ 
+ static int __init init_pit_clocksource(void)
+@@ -205,7 +203,6 @@ static int __init init_pit_clocksource(void)
+ 	if (num_possible_cpus() > 1) /* PIT does not scale! */
+ 		return 0;
+ 
+-	clocksource_pit.mult = clocksource_hz2mult(CLOCK_TICK_RATE, 20);
+-	return clocksource_register(&clocksource_pit);
++	return clocksource_register_hz(&clocksource_pit, CLOCK_TICK_RATE);
+ }
+ arch_initcall(init_pit_clocksource);
+diff --git a/arch/mips/loongson/common/cs5536/cs5536_mfgpt.c b/arch/mips/loongson/common/cs5536/cs5536_mfgpt.c
+index 8c807c9..0cb1b97 100644
+--- a/arch/mips/loongson/common/cs5536/cs5536_mfgpt.c
++++ b/arch/mips/loongson/common/cs5536/cs5536_mfgpt.c
+@@ -201,8 +201,6 @@ static struct clocksource clocksource_mfgpt = {
+ 	.rating = 120, /* Functional for real use, but not desired */
+ 	.read = mfgpt_read,
+ 	.mask = CLOCKSOURCE_MASK(32),
+-	.mult = 0,
+-	.shift = 22,
+ };
+ 
+ int __init init_mfgpt_clocksource(void)
+@@ -210,8 +208,7 @@ int __init init_mfgpt_clocksource(void)
+ 	if (num_possible_cpus() > 1)	/* MFGPT does not scale! */
+ 		return 0;
+ 
+-	clocksource_mfgpt.mult = clocksource_hz2mult(MFGPT_TICK_RATE, 22);
+-	return clocksource_register(&clocksource_mfgpt);
++	return clocksource_register_hz(&clocksource_mfgpt, MFGPT_TICK_RATE);
+ }
+ 
+ arch_initcall(init_mfgpt_clocksource);
+diff --git a/arch/mips/sgi-ip27/ip27-timer.c b/arch/mips/sgi-ip27/ip27-timer.c
+index d6802d6..3cac883 100644
+--- a/arch/mips/sgi-ip27/ip27-timer.c
++++ b/arch/mips/sgi-ip27/ip27-timer.c
+@@ -177,8 +177,7 @@ static void __init hub_rt_clocksource_init(void)
+ {
+ 	struct clocksource *cs = &hub_rt_clocksource;
+ 
+-	clocksource_set_clock(cs, CYCLES_PER_SEC);
+-	clocksource_register(cs);
++	clocksource_register_hz(cs, CYCLES_PER_SEC);
+ }
+ 
+ void __init plat_time_init(void)
+-- 
+1.7.4
+
+
+From d4927a73fd75afe5a220d02fca106a6437021c3f Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Mon, 26 Apr 2010 20:20:07 -0700
+Subject: [PATCH 206/217] blackfin: convert to clocksource_register_hz
+
+This converts the blackfin clocksource to use clocksource_register_hz.
+
+This is untested, so any assistance in testing would be appreciated!
+
+CC: Mike Frysinger <vapier@gentoo.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+---
+ arch/blackfin/kernel/time-ts.c |   35 ++---------------------------------
+ 1 files changed, 2 insertions(+), 33 deletions(-)
+
+diff --git a/arch/blackfin/kernel/time-ts.c b/arch/blackfin/kernel/time-ts.c
+index 8c9a43d..4a01371 100644
+--- a/arch/blackfin/kernel/time-ts.c
++++ b/arch/blackfin/kernel/time-ts.c
+@@ -23,29 +23,6 @@
+ #include <asm/gptimers.h>
+ #include <asm/nmi.h>
+ 
+-/* Accelerators for sched_clock()
+- * convert from cycles(64bits) => nanoseconds (64bits)
+- *  basic equation:
+- *		ns = cycles / (freq / ns_per_sec)
+- *		ns = cycles * (ns_per_sec / freq)
+- *		ns = cycles * (10^9 / (cpu_khz * 10^3))
+- *		ns = cycles * (10^6 / cpu_khz)
+- *
+- *	Then we use scaling math (suggested by george@mvista.com) to get:
+- *		ns = cycles * (10^6 * SC / cpu_khz) / SC
+- *		ns = cycles * cyc2ns_scale / SC
+- *
+- *	And since SC is a constant power of two, we can convert the div
+- *  into a shift.
+- *
+- *  We can use khz divisor instead of mhz to keep a better precision, since
+- *  cyc2ns_scale is limited to 10^6 * 2^10, which fits in 32 bits.
+- *  (mathieu.desnoyers@polymtl.ca)
+- *
+- *			-johnstul@us.ibm.com "math is hard, lets go shopping!"
+- */
+-
+-#define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
+ 
+ #if defined(CONFIG_CYCLES_CLOCKSOURCE)
+ 
+@@ -63,7 +40,6 @@ static struct clocksource bfin_cs_cycles = {
+ 	.rating		= 400,
+ 	.read		= bfin_read_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(64),
+-	.shift		= CYC2NS_SCALE_FACTOR,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -75,10 +51,7 @@ static inline unsigned long long bfin_cs_cycles_sched_clock(void)
+ 
+ static int __init bfin_cs_cycles_init(void)
+ {
+-	bfin_cs_cycles.mult = \
+-		clocksource_hz2mult(get_cclk(), bfin_cs_cycles.shift);
+-
+-	if (clocksource_register(&bfin_cs_cycles))
++	if (clocksource_register_hz(&bfin_cs_cycles, get_cclk()))
+ 		panic("failed to register clocksource");
+ 
+ 	return 0;
+@@ -111,7 +84,6 @@ static struct clocksource bfin_cs_gptimer0 = {
+ 	.rating		= 350,
+ 	.read		= bfin_read_gptimer0,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= CYC2NS_SCALE_FACTOR,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -125,10 +97,7 @@ static int __init bfin_cs_gptimer0_init(void)
+ {
+ 	setup_gptimer0();
+ 
+-	bfin_cs_gptimer0.mult = \
+-		clocksource_hz2mult(get_sclk(), bfin_cs_gptimer0.shift);
+-
+-	if (clocksource_register(&bfin_cs_gptimer0))
++	if (clocksource_register_hz(&bfin_cs_gptimer0, get_sclk()))
+ 		panic("failed to register clocksource");
+ 
+ 	return 0;
+-- 
+1.7.4
+
+
+From 1f169f66ddcc3b4614f840bef367de1ca20e16fe Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Date: Thu, 10 Feb 2011 12:08:21 +0000
+Subject: [PATCH 207/217] xen: change xen/[gntdev/gntalloc] to default m
+
+When CONFIG_XEN is enabled the gntdev and gntalloc driver will be
+compiled as a module by default.
+
+[v2: Added the fix for the gntalloc driver as well]
+
+Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index a3d7afb..a59638b 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -76,6 +76,7 @@ config XEN_XENBUS_FRONTEND
+ config XEN_GNTDEV
+ 	tristate "userspace grant access device driver"
+ 	depends on XEN
++	default m
+ 	select MMU_NOTIFIER
+ 	help
+ 	  Allows userspace processes to use grants.
+@@ -83,6 +84,7 @@ config XEN_GNTDEV
+ config XEN_GRANT_DEV_ALLOC
+ 	tristate "User-space grant reference allocator driver"
+ 	depends on XEN
++	default m
+ 	help
+ 	  Allows userspace processes to create pages with access granted
+ 	  to other domains. This can be used to implement frontend drivers
+-- 
+1.7.4
+
+
+From 2b38de9460a0c6560c865afa536b15919dd0f658 Mon Sep 17 00:00:00 2001
+From: Andrea Arcangeli <aarcange@redhat.com>
+Date: Wed, 16 Feb 2011 19:33:04 +0100
+Subject: [PATCH 208/217] fix pgd_lock deadlock
+
+On Tue, Feb 15, 2011 at 09:05:20PM +0100, Thomas Gleixner wrote:
+> Did you try with DEBUG_PAGEALLOC, which is calling into cpa quite a
+> lot?
+
+I tried DEBUG_PAGEALLOC and it seems to work fine (in addition to
+lockdep), it doesn't spwan any debug check.
+
+In addition to testing it (both prev patch and below one) I looked
+into the code and the free_pages calling into
+pageattr->split_large_page apparently happens all at boot time.
+
+Now one doubt remains if we need change_page_attr to run from irqs
+(not from DEBUG_PAGEALLOC though). Now is change_page_attr really sane
+to run from irqs? I thought __flush_tlb_all was delivering IPI (in
+that case it also wouldn't have been safe in the first place to run
+with irq disabled) but of course the "__" version is local, so after
+all maybe it's safe to run with interrupts too (I'd be amazed if
+somebody is calling it from irq, if not even DEBUG_PAGEALLOC does) but
+with the below patch it will remain safe from irq as far as the
+pgd_lock is concerned.
+
+I think the previous patch was safe too though, avoiding VM
+manipulations from interrupts makes everything simpler. Normally only
+gart drivers should call it at init time to avoid prefetching of
+cachelines in the next 2m page with different (writeback) cache
+attributes of the pages physically aliased in the gart and mapped with
+different cache attribute, that init stuff happening from interrupt
+sounds weird. Anyway I post the below patch too as an alternative to
+still allow pageattr from irq.
+
+With both patches the big dependency remains on __mmdrop not to run
+from irq. The alternative approach is to remove the page_table_lock
+from vmalloc_sync_all (which is only needed by Xen paravirt guest
+AFIK) and solve that problem in a different way, but I don't even know
+why they need it exactly, I tried not to impact that.
+
+===
+Subject: fix pgd_lock deadlock
+
+From: Andrea Arcangeli <aarcange@redhat.com>
+
+It's forbidden to take the page_table_lock with the irq disabled or if there's
+contention the IPIs (for tlb flushes) sent with the page_table_lock held will
+never run leading to a deadlock.
+
+pageattr also seems to take advantage the pgd_lock to serialize
+split_large_page which isn't necessary so split it off to a separate spinlock
+(as a read_lock wouldn't enough to serialize split_large_page). Then we can use
+a read-write lock to allow pageattr to keep taking it from interrupts, but
+without having to always clear interrupts for readers. Writers are only safe
+from regular kernel context and they must clear irqs before taking it.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/include/asm/pgtable.h |    2 +-
+ arch/x86/mm/fault.c            |   23 ++++++++++++++++++-----
+ arch/x86/mm/init_64.c          |    6 +++---
+ arch/x86/mm/pageattr.c         |   17 ++++++++++-------
+ arch/x86/mm/pgtable.c          |   10 +++++-----
+ arch/x86/xen/mmu.c             |   10 ++++------
+ 6 files changed, 41 insertions(+), 27 deletions(-)
+
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 18601c8..9fa5a2b 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -25,7 +25,7 @@
+ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
+ #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+ 
+-extern spinlock_t pgd_lock;
++extern rwlock_t pgd_lock;
+ extern struct list_head pgd_list;
+ 
+ extern struct mm_struct *pgd_page_get_mm(struct page *page);
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index 7d90ceb..336f220 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -179,7 +179,21 @@ force_sig_info_fault(int si_signo, int si_code, unsigned long address,
+ 	force_sig_info(si_signo, &info, tsk);
+ }
+ 
+-DEFINE_SPINLOCK(pgd_lock);
++/*
++ * The pgd_lock only protects the pgd_list. It can be taken from
++ * interrupt context but only in read mode (there's no need to clear
++ * interrupts before taking it in read mode). Write mode can only be
++ * taken from regular kernel context (not from irqs) and it must
++ * disable irqs before taking it. This way it can still be taken in
++ * read mode from interrupt context (in case
++ * pageattr->split_large_page is ever called from interrupt context),
++ * but without forcing the pgd_list readers to clear interrupts before
++ * taking it (like vmalloc_sync_all() that then wants to take the
++ * page_table_lock while holding the pgd_lock, which can only be taken
++ * while irqs are left enabled to avoid deadlocking against the IPI
++ * delivery of an SMP TLB flush run with the page_table_lock hold).
++ */
++DEFINE_RWLOCK(pgd_lock);
+ LIST_HEAD(pgd_list);
+ 
+ #ifdef CONFIG_X86_32
+@@ -229,15 +243,14 @@ void vmalloc_sync_all(void)
+ 	for (address = VMALLOC_START & PMD_MASK;
+ 	     address >= TASK_SIZE && address < FIXADDR_TOP;
+ 	     address += PMD_SIZE) {
+-
+-		unsigned long flags;
+ 		struct page *page;
+ 
+-		spin_lock_irqsave(&pgd_lock, flags);
++		read_lock(&pgd_lock);
+ 		list_for_each_entry(page, &pgd_list, lru) {
+ 			spinlock_t *pgt_lock;
+ 			pmd_t *ret;
+ 
++			/* the pgt_lock only for Xen */
+ 			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
+ 
+ 			spin_lock(pgt_lock);
+@@ -247,7 +260,7 @@ void vmalloc_sync_all(void)
+ 			if (!ret)
+ 				break;
+ 		}
+-		spin_unlock_irqrestore(&pgd_lock, flags);
++		read_unlock(&pgd_lock);
+ 	}
+ }
+ 
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 71a5929..043fa4f 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -105,18 +105,18 @@ void sync_global_pgds(unsigned long start, unsigned long end)
+ 
+ 	for (address = start; address <= end; address += PGDIR_SIZE) {
+ 		const pgd_t *pgd_ref = pgd_offset_k(address);
+-		unsigned long flags;
+ 		struct page *page;
+ 
+ 		if (pgd_none(*pgd_ref))
+ 			continue;
+ 
+-		spin_lock_irqsave(&pgd_lock, flags);
++		read_lock(&pgd_lock);
+ 		list_for_each_entry(page, &pgd_list, lru) {
+ 			pgd_t *pgd;
+ 			spinlock_t *pgt_lock;
+ 
+ 			pgd = (pgd_t *)page_address(page) + pgd_index(address);
++			/* the pgt_lock only for Xen */
+ 			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
+ 			spin_lock(pgt_lock);
+ 
+@@ -128,7 +128,7 @@ void sync_global_pgds(unsigned long start, unsigned long end)
+ 
+ 			spin_unlock(pgt_lock);
+ 		}
+-		spin_unlock_irqrestore(&pgd_lock, flags);
++		read_unlock(&pgd_lock);
+ 	}
+ }
+ 
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index d343b3c..6f30dc9 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -47,6 +47,7 @@ struct cpa_data {
+  * splitting a large page entry along with changing the attribute.
+  */
+ static DEFINE_SPINLOCK(cpa_lock);
++static DEFINE_SPINLOCK(pgattr_lock);
+ 
+ #define CPA_FLUSHTLB 1
+ #define CPA_ARRAY 2
+@@ -60,9 +61,9 @@ void update_page_count(int level, unsigned long pages)
+ 	unsigned long flags;
+ 
+ 	/* Protect against CPA */
+-	spin_lock_irqsave(&pgd_lock, flags);
++	spin_lock_irqsave(&pgattr_lock, flags);
+ 	direct_pages_count[level] += pages;
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	spin_unlock_irqrestore(&pgattr_lock, flags);
+ }
+ 
+ static void split_page_count(int level)
+@@ -376,6 +377,7 @@ static void __set_pmd_pte(pte_t *kpte, unsigned long address, pte_t pte)
+ 	if (!SHARED_KERNEL_PMD) {
+ 		struct page *page;
+ 
++		read_lock(&pgd_lock);
+ 		list_for_each_entry(page, &pgd_list, lru) {
+ 			pgd_t *pgd;
+ 			pud_t *pud;
+@@ -386,6 +388,7 @@ static void __set_pmd_pte(pte_t *kpte, unsigned long address, pte_t pte)
+ 			pmd = pmd_offset(pud, address);
+ 			set_pte_atomic((pte_t *)pmd, pte);
+ 		}
++		read_unlock(&pgd_lock);
+ 	}
+ #endif
+ }
+@@ -403,7 +406,7 @@ try_preserve_large_page(pte_t *kpte, unsigned long address,
+ 	if (cpa->force_split)
+ 		return 1;
+ 
+-	spin_lock_irqsave(&pgd_lock, flags);
++	spin_lock_irqsave(&pgattr_lock, flags);
+ 	/*
+ 	 * Check for races, another CPU might have split this page
+ 	 * up already:
+@@ -498,7 +501,7 @@ try_preserve_large_page(pte_t *kpte, unsigned long address,
+ 	}
+ 
+ out_unlock:
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	spin_unlock_irqrestore(&pgattr_lock, flags);
+ 
+ 	return do_split;
+ }
+@@ -519,7 +522,7 @@ static int split_large_page(pte_t *kpte, unsigned long address)
+ 	if (!base)
+ 		return -ENOMEM;
+ 
+-	spin_lock_irqsave(&pgd_lock, flags);
++	spin_lock_irqsave(&pgattr_lock, flags);
+ 	/*
+ 	 * Check for races, another CPU might have split this page
+ 	 * up for us already:
+@@ -587,11 +590,11 @@ static int split_large_page(pte_t *kpte, unsigned long address)
+ out_unlock:
+ 	/*
+ 	 * If we dropped out via the lookup_address check under
+-	 * pgd_lock then stick the page back into the pool:
++	 * pgattr_lock then stick the page back into the pool:
+ 	 */
+ 	if (base)
+ 		__free_page(base);
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	spin_unlock_irqrestore(&pgattr_lock, flags);
+ 
+ 	return 0;
+ }
+diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
+index 500242d..86ecfa8 100644
+--- a/arch/x86/mm/pgtable.c
++++ b/arch/x86/mm/pgtable.c
+@@ -121,14 +121,14 @@ static void pgd_ctor(struct mm_struct *mm, pgd_t *pgd)
+ 
+ static void pgd_dtor(pgd_t *pgd)
+ {
+-	unsigned long flags; /* can be called from interrupt context */
++	unsigned long flags;
+ 
+ 	if (SHARED_KERNEL_PMD)
+ 		return;
+ 
+-	spin_lock_irqsave(&pgd_lock, flags);
++	write_lock_irqsave(&pgd_lock, flags);
+ 	pgd_list_del(pgd);
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	write_unlock_irqrestore(&pgd_lock, flags);
+ }
+ 
+ /*
+@@ -280,12 +280,12 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+ 	 * respect to anything walking the pgd_list, so that they
+ 	 * never see a partially populated pgd.
+ 	 */
+-	spin_lock_irqsave(&pgd_lock, flags);
++	write_lock_irqsave(&pgd_lock, flags);
+ 
+ 	pgd_ctor(mm, pgd);
+ 	pgd_prepopulate_pmd(mm, pgd, pmds);
+ 
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	write_unlock_irqrestore(&pgd_lock, flags);
+ 
+ 	return pgd;
+ 
+diff --git a/arch/x86/xen/mmu.c b/arch/x86/xen/mmu.c
+index 0c376a2..85c4342 100644
+--- a/arch/x86/xen/mmu.c
++++ b/arch/x86/xen/mmu.c
+@@ -1036,10 +1036,9 @@ static void xen_pgd_pin(struct mm_struct *mm)
+  */
+ void xen_mm_pin_all(void)
+ {
+-	unsigned long flags;
+ 	struct page *page;
+ 
+-	spin_lock_irqsave(&pgd_lock, flags);
++	read_lock(&pgd_lock);
+ 
+ 	list_for_each_entry(page, &pgd_list, lru) {
+ 		if (!PagePinned(page)) {
+@@ -1048,7 +1047,7 @@ void xen_mm_pin_all(void)
+ 		}
+ 	}
+ 
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	read_unlock(&pgd_lock);
+ }
+ 
+ /*
+@@ -1149,10 +1148,9 @@ static void xen_pgd_unpin(struct mm_struct *mm)
+  */
+ void xen_mm_unpin_all(void)
+ {
+-	unsigned long flags;
+ 	struct page *page;
+ 
+-	spin_lock_irqsave(&pgd_lock, flags);
++	read_lock(&pgd_lock);
+ 
+ 	list_for_each_entry(page, &pgd_list, lru) {
+ 		if (PageSavePinned(page)) {
+@@ -1162,7 +1160,7 @@ void xen_mm_unpin_all(void)
+ 		}
+ 	}
+ 
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++	read_unlock(&pgd_lock);
+ }
+ 
+ void xen_activate_mm(struct mm_struct *prev, struct mm_struct *next)
+-- 
+1.7.4
+
+
+From 02f8ee69729fbf5f3f6289a302804bbeb07483b3 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 13:43:04 -0500
+Subject: [PATCH 209/217] pci/xen: Use xen_allocate_pirq_msi
+
+There is no need to use the old interface.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/pci/xen.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
+index 25cd4a0..6432f75 100644
+--- a/arch/x86/pci/xen.c
++++ b/arch/x86/pci/xen.c
+@@ -157,14 +157,14 @@ static int xen_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 		goto error;
+ 	i = 0;
+ 	list_for_each_entry(msidesc, &dev->msi_list, list) {
+-		irq = xen_allocate_pirq(v[i], 0, /* not sharable */
++		xen_allocate_pirq_msi(
+ 			(type == PCI_CAP_ID_MSIX) ?
+-			"pcifront-msi-x" : "pcifront-msi");
++			"pcifront-msi-x" : "pcifront-msi",
++			&irq, &v[i], XEN_ALLOC_IRQ);
+ 		if (irq < 0) {
+ 			ret = -1;
+ 			goto free;
+ 		}
+-
+ 		ret = set_irq_msi(irq, msidesc);
+ 		if (ret)
+ 			goto error_while;
+-- 
+1.7.4
+
+
+From d07b718a436d74c588ff07fbc98a6c59aeb9278d Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 13:43:22 -0500
+Subject: [PATCH 210/217] xen-pcifront: Sanity check the MSI/MSI-X values
+
+Check the returned vector values for any values that are
+odd or plain incorrect (say vector value zero), and if so
+print a warning. Also fixup the return values.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/pci/xen-pcifront.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
+index 3a5a6fc..6acf6ae 100644
+--- a/drivers/pci/xen-pcifront.c
++++ b/drivers/pci/xen-pcifront.c
+@@ -277,13 +277,20 @@ static int pci_frontend_enable_msix(struct pci_dev *dev,
+ 	if (likely(!err)) {
+ 		if (likely(!op.value)) {
+ 			/* we get the result */
+-			for (i = 0; i < nvec; i++)
++			for (i = 0; i < nvec; i++) {
++				if (op.msix_entries[i].vector <= 0) {
++					dev_warn(&dev->dev, "MSI-X entry %d" \
++						" is zero!\n", i);
++					err = -EINVAL;
++					continue;
++				}
+ 				*(*vector+i) = op.msix_entries[i].vector;
+-			return 0;
++			}
++			return err;
+ 		} else {
+ 			printk(KERN_DEBUG "enable msix get value %x\n",
+ 				op.value);
+-			return op.value;
++			return err;
+ 		}
+ 	} else {
+ 		dev_err(&dev->dev, "enable msix get err %x\n", err);
+@@ -325,6 +332,10 @@ static int pci_frontend_enable_msi(struct pci_dev *dev, int **vector)
+ 	err = do_pci_op(pdev, &op);
+ 	if (likely(!err)) {
+ 		*(*vector) = op.value;
++		if (op.value <= 0) {
++			dev_warn(&dev->dev, "MSI entry is zero!\n");
++			err = -EINVAL;
++		}
+ 	} else {
+ 		dev_err(&dev->dev, "pci frontend enable msi failed for dev "
+ 				    "%x:%x\n", op.bus, op.devfn);
+-- 
+1.7.4
+
+
+From 8958c71b5c4973752f3de26a7b922c666b2fb5cf Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Mon, 24 Jan 2011 15:43:03 +0100
+Subject: [PATCH 211/217] xen-pcifront: don't use flush_scheduled_work()
+
+flush_scheduled_work() is scheduled for deprecation.  Cancel ->op_work
+directly instead.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Ryan Wilson <hap9@epoch.ncsc.mil>
+Cc: Jan Beulich <JBeulich@novell.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/pci/xen-pcifront.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
+index 6acf6ae..dd615d9 100644
+--- a/drivers/pci/xen-pcifront.c
++++ b/drivers/pci/xen-pcifront.c
+@@ -744,8 +744,7 @@ static void free_pdev(struct pcifront_device *pdev)
+ 
+ 	pcifront_free_roots(pdev);
+ 
+-	/*For PCIE_AER error handling job*/
+-	flush_scheduled_work();
++	cancel_work_sync(&pdev->op_work);
+ 
+ 	if (pdev->irq >= 0)
+ 		unbind_from_irqhandler(pdev->irq, pdev);
+-- 
+1.7.4
+
+
+From a5c2467c12bdbac588e272c66f985d25b5a6ae21 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 14:41:16 -0500
+Subject: [PATCH 212/217] xen/irq: Use the Xen PIRQ value instead of GSI value to check.
+
+In reality it does not matter as we save the PIRQ value
+as GSI for legacy interrupts (INT). So for those PIRQ==GSI.
+
+But in case in the future we seperate the PIRQ==GSI
+for legacy interrupts, we won't hit this bug.
+---
+ drivers/xen/events.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 3929c20..6cad295 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -1441,7 +1441,7 @@ int xen_ignore_irq(int irq)
+ {
+ 	struct irq_info *info = info_for_irq(irq);
+ 	struct physdev_irq_status_query irq_status = { .irq =
+-							info->u.pirq.gsi };
++							info->u.pirq.pirq };
+ 
+ 	if (HYPERVISOR_physdev_op(PHYSDEVOP_irq_status_query, &irq_status))
+ 		return 0;
+-- 
+1.7.4
+
+
+From bd9b08c4150f4ed9ca3481244d38e7964cd62c25 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 13:47:16 -0500
+Subject: [PATCH 213/217] xen/irq: Export 'xen_pirq_from_irq' function.
+
+We need this to find the real Xen PIRQ value for either
+an device that requests an MSI, MSI-X.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |    6 ++++++
+ include/xen/events.h |    3 +++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 6cad295..6fae78a 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -790,6 +790,12 @@ int xen_gsi_from_irq(unsigned irq)
+ 	return pirq_to_irq[pirq];
+ }
+ 
++int xen_pirq_from_irq(unsigned irq)
++{
++	return pirq_from_irq(irq);
++}
++EXPORT_SYMBOL_GPL(xen_pirq_from_irq);
++
+ int bind_evtchn_to_irq(unsigned int evtchn)
+ {
+ 	int irq;
+diff --git a/include/xen/events.h b/include/xen/events.h
+index 2fe1644..baf5c0d 100644
+--- a/include/xen/events.h
++++ b/include/xen/events.h
+@@ -95,6 +95,9 @@ int xen_vector_from_irq(unsigned pirq);
+ /* Return irq from pirq */
+ int xen_irq_from_pirq(unsigned pirq);
+ 
++/* Return the pirq allocated to the irq. */
++int xen_pirq_from_irq(unsigned irq);
++
+ /* Determine whether to ignore this IRQ if passed to a guest. */
+ int xen_ignore_irq(int irq);
+ 
+-- 
+1.7.4
+
+
+From 575c8f289a97f3800f1442e13795d93fef87ca2b Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 13:44:38 -0500
+Subject: [PATCH 215/217] xen/pciback: Utilize 'xen_pirq_from_irq' to get PIRQ value.
+
+In the past the Xen IRQ code had overloaded the irq->gsi with
+ton of uses. The 'gsi' would be a real GSI, an vector value, or
+a Xen PIRQ value. We were quite dilligient in having the correct
+value there for the guest, but with the IRQ rework code this
+overloading is gone. As so, use the correct function to retrieve
+the PIRQ value.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/pciback/conf_space_capability_msi.c |   26 +++++++++++++++-------
+ 1 files changed, 18 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/xen/pciback/conf_space_capability_msi.c b/drivers/xen/pciback/conf_space_capability_msi.c
+index 3acda69..c9b0aba 100644
+--- a/drivers/xen/pciback/conf_space_capability_msi.c
++++ b/drivers/xen/pciback/conf_space_capability_msi.c
+@@ -30,7 +30,8 @@ int pciback_enable_msi(struct pciback_device *pdev,
+ 
+ 	/* The value the guest needs is actually the IDT vector, not the
+ 	 * the local domain's IRQ number. */
+-	op->value = xen_gsi_from_irq(dev->irq);
++
++	op->value = dev->irq ? xen_pirq_from_irq(dev->irq) : 0;
+ 	dev_data = pci_get_drvdata(dev);
+ 	if (dev_data)
+ 		dev_data->ack_intr = 0;
+@@ -47,7 +48,7 @@ int pciback_disable_msi(struct pciback_device *pdev,
+ 		printk(KERN_DEBUG "pciback: %s: disable MSI\n", pci_name(dev));
+ 	pci_disable_msi(dev);
+ 
+-	op->value = xen_gsi_from_irq(dev->irq);
++	op->value = dev->irq ? xen_pirq_from_irq(dev->irq) : 0;
+ 	dev_data = pci_get_drvdata(dev);
+ 	if (dev_data)
+ 		dev_data->ack_intr = 1;
+@@ -77,12 +78,17 @@ int pciback_enable_msix(struct pciback_device *pdev,
+ 
+ 	result = pci_enable_msix(dev, entries, op->value);
+ 
+-	for (i = 0; i < op->value; i++) {
+-		op->msix_entries[i].entry = entries[i].entry;
+-		op->msix_entries[i].vector =
+-					xen_gsi_from_irq(entries[i].vector);
++	if (result == 0) {
++		for (i = 0; i < op->value; i++) {
++			op->msix_entries[i].entry = entries[i].entry;
++			if (entries[i].vector)
++				op->msix_entries[i].vector =
++					xen_pirq_from_irq(entries[i].vector);
++		}
++	} else {
++		printk(KERN_WARNING "pciback: %s: failed to enable MSI-X: err %d!\n",
++			pci_name(dev), result);
+ 	}
+-
+ 	kfree(entries);
+ 
+ 	op->value = result;
+@@ -102,7 +108,11 @@ int pciback_disable_msix(struct pciback_device *pdev,
+ 			pci_name(dev));
+ 	pci_disable_msix(dev);
+ 
+-	op->value = xen_gsi_from_irq(dev->irq);
++	/*
++	 * SR-IOV devices (which don't have any legacy IRQ) have
++	 * an undefined IRQ value of zero.
++	 */
++	op->value = dev->irq ? xen_pirq_from_irq(dev->irq) : 0;
+ 	dev_data = pci_get_drvdata(dev);
+ 	if (dev_data)
+ 		dev_data->ack_intr = 1;
+-- 
+1.7.4
+
+
+From 2de65438fe720e3faeb3ec65adfeb9752333d9e1 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 15:43:25 -0500
+Subject: [PATCH 216/217] xen/pciback: Don't setup an fake IRQ handler for SR-IOV devices.
+
+If we try to setup an fake IRQ handler for legacy interrupts
+for devices that only have MSI-X (most if not all SR-IOV cards),
+we will fail with this:
+
+pciback[0000:01:10.0]: failed to install fake IRQ handler for IRQ 0! (rc:-38)
+
+Since those cards don't have anything in dev->irq.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/pciback/pciback_ops.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/xen/pciback/pciback_ops.c b/drivers/xen/pciback/pciback_ops.c
+index 9a465e9..68980d8 100644
+--- a/drivers/xen/pciback/pciback_ops.c
++++ b/drivers/xen/pciback/pciback_ops.c
+@@ -48,6 +48,13 @@ void pciback_control_isr(struct pci_dev *dev, int reset)
+ 	if (enable)
+ 		dev_data->irq = dev->irq;
+ 
++	/*
++	 * SR-IOV devices in all use MSI-X and have no legacy
++	 * interrupts, so inhibit creating a fake IRQ handler for them.
++	 */
++	if (dev_data->irq == 0)
++		goto out;
++
+ 	dev_dbg(&dev->dev, "%s: #%d %s %s%s %s-> %s\n",
+ 		dev_data->irq_name,
+ 		dev_data->irq,
+-- 
+1.7.4
+
+
+From 4e9fecd2ff61c6de8935899d22f4d885ea1e86d0 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 16 Feb 2011 16:26:44 -0500
+Subject: [PATCH 217/217] xen/irq: The Xen hypervisor cleans up the PIRQs if the other domain forgot.
+
+And if the other domain forgot to clean up its PIRQs we don't need
+to fail the operation. Just take a note of it and continue on.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/events.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 6fae78a..ae75de9 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -765,7 +765,14 @@ int xen_destroy_irq(int irq)
+ 		unmap_irq.pirq = info->u.pirq.gsi;
+ 		unmap_irq.domid = info->u.pirq.domid;
+ 		rc = HYPERVISOR_physdev_op(PHYSDEVOP_unmap_pirq, &unmap_irq);
+-		if (rc) {
++		/* If another domain quits without making the pci_disable_msix
++		 * call, the Xen hypervisor takes care of freeing the PIRQs
++		 * (free_domain_pirqs).
++		 */
++		if ((rc == -ESRCH && info->u.pirq.domid != DOMID_SELF))
++			printk(KERN_INFO "domain %d does not have %d anymore\n",
++				info->u.pirq.domid, info->u.pirq.pirq);
++		else if (rc) {
+ 			printk(KERN_WARNING "unmap irq failed %d\n", rc);
+ 			goto out;
+ 		}
 -- 
 1.7.4
 

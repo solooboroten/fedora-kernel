@@ -1980,6 +1980,9 @@ fi
 # and build.
 
 %changelog
+* Sun Feb 20 2011 Michael Young <m.a.young@durham.ac.uk>
+- Update devel/next-2.6.38
+
 * Sat Feb 19 2011 Chuck Ebbert <cebbert@redhat.com>  2.6.38-0.rc5.git5.1
 - Linux 2.6.38-rc5-git5
 
