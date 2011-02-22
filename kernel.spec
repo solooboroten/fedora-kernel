@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 5
+%define rcrev 6
 # The git snapshot level
-%define gitrev 5
+%define gitrev 0
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -1980,6 +1980,15 @@ fi
 # and build.
 
 %changelog
+* Tue Feb 22 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc6.git0.1
+- Linux 2.6.38-rc6
+
+* Tue Feb 22 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc5.git7.1
+- Linux 2.6.38-rc5-git7
+
+* Mon Feb 21 2011 Dave Jones <davej@redhat.com> 2.6.38-0.rc5.git6.1
+- Linux 2.6.38-rc5-git6
+
 * Sun Feb 20 2011 Michael Young <m.a.young@durham.ac.uk>
 - Update devel/next-2.6.38
 
