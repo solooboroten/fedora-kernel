@@ -1980,7 +1980,7 @@ fi
 # and build.
 
 %changelog
-* Sun Feb 20 2011 Michael Young <m.a.young@durham.ac.uk>
+* Tue Feb 22 2011 Michael Young <m.a.young@durham.ac.uk>
 - update devel/next-2.6.38 and fix a mis-edit
 
 * Tue Feb 22 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc6.git0.1
