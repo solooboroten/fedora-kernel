@@ -85,7 +85,7 @@ Summary: The Linux kernel
 # The rc snapshot level
 %define rcrev 6
 # The git snapshot level
-%define gitrev 0
+%define gitrev 6
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -646,6 +646,7 @@ Patch390: linux-2.6-defaults-acpi-video.patch
 Patch391: linux-2.6-acpi-video-dos.patch
 Patch393: acpi-ec-add-delay-before-write.patch
 Patch394: linux-2.6-acpi-debug-infinite-loop.patch
+Patch395: linux-2.6-acpi-fix-implicit-notify.patch
 
 Patch450: linux-2.6-input-kill-stupid-messages.patch
 Patch452: linux-2.6.30-no-pcspkr-modalias.patch
@@ -736,11 +737,6 @@ Patch12205: runtime_pm_fixups.patch
 Patch12303: dmar-disable-when-ricoh-multifunction.patch
 
 Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
-
-Patch12438: ath5k-fix-fast-channel-change.patch
-
-# rhbz#676860
-Patch12441: usb-sierra-add-airprime-direct-ip.patch
 
 # Xen patches
 # git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git branches
@@ -1228,6 +1224,7 @@ ApplyPatch linux-2.6-defaults-acpi-video.patch
 ApplyPatch linux-2.6-acpi-video-dos.patch
 ApplyPatch acpi-ec-add-delay-before-write.patch
 ApplyPatch linux-2.6-acpi-debug-infinite-loop.patch
+ApplyPatch linux-2.6-acpi-fix-implicit-notify.patch
 
 # Various low-impact patches to aid debugging.
 ApplyPatch linux-2.6-debug-sizeof-structs.patch
@@ -1363,12 +1360,6 @@ ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
 # rhbz#662344,600690
 ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
-
-# rhbz#672778
-ApplyPatch ath5k-fix-fast-channel-change.patch
-
-# rhbz#676860
-ApplyPatch usb-sierra-add-airprime-direct-ip.patch
 
 # Xen patches
 #ApplyPatch xen.next-2.6.38.patch
@@ -1980,6 +1971,23 @@ fi
 # and build.
 
 %changelog
+* Fri Feb 25 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc6.git6.1
+- Linux 2.6.38-rc6-git6
+- Build in virtio_pci driver so virtio_console will be built-in (#677713)
+
+* Thu Feb 24 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc6.git4.1
+- Linux 2.6.38-rc6-git4
+
+* Thu Feb 24 2011 Matthew Garrett <mjg@redhat.com> 2.6.38-0.rc6.git2.2
+- linux-2.6-acpi-fix-implicit-notify.patch: Fix implicit notify when there's
+  more than one device per GPE
+
+* Wed Feb 23 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc6.git2.1
+- Linux 2.6.38-rc6-git2
+
+* Wed Feb 23 2011 Ben Skeggs <bskeggs@redhat.com> 2.6.38-0.rc6.git0.2
+- nouveau: nv4x pciegart fixes, nvc0 accel improvements
+
 * Tue Feb 22 2011 Michael Young <m.a.young@durham.ac.uk>
 - update devel/next-2.6.38 and fix a mis-edit
 
