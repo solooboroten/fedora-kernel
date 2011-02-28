@@ -1971,6 +1971,9 @@ fi
 # and build.
 
 %changelog
+* Mon Feb 28 2011 Michael Young <m.a.young@durham.ac.uk>
+- get updated devel/next-2.6.38
+
 * Fri Feb 25 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc6.git6.1
 - Linux 2.6.38-rc6-git6
 - Build in virtio_pci driver so virtio_console will be built-in (#677713)
