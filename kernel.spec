@@ -6,7 +6,7 @@ Summary: The Linux kernel
 # For a stable, released kernel, released_kernel should be 1. For rawhide
 # and/or a kernel built from an rc or git snapshot, released_kernel should
 # be 0.
-%global released_kernel 0
+%global released_kernel 1
 
 # Save original buildid for later if it's defined
 %if 0%{?buildid:1}
@@ -58,7 +58,7 @@ Summary: The Linux kernel
 # base_sublevel is the kernel version we're starting with and patching
 # on top of -- for example, 2.6.22-rc7-git1 starts with a 2.6.21 base,
 # which yields a base_sublevel of 21.
-%define base_sublevel 37
+%define base_sublevel 38
 
 ## If this is a released kernel ##
 %if 0%{?released_kernel}
@@ -83,9 +83,9 @@ Summary: The Linux kernel
 # The next upstream release sublevel (base_sublevel+1)
 %define upstream_sublevel %(echo $((%{base_sublevel} + 1)))
 # The rc snapshot level
-%define rcrev 6
+%define rcrev 8
 # The git snapshot level
-%define gitrev 6
+%define gitrev 4
 # Set rpm version accordingly
 %define rpmversion 2.6.%{upstream_sublevel}
 %endif
@@ -620,12 +620,13 @@ Patch09: linux-2.6-upstream-reverts.patch
 # Standalone patches
 Patch20: linux-2.6-hotfixes.patch
 
-
+Patch29: linux-2.6-utrace-revert-make-ptrace-functions-static.patch
 Patch30: linux-2.6-tracehook.patch
 Patch31: linux-2.6-utrace.patch
 Patch32: linux-2.6-utrace-ptrace.patch
 
 Patch150: linux-2.6.29-sparc-IOC_TYPECHECK.patch
+Patch151: sparc64_fix_build_errors_with_gcc460.patch
 
 Patch160: linux-2.6-32bit-mmap-exec-randomization.patch
 Patch161: linux-2.6-i386-nx-emulation.patch
@@ -646,7 +647,6 @@ Patch390: linux-2.6-defaults-acpi-video.patch
 Patch391: linux-2.6-acpi-video-dos.patch
 Patch393: acpi-ec-add-delay-before-write.patch
 Patch394: linux-2.6-acpi-debug-infinite-loop.patch
-Patch395: linux-2.6-acpi-fix-implicit-notify.patch
 
 Patch450: linux-2.6-input-kill-stupid-messages.patch
 Patch452: linux-2.6.30-no-pcspkr-modalias.patch
@@ -676,12 +676,12 @@ Patch1555: fix_xen_guest_on_old_EC2.patch
 
 # nouveau + drm fixes
 Patch1810: drm-nouveau-updates.patch
-Patch1819: drm-intel-big-hammer.patch
 # intel drm is all merged upstream
 Patch1824: drm-intel-next.patch
 # make sure the lvds comes back on lid open
 Patch1825: drm-intel-make-lvds-work.patch
 Patch1826: drm-intel-edp-fixes.patch
+Patch1827: drm-i915-gen4-has-non-power-of-two-strides.patch
 
 Patch1900: linux-2.6-intel-iommu-igfx.patch
 
@@ -818,6 +818,20 @@ Group: Development/System
 License: GPLv2
 %description -n perf
 This package provides the perf tool and the supporting documentation.
+
+%package -n perf-debuginfo
+Summary: Debug information for package perf
+Group: Development/Debug
+Requires: %{name}-debuginfo-common-%{_target_cpu} = %{version}-%{release}
+AutoReqProv: no
+%description -n perf-debuginfo
+This package provides debug information for package perf.
+
+# Note that this pattern only works right to match the .build-id
+# symlinks because of the trailing nonmatching alternation and
+# the leading .*, because of find-debuginfo.sh's buggy handling
+# of matching the pattern against the symlinks file.
+%{expand:%%global debuginfo_args %{?debuginfo_args} -p '.*%%{_bindir}/perf(\.debug)?|.*%%{_libexecdir}/perf-core/.*|XXX' -o perf-debuginfo.list}
 %endif
 
 
@@ -1174,6 +1188,7 @@ ApplyOptionalPatch linux-2.6-upstream-reverts.patch -R
 ApplyPatch linux-2.6-hotfixes.patch
 
 # Roland's utrace ptrace replacement.
+ApplyPatch linux-2.6-utrace-revert-make-ptrace-functions-static.patch
 ApplyPatch linux-2.6-tracehook.patch
 ApplyPatch linux-2.6-utrace.patch
 ApplyPatch linux-2.6-utrace-ptrace.patch
@@ -1193,6 +1208,7 @@ ApplyPatch linux-2.6-utrace-ptrace.patch
 # SPARC64
 #
 ApplyPatch linux-2.6.29-sparc-IOC_TYPECHECK.patch
+ApplyPatch sparc64_fix_build_errors_with_gcc460.patch
 
 #
 # Exec shield
@@ -1224,7 +1240,6 @@ ApplyPatch linux-2.6-defaults-acpi-video.patch
 ApplyPatch linux-2.6-acpi-video-dos.patch
 ApplyPatch acpi-ec-add-delay-before-write.patch
 ApplyPatch linux-2.6-acpi-debug-infinite-loop.patch
-ApplyPatch linux-2.6-acpi-fix-implicit-notify.patch
 
 # Various low-impact patches to aid debugging.
 ApplyPatch linux-2.6-debug-sizeof-structs.patch
@@ -1303,10 +1318,12 @@ ApplyOptionalPatch drm-nouveau-updates.patch
 
 # Intel DRM
 ApplyOptionalPatch drm-intel-next.patch
-ApplyPatch drm-intel-big-hammer.patch
 ApplyPatch drm-intel-make-lvds-work.patch
 ApplyPatch linux-2.6-intel-iommu-igfx.patch
 ApplyPatch drm-intel-edp-fixes.patch
+# rhbz#681285 (i965: crash in brw_wm_surface_state.c::prepare_wm_surfaces()
+#  where intelObj->mt == NULL)
+#ApplyPatch drm-i915-gen4-has-non-power-of-two-strides.patch
 
 # linux1394 git patches
 #ApplyPatch linux-2.6-firewire-git-update.patch
@@ -1686,7 +1703,7 @@ BuildKernel %make_target %kernel_image smp
 
 %if %{with_doc}
 # Make the HTML and man pages.
-make %{?_smp_mflags} htmldocs mandocs || %{doc_build_fail}
+make htmldocs mandocs || %{doc_build_fail}
 
 # sometimes non-world-readable files sneak into the kernel source tree
 chmod -R a=rX Documentation
@@ -1907,6 +1924,11 @@ fi
 %dir %{_libexecdir}/perf-core
 %{_libexecdir}/perf-core/*
 %{_mandir}/man[1-8]/*
+
+%if %{with_debuginfo}
+%files -f perf-debuginfo.list -n perf-debuginfo
+%defattr(-,root,root)
+%endif
 %endif
 
 # This is %%{image_install_path} on an arch where that includes ELF files,
@@ -1971,6 +1993,55 @@ fi
 # and build.
 
 %changelog
+* Tue Mar 15 2011 Adam Jackson <ajax@redhat.com>
+- drm-intel-big-hammer.patch: Drop.
+
+* Tue Mar 15 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-1
+- Linux 2.6.38
+
+* Mon Mar 14 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc8.git4.1
+- Linux 2.6.38-rc8-git4
+
+* Thu Mar 10 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc8-git3
+
+* Thu Mar 10 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc8.git2.1
+- Linux 2.6.38-rc8-git2
+
+* Wed Mar 09 2011 Chuck Ebbert <cebbert@redhat.com>
+- Linux 2.6.38-rc8-git1
+
+* Wed Mar 09 2011 Dennis Gilmore <dennis@ausil.us>
+- apply sparc64 gcc-4.6.0 buildfix patch
+
+* Wed Mar 09 2011 Ben Skeggs <bskeggs@redhat.com> 2.6.38-0.rc8.git0.2
+- nouveau: allow max clients on nv4x (679629), better error reporting
+
+* Tue Mar 08 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc8.git0.1
+- Linux 2.6.38-rc8
+
+* Sat Mar 05 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc7.git4.1
+- Linux 2.6.38-rc7-git4
+- Revert upstream commit e3e89cc535223433a619d0969db3fa05cdd946b8
+  for now to fix utrace build.
+
+* Fri Mar 04 2011 Roland McGrath <roland@redhat.com> - 2.6.38-0.rc7.git2.3
+- Split out perf-debuginfo subpackage.
+
+* Fri Mar 04 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc7.git2.2
+- Disable drm-i915-gen4-has-non-power-of-two-strides.patch for now, breaks
+  my mutter.
+
+* Fri Mar 04 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc7.git2.1
+- Linux 2.6.38-rc7-git2
+- drm-i915-gen4-has-non-power-of-two-strides.patch (#681285)
+
+* Thu Mar 03 2011 Chuck Ebbert <cebbert@redhat.com> 2.6.38-0.rc7.git1.1
+- Linux 2.6.38-rc7-git1
+
+* Tue Mar 01 2011 Kyle McMartin <kmcmartin@redhat.com> 2.6.38-0.rc7.git0.1
+- Linux 2.6.38-rc7
+
 * Mon Feb 28 2011 Michael Young <m.a.young@durham.ac.uk>
 - get updated devel/next-2.6.38
 
