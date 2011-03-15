@@ -745,6 +745,8 @@ Patch12421: fs-call-security_d_instantiate-in-d_obtain_alias.patch
 # git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git branches
 #Patch20005: xen.pcifront.fixes.patch
 Patch20006: xen.pcifront.next-2.6.38.patch
+# build fix
+Patch20007: p2mfix.patch
 # git://xenbits.xen.org/people/sstabellini/linux-pvhvm branches
 #Patch20010: xen.pvhvm.fixes.patch
 
@@ -1383,6 +1385,7 @@ ApplyPatch fs-call-security_d_instantiate-in-d_obtain_alias.patch
 #ApplyPatch xen.upstream.core.patch
 #ApplyPatch xen.pcifront.fixes.patch
 ApplyPatch xen.pcifront.next-2.6.38.patch
+ApplyPatch p2mfix.patch
 #ApplyPatch xen.pvhvm.fixes.patch
 
 # END OF PATCH APPLICATIONS
@@ -1998,6 +2001,7 @@ fi
   for ease of maintenance
   patch is git diff v2.6.38...3d67ff0c8f180f2cc4ade645f6f9571b26816e5a
 - set new xen-blkback to be a module CONFIG_XEN_BLKDEV_BACKEND=m
+- add patch to allow xen-blkback to build as module
 
 * Tue Mar 15 2011 Adam Jackson <ajax@redhat.com>
 - drm-intel-big-hammer.patch: Drop.

@@ -1,0 +1,18 @@
+--- linux-2.6.38.x86_64/arch/x86/xen/p2m.c.orig	2011-03-15 19:51:44.000000000 +0000
++++ linux-2.6.38.x86_64/arch/x86/xen/p2m.c	2011-03-15 20:38:38.000000000 +0000
+@@ -557,6 +557,7 @@
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(m2p_add_override);
+ 
+ int m2p_remove_override(struct page *page, bool clear_pte)
+ {
+@@ -594,6 +595,7 @@
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(m2p_remove_override);
+ 
+ struct page *m2p_find_override(unsigned long mfn)
+ {
