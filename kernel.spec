@@ -1993,6 +1993,12 @@ fi
 # and build.
 
 %changelog
+* Tue Mar 15 2011 Michael Young <m.a.young@durham.ac.uk>
+- switch to single diff for pcifront.next-2.6.38.patch
+  for ease of maintenance
+  patch is git diff v2.6.38...3d67ff0c8f180f2cc4ade645f6f9571b26816e5a
+- set new xen-blkback to be a module CONFIG_XEN_BLKDEV_BACKEND=m
+
 * Tue Mar 15 2011 Adam Jackson <ajax@redhat.com>
 - drm-intel-big-hammer.patch: Drop.
 
