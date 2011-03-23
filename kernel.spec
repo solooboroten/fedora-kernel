@@ -731,6 +731,10 @@ Patch30000: pnfs-all-2.6.38-rc3-2011-02-03.patch
 Patch30001: linux-2.6-pnfs-compile.patch
 Patch30002: linux-2.6.35-inline.patch
 
+Patch30000: pnfs-all-2.6.38-rc3-2011-02-03.patch
+Patch30001: linux-2.6-pnfs-compile.patch
+Patch30002: linux-2.6.35-inline.patch
+
 %endif
 
 BuildRoot: %{_tmppath}/kernel-%{KVERREL}-root
@@ -1355,6 +1359,10 @@ ApplyPatch acpi_reboot.patch
 ApplyPatch dmar-disable-when-ricoh-multifunction.patch
 
 ApplyPatch xhci_hcd-suspend-resume.patch
+
+ApplyPatch pnfs-all-2.6.38-rc3-2011-02-03.patch
+ApplyPatch linux-2.6-pnfs-compile.patch
+ApplyPatch linux-2.6.35-inline.patch
 
 ApplyPatch pnfs-all-2.6.38-rc3-2011-02-03.patch
 ApplyPatch linux-2.6-pnfs-compile.patch
