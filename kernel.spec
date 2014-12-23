@@ -878,6 +878,11 @@ Provides: kernel%{?1:-%{1}}-modules-extra-%{_target_cpu} = %{version}-%{release}
 Provides: kernel%{?1:-%{1}}-modules-extra = %{version}-%{release}%{?1:+%{1}}\
 Provides: installonlypkg(kernel-module)\
 Provides: kernel%{?1:-%{1}}-modules-extra-uname-r = %{KVERREL}%{?1:+%{1}}\
+%if 0%{?1:1}\
+Provides: kernel-modules-extra-%{_target_cpu} = %{version}-%{release}%{?1:+%{1}}\
+Provides: kernel-modules-extra = %{version}-%{release}%{?1:+%{1}}\
+Provides: kernel-modules-extra-uname-r = %{KVERREL}%{?1:+%{1}}\
+%endif\
 Requires: kernel-uname-r = %{KVERREL}%{?1:+%{1}}\
 Requires: kernel%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{?1:+%{1}}\
 AutoReq: no\
@@ -899,6 +904,9 @@ Provides: kernel-modules-%{_target_cpu} = %{version}-%{release}%{?1:+%{1}}\
 Provides: kernel-modules = %{version}-%{release}%{?1:+%{1}}\
 Provides: installonlypkg(kernel-module)\
 Provides: kernel%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{?1:+%{1}}\
+%if 0%{?1:1}\
+Provides: kernel-modules-uname-r = %{KVERREL}%{?1:+%{1}}\
+%endif\
 Requires: kernel-uname-r = %{KVERREL}%{?1:+%{1}}\
 AutoReq: no\
 AutoProv: yes\
@@ -2300,6 +2308,10 @@ fi
 #                                    ||----w |
 #                                    ||     ||
 %changelog
+* Tue Dec 23 2014 Aleksey Avdeev <avdeev@altell.ru>
+- Fix provides for subpackages kernel*-modules and kernel*-modules-extra
+  (rhbz 1058331)
+
 * Thu Dec 18 2014 Josh Boyer <jwboyer@fedoraproject.org> - 3.18.1-2
 - CVE-2014-8989 userns can bypass group restrictions (rhbz 1170684 1170688)
 - Fix from Kyle McMartin for target_core_user uapi issue since it's enabled
